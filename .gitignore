@@ -44,3 +44,7 @@ htmlcov/
 # Optional: keep data/ but ignore large binaries if any
 # data/*.pdf
 # data/*.epub
+
+# vue-tsc -b 产物（已改为输出到 node_modules/.tmp）
+frontend/vite.config.js
+frontend/vite.config.d.ts

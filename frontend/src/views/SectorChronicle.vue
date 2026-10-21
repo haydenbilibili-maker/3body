@@ -202,18 +202,27 @@ const contentMap: Record<string, string> = {
   `
 }
 
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
 const currentContent = computed(() => {
   // Check imported book first
   if (selectedBookId.value === 'local') {
     const chapter = importedBook.chapters.find(c => c.id === selectedChapterId.value)
     if (chapter) {
-      // Simple HTML formatting for plain text: preserve paragraphs
+      // 用户导入的本地文本：必须先转义再拼 HTML（v-html 渲染，未转义即 XSS）
       const htmlContent = chapter.content
         .split(/\n\s*\n/) // Split by double newline for paragraphs
-        .map(para => `<p>${para.trim()}</p>`)
+        .map(para => `<p>${escapeHtml(para.trim())}</p>`)
         .join('')
-      
-      return `<h2>${chapter.title}</h2>${htmlContent}<div class="chapter-end">—— 本章完 ——</div>`
+
+      return `<h2>${escapeHtml(chapter.title)}</h2>${htmlContent}<div class="chapter-end">—— 本章完 ——</div>`
     }
   }
 

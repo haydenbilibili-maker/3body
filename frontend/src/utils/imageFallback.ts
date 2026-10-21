@@ -1,7 +1,15 @@
 /**
  * 本地图片回退：当 API 的 image_url 为空或为占位图时，使用 frontend/public/images/ 下的静态资源。
  * 与 docs/IMAGE-GENERATION.md 中的命名规则一致。
+ *
+ * 路径必须带上 Vite 的 base（import.meta.env.BASE_URL）：GitHub Pages 部署在 /3body/ 子路径下，
+ * 写死成 /images/... 会请求到 github.io/images/... 而 404。
  */
+
+/** public/ 下静态资源的完整 URL（自动拼接部署子路径） */
+export function publicAsset(path: string): string {
+  return `${import.meta.env.BASE_URL}${path.replace(/^\/+/, '')}`
+}
 
 /** 将人物 en_name 转为文件名 slug，与 IMAGE-GENERATION.md 人物志命名一致 */
 export function toFigureSlug(enName: string | null | undefined): string {
@@ -17,7 +25,7 @@ export function toFigureSlug(enName: string | null | undefined): string {
 }
 
 /**
- * 人物志头像 URL：优先用本地 /images/figures/{slug}.webp（与 IMAGE-GENERATION 命名一致），
+ * 人物志头像 URL：优先用本地 images/figures/{slug}.webp（与 IMAGE-GENERATION 命名一致），
  * 无 slug 时再用 API 的 image_url，最后用占位图。这样按规则放置的本地图会优先展示。
  */
 export function figureImageUrl(
@@ -26,7 +34,7 @@ export function figureImageUrl(
   fallbackPlaceholder?: string
 ): string {
   const slug = toFigureSlug(enName)
-  if (slug) return `/images/figures/${slug}.webp`
+  if (slug) return publicAsset(`images/figures/${slug}.webp`)
   if (imageUrl && !imageUrl.includes('placehold.co')) return imageUrl
   return fallbackPlaceholder ?? ''
 }
@@ -73,7 +81,7 @@ export function toChronicleSlug(title: string | null | undefined): string {
 }
 
 /**
- * 编年史视觉记录图 URL：优先用 API 的 image_url（且非 picsum/placehold），否则用本地 /images/chronicles/{slug}.webp
+ * 编年史视觉记录图 URL：优先用 API 的 image_url（且非 picsum/placehold），否则用本地 images/chronicles/{slug}.webp
  */
 export function chronicleImageUrl(
   imageUrl: string | null | undefined,
@@ -81,6 +89,6 @@ export function chronicleImageUrl(
 ): string {
   if (imageUrl && !imageUrl.includes('picsum.photos') && !imageUrl.includes('placehold.co')) return imageUrl
   const slug = toChronicleSlug(title)
-  if (slug) return `/images/chronicles/${slug}.webp`
+  if (slug) return publicAsset(`images/chronicles/${slug}.webp`)
   return ''
 }
