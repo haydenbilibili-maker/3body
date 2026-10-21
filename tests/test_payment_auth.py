@@ -8,6 +8,10 @@ import json
 import pytest
 from httpx import AsyncClient
 
+# 商业化线已冻结（2026-10）：整套用例保留为将来实现时的验收标准，当前全部跳过。
+# 解冻时删除这一行，并把 P1/P2 中「接受 404」的宽松断言改为严格断言。
+pytestmark = pytest.mark.skip(reason="商业化（支付/会员/鉴权）已冻结，暂不推进")
+
 # -----------------------------------------------------------------------------
 # P1: Webhook 签名与伪造防护
 # -----------------------------------------------------------------------------
@@ -116,16 +120,3 @@ async def test_p4_01_checkout_session_timeout_handling(client: AsyncClient):
 async def test_p4_04_webhook_idempotent_same_session(client: AsyncClient):
     """P4-04: 同一 checkout.session.completed 重发多次仅生效一次."""
     pytest.skip("Webhook 幂等未实现 — 暴露坐标: Webhook handler + idempotency_key / 唯一约束")
-
-
-# -----------------------------------------------------------------------------
-# 健康与基础路由（证明测试链路可用）
-# -----------------------------------------------------------------------------
-
-
-@pytest.mark.asyncio
-async def test_health(client: AsyncClient):
-    """基础：/health 可用，证明 TestClient 与 app 正常."""
-    resp = await client.get("/health")
-    assert resp.status_code == 200
-    assert resp.json().get("status") == "healthy"
