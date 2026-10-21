@@ -1,5 +1,38 @@
 # Changelog
 
+## [Unreleased] — 2.1 地基修复
+
+### AI
+- 智子终端（Sector A）接通后端：此前前端固定返回本地写死的回复
+- 统一 OpenAI 兼容协议，一份 `3BODY_LLM_*` 配置覆盖智子、人物对话、零点计划；默认模型 `qwen2.5:7b`
+- 新增 `POST /api/llm/gateway`：破壁分析、云天明童话编码/解码评分、思想钢印注入；LLM 不可用时前端回退离线规则
+- 原著语料由 RTF 转为 UTF-8 纯文本，RAG 检索结果终于是中文原文；向量库目录统一、不再入库
+- RAG 依赖可选：未安装或入库失败时智子对话降级为无检索模式
+- 智子审计：嵌入与对话统一到一个 SiliconFlow 端点；审计基础设施失败不再导致编年史录入被拒
+
+### 安全
+- 默认忽略前端传入的 LLM 地址 / Key（防 SSRF），本机可用 `3BODY_LLM_ALLOW_CLIENT_OVERRIDE=true` 开启
+- 原著阅读导入的本地文本先转义再渲染（XSS）
+- CORS 不再与通配来源同时允许凭证；`start.sh` 只监听 127.0.0.1
+
+### 修复
+- GitHub Pages 子路径下人物与编年史图片 404
+- 同步审计调用阻塞事件循环；面壁会话查询；SQLite 绝对路径迁移；`.env` 读取位置
+- `app.py`（Streamlit 审计终端）语法错误导致无法启动；`rag/retriever.py` 导入即报错（已删除）
+
+### 工程
+- pytest：全接口冒烟 + LLM / 网关 / RAG 单元测试；商业化测试随商业化冻结整体跳过
+- 新增 PR CI（前端构建 + 后端测试）；依赖拆分为 core / rag
+- 删除死代码：SectorZeroV2（已拆分到面壁者 / 阶梯计划 / 黑暗森林）、SectorT、SophonView、SophonChat
+- `vue-tsc -b` 产物不再生成到源码目录、不再入库
+
+### 冻结
+- 商业化（会员、支付、鉴权）暂停推进，`tests/test_payment_auth.py` 保留为将来的验收标准
+
+## [2.0.0] - 2026-02（前端封板）
+
+全站构建稳定性与视觉质感统一，详见 `docs/RELEASE-2.0-FREEZE.md`。
+
 ## [1.0.0] - 2025-03（GitHub 封板交付）
 
 ### 功能

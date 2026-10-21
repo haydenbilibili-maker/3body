@@ -1,12 +1,11 @@
 {
-  "name": "backend",
-  "desc": "基于本地大模型的文档检索与问答 / 门店数据 API",
+  "name": "3body 后端",
+  "desc": "三体宇宙 FastAPI 后端：智子对话、人物志、编年史、零点计划 LLM 网关",
   "tags": [
     "Python",
-    "FastAPI",
-    "Streamlit"
+    "FastAPI"
   ],
-  "startCmd": "streamlit run app.py",
-  "port": "8501",
+  "startCmd": "cd .. && uvicorn backend.main:app --reload --port 8000",
+  "port": "8000",
   "status": "开发中"
 }

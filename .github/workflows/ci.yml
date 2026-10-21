@@ -55,4 +55,7 @@ jobs:
         run: pip install -r requirements-test.txt
 
       - name: Pytest
-        run: pytest
+        run: |
+          set -o pipefail
+          pytest -q -rs | tee pytest.log
+          echo "::notice title=pytest::$(tail -n 1 pytest.log)"

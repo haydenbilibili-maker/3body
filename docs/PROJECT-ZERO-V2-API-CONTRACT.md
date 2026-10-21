@@ -1,4 +1,6 @@
-# Project Zero v2.0 API Contract (Draft)
+# Project Zero v2.0 API Contract
+
+> 实现：`backend/routers/llm_gateway.py`（2026-10 起）。前端客户端：`frontend/src/api/llm_gateway.ts`。
 
 ## 1. Unified Gateway
 
@@ -11,6 +13,18 @@
   - `{ "data": any }`
 
 > Frontend also accepts direct payload without wrapper, e.g. `{...}`.
+
+### Status codes
+
+| 状态码 | 含义 | 前端行为 |
+| --- | --- | --- |
+| 200 | `{ "data": ... }` | 使用返回值 |
+| 400 | 未知 task | 不重试，回退 mock，不计入熔断 |
+| 422 | payload 不合法 | 不重试，回退 mock，不计入熔断 |
+| 502 | 模型输出无法解析为契约结构 | 重试（最多 2 次），仍失败回退 mock |
+| 503 | LLM 不可达 / 认证失败 / 未配置 | 不重试，回退 mock，计入熔断 |
+
+`GET /api/llm/tasks` 返回当前支持的 task 列表。
 
 ---
 
@@ -42,7 +56,10 @@
 
 ---
 
-## 3. Task: `dark-forest.tick`
+## 3. Task: `dark-forest.tick`（前端本地计算，网关不提供）
+
+> 回合演化是基于规则的模拟，不需要大模型，由 `frontend/src/sim/zeroDarkForest.ts` 在浏览器内计算。
+> 下列结构保留作为将来服务端世界线的参考；当前请求网关会得到 400。
 
 ### Request
 
