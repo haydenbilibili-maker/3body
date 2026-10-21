@@ -4,6 +4,7 @@ from typing import List
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.concurrency import run_in_threadpool
 
 from backend.database import get_db
 from backend.models.gallery import GalleryItemORM, GalleryItemRead, GalleryItemCreate
@@ -35,7 +36,10 @@ async def create_item(
     
     audit_text = f"{body.title}\n{body.description or ''}\n{body.prompt_text or ''}"
     try:
-        audit_res = audit_fragment(audit_text)
+        # 审计为同步 IO（最长约 90 秒），放进线程池避免阻塞事件循环
+        audit_res = await run_in_threadpool(audit_fragment, audit_text)
+        if audit_res.get("audit_error"):
+            raise RuntimeError(audit_res.get("message", "audit unavailable"))
         score = audit_res.get("logic_score", 1.0)
         # 黑暗森林过滤规则
         if score <= 0.4:

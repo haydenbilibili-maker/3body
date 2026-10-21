@@ -44,10 +44,9 @@ async def init_db():
     if "sqlite" in settings.database_url:
         try:
             from backend.migrate import run_sqlite_migrations
-            # 从 URL 解析出与引擎一致的 DB 文件路径（支持相对路径与 ./ 前缀）
-            raw = settings.database_url
-            path = (raw.split("///")[-1].split("?")[0].strip("/") or "") if "///" in raw else ""
-            if path:
+            # 与引擎使用同一个文件路径（相对路径与绝对路径 sqlite:////abs/x.db 均正确）
+            path = _db_url.database or ""
+            if path and path != ":memory:":
                 run_sqlite_migrations(path)
         except Exception:
             pass

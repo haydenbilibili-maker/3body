@@ -2,7 +2,7 @@
 import json
 from typing import List, Dict
 
-from backend.services.llm_service import stream_chat
+from backend.services.llm_service import complete
 
 # 破壁人性格设定
 PERSONAS = {
@@ -26,9 +26,14 @@ async def generate_breaker_response(plan: str, history: List[Dict], breaker_name
     不要客套，直接破壁。
     """
     
-    response = ""
-    # Use non-streaming accumulation
-    async for chunk in stream_chat("请开始你的破壁。", system_prompt=system_prompt):
-        response += chunk
-        
+    # 非流式调用：LLM 不可达时抛出异常，由调用方换成兜底台词（而不是把错误文案当成破壁人发言）
+    response = await complete(
+        [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": "请开始你的破壁。"},
+        ],
+        temperature=0.8,
+    )
+    if not response.strip():
+        raise ValueError("empty breaker response")
     return response.strip()

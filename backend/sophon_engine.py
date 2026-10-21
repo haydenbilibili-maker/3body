@@ -4,6 +4,9 @@ Project Zero — 智子逻辑审计引擎 (Sophon Logic Engine).
 因果律扫描：对用户提交的「文明碎片」进行 RAG 校验，判定是否违背三体宇宙公理。
 - RAG: ChromaDB + BAAI/bge-m3 (SiliconFlow).
 - 公理抽取与冲突分析: DeepSeek-V3 (SiliconFlow).
+- 嵌入与对话使用同一个 SiliconFlow 端点（3BODY_SILICONFLOW_BASE_URL，默认 api.siliconflow.cn；
+  国际站账号设为 https://api.siliconflow.com/v1）。两者必须与 API Key 所属平台一致。
+- 本模块全部为同步 IO，路由层通过线程池调用，不阻塞事件循环。
 - 输出: SYNCHRONIZED | CAUSAL_FLAW，冷酷、客观、无拟人化措辞（心智钢印 / Mental Seal）。
 """
 from __future__ import annotations
@@ -13,10 +16,12 @@ import os
 from pathlib import Path
 from typing import Any, Optional, Union
 
+from typing import TYPE_CHECKING
+
 import httpx
-from langchain_community.document_loaders import TextLoader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.vectorstores import Chroma
+
+if TYPE_CHECKING:  # pragma: no cover — langchain 为可选依赖，运行时延迟导入
+    from langchain_community.vectorstores import Chroma
 
 # -----------------------------------------------------------------------------
 # 心智钢印 (Mental Seal) — PRD 2.0 扇区 F / PRD 3.0 开发者指令集
@@ -72,8 +77,7 @@ Output a single JSON object with exactly these keys (no other text):
 # -----------------------------------------------------------------------------
 # SiliconFlow API (BAAI/bge-m3 embeddings + DeepSeek-V3 chat)
 # -----------------------------------------------------------------------------
-SILICONFLOW_EMBED_BASE = "https://api.siliconflow.cn/v1"
-SILICONFLOW_CHAT_BASE = "https://api.siliconflow.com/v1"
+SILICONFLOW_DEFAULT_BASE = "https://api.siliconflow.cn/v1"
 EMBED_MODEL = "BAAI/bge-m3"
 CHAT_MODEL = "deepseek-ai/DeepSeek-V3"
 CHROMA_COLLECTION = "three_body_project_zero"
@@ -90,21 +94,28 @@ def _result(
     message: str,
     violations: list[str],
     explanation: str,
+    *,
+    audit_error: bool = False,
 ) -> dict[str, Any]:
-    """统一审计结果结构。verdict: PASS | WARN | REJECT（产品化解读 3.1）."""
+    """
+    统一审计结果结构。verdict: PASS | WARN | REJECT（产品化解读 3.1）.
+    audit_error=True 表示审计本身没跑完（检索 / 模型调用失败），REJECT 不代表内容违背正典，
+    编年史、画廊等调用方应按「审计不可用」处理，而不是拒绝用户内容。
+    """
     return {
         "status": verdict,
         "verdict": verdict,
         "logic_score": logic_score,
         "message": message,
         "details": {"violations": violations, "explanation": explanation},
+        "audit_error": audit_error,
     }
 
 
 class SiliconFlowEmbeddings:
     """LangChain-compatible embeddings via SiliconFlow (BAAI/bge-m3)."""
 
-    def __init__(self, api_key: str, base_url: str = SILICONFLOW_EMBED_BASE, model: str = EMBED_MODEL):
+    def __init__(self, api_key: str, base_url: str = SILICONFLOW_DEFAULT_BASE, model: str = EMBED_MODEL):
         self.api_key = api_key
         self.base_url = base_url.rstrip("/")
         self.model = model
@@ -114,15 +125,15 @@ class SiliconFlowEmbeddings:
         headers = {"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"}
         # API accepts string or array; batch if needed (max 32 per request per docs)
         out: list[list[float]] = []
-        for i in range(0, len(texts), 32):
-            batch = texts[i : i + 32]
-            payload = {"model": self.model, "input": batch}
-            with httpx.Client(timeout=60.0) as client:
+        with httpx.Client(timeout=60.0) as client:
+            for i in range(0, len(texts), 32):
+                batch = texts[i : i + 32]
+                payload = {"model": self.model, "input": batch}
                 resp = client.post(url, json=payload, headers=headers)
                 resp.raise_for_status()
                 data = resp.json()
-            for item in sorted(data.get("data", []), key=lambda x: x["index"]):
-                out.append(item["embedding"])
+                for item in sorted(data.get("data", []), key=lambda x: x["index"]):
+                    out.append(item["embedding"])
         return out
 
     def embed_documents(self, texts: list[str]) -> list[list[float]]:
@@ -134,8 +145,14 @@ class SiliconFlowEmbeddings:
         return self._embed([text])[0]
 
 
-def _deepseek_chat(api_key: str, system: str, user: str, json_mode: bool = False) -> str:
-    url = f"{SILICONFLOW_CHAT_BASE}/chat/completions"
+def _deepseek_chat(
+    api_key: str,
+    system: str,
+    user: str,
+    json_mode: bool = False,
+    base_url: str = SILICONFLOW_DEFAULT_BASE,
+) -> str:
+    url = f"{base_url.rstrip('/')}/chat/completions"
     headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
     payload: dict[str, Any] = {
         "model": CHAT_MODEL,
@@ -182,19 +199,25 @@ class SophonAudit:
         project_root = backend_dir.parent
         self._data_dir = Path(data_dir) if data_dir else Path(settings.sophon_engine_data_dir or project_root / "data")
         self._chroma_dir = Path(chroma_persist_dir) if chroma_persist_dir else Path(settings.sophon_engine_chroma_dir)
+        self._base_url = settings.siliconflow_base_url or SILICONFLOW_DEFAULT_BASE
 
-        self._embeddings = SiliconFlowEmbeddings(api_key=self._api_key)
+        self._embeddings = SiliconFlowEmbeddings(api_key=self._api_key, base_url=self._base_url)
         self._vectorstore: Optional[Chroma] = None
         self._ingestion_done = False
 
     def _chroma_exists(self) -> bool:
-        return (self._chroma_dir / "chroma.sqlite3").exists() or (
-            self._chroma_dir.is_dir() and any(self._chroma_dir.iterdir())
-        )
+        # 只认 Chroma 的 sqlite 文件：入库中途失败留下的半截目录不算已入库
+        return (self._chroma_dir / "chroma.sqlite3").exists()
 
     def _ensure_ingestion(self) -> None:
         if self._ingestion_done:
             return
+        from langchain_community.document_loaders import TextLoader
+        from langchain_community.vectorstores import Chroma
+        from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+        from backend.services.rag_service import find_corpus_files
+
         if self._chroma_exists():
             self._vectorstore = Chroma(
                 persist_directory=str(self._chroma_dir),
@@ -206,9 +229,9 @@ class SophonAudit:
         self._chroma_dir.mkdir(parents=True, exist_ok=True)
         if not self._data_dir.is_dir():
             raise FileNotFoundError(f"Data directory not found: {self._data_dir}. Place Three-Body .txt files there.")
-        txt_files = sorted(self._data_dir.glob("**/*.txt"))
+        txt_files = find_corpus_files(self._data_dir)
         if not txt_files:
-            raise FileNotFoundError(f"No .txt files in {self._data_dir}.")
+            raise FileNotFoundError(f"No UTF-8 .txt files in {self._data_dir}.")
 
         splitter = RecursiveCharacterTextSplitter(
             chunk_size=CHUNK_SIZE,
@@ -218,7 +241,7 @@ class SophonAudit:
         )
         all_docs = []
         for fp in txt_files:
-            loader = TextLoader(str(fp), encoding="utf-8", autodetect_encoding=True)
+            loader = TextLoader(str(fp), encoding="utf-8")
             docs = loader.load()
             for d in docs:
                 d.metadata["source"] = fp.name
@@ -242,6 +265,8 @@ class SophonAudit:
 
     def _get_store(self) -> Chroma:
         if self._vectorstore is None:
+            from langchain_community.vectorstores import Chroma
+
             self._chroma_dir.mkdir(parents=True, exist_ok=True)
             self._vectorstore = Chroma(
                 persist_directory=str(self._chroma_dir),
@@ -260,7 +285,7 @@ class SophonAudit:
     def _extract_axioms(self, context: list[str]) -> str:
         context_block = "\n\n---\n\n".join(context)
         user_text = AXIOM_EXTRACTION_PROMPT.format(context=context_block)
-        return _deepseek_chat(self._api_key, MENTAL_SEAL_SYSTEM, user_text)
+        return _deepseek_chat(self._api_key, MENTAL_SEAL_SYSTEM, user_text, base_url=self._base_url)
 
     def _analyze_conflicts(self, user_input: str, context: list[str], axioms: str) -> tuple[float, list[str], str]:
         context_block = "\n\n---\n\n".join(context)
@@ -269,7 +294,7 @@ class SophonAudit:
             context=context_block,
             user_input=user_input,
         )
-        raw = _deepseek_chat(self._api_key, MENTAL_SEAL_SYSTEM, user_text, json_mode=True)
+        raw = _deepseek_chat(self._api_key, MENTAL_SEAL_SYSTEM, user_text, json_mode=True, base_url=self._base_url)
         try:
             # Allow markdown code block wrapper
             if "```json" in raw:
@@ -296,20 +321,20 @@ class SophonAudit:
         try:
             context = self._retrieve(user_input, k=AUDIT_TOP_K)
         except Exception as e:
-            return _result("REJECT", 0.0, f"[拒绝] 因果律不匹配。检索失败，正典不可用: {e!s}", ["RAG unavailable."], str(e))
+            return _result("REJECT", 0.0, f"[拒绝] 因果律不匹配。检索失败，正典不可用: {e!s}", ["RAG unavailable."], str(e), audit_error=True)
 
         if not context:
-            return _result("REJECT", 0.0, "[拒绝] 未检索到正典上下文，碎片无法校验。", ["No reference canon."], "Insufficient dimensional anchor for audit.")
+            return _result("REJECT", 0.0, "[拒绝] 未检索到正典上下文，碎片无法校验。", ["No reference canon."], "Insufficient dimensional anchor for audit.", audit_error=True)
 
         try:
             axioms = self._extract_axioms(context)
         except Exception as e:
-            return _result("REJECT", 0.0, f"[拒绝] 公理抽取失败: {e!s}", ["Axiom extraction error."], str(e))
+            return _result("REJECT", 0.0, f"[拒绝] 公理抽取失败: {e!s}", ["Axiom extraction error."], str(e), audit_error=True)
 
         try:
             score, violations, explanation = self._analyze_conflicts(user_input, context, axioms)
         except Exception as e:
-            return _result("REJECT", 0.0, f"[拒绝] 冲突分析失败: {e!s}", ["Analysis error."], str(e))
+            return _result("REJECT", 0.0, f"[拒绝] 冲突分析失败: {e!s}", ["Analysis error."], str(e), audit_error=True)
 
         score = round(score, 4)
         if score > LOGIC_THRESHOLD:
@@ -319,14 +344,23 @@ class SophonAudit:
         return _result("REJECT", score, "[拒绝] 因果律不匹配。该碎片违背正典，技术越级或公理冲突。", violations, explanation)
 
 
+_default_audit: Optional[SophonAudit] = None
+
+
+def get_sophon_audit() -> SophonAudit:
+    """进程内复用同一个 SophonAudit（避免每次请求重新打开向量库）."""
+    global _default_audit
+    if _default_audit is None:
+        _default_audit = SophonAudit()
+    return _default_audit
+
+
 def audit_fragment(user_input: str, *, audit: Optional[SophonAudit] = None) -> dict[str, Any]:
     """
     Convenience entry: audit a user fragment against the Three-Body canon.
-    Uses a default SophonAudit instance if none provided.
+    Uses the shared SophonAudit instance if none provided.
     """
-    if audit is None:
-        audit = SophonAudit()
-    return audit.audit_fragment(user_input)
+    return (audit or get_sophon_audit()).audit_fragment(user_input)
 
 
 if __name__ == "__main__":

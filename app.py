@@ -269,7 +269,8 @@ if st.button("Unfold Sophon for Logic Scan", type="primary", use_container_width
     def out(line: str) -> None:
         audit_log.append(line)
         html = "<br>".join(
-            (line.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;") for line in audit_log)
+            entry.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;") for entry in audit_log
+        )
         terminal_placeholder.markdown(
             f'<div class="sophon-terminal">{html}</div>',
             unsafe_allow_html=True,

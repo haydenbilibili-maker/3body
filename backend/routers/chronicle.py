@@ -6,6 +6,7 @@ from typing import Any, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.concurrency import run_in_threadpool
 
 from backend.database import get_db
 from backend.models.chronicle import (
@@ -134,24 +135,23 @@ async def create_event(
     """PGC/UGC 录入：创建编年史事件。需经智子审计。"""
     # 智子审计
     from backend.sophon_engine import audit_fragment
-    
+
     audit_text = f"【{body.era} {body.year}】{body.title}\n{body.content}"
     try:
-        audit_res = audit_fragment(audit_text)
+        # 审计为同步 IO（最长约 90 秒），放进线程池避免阻塞事件循环
+        audit_res = await run_in_threadpool(audit_fragment, audit_text)
         score = audit_res.get("logic_score", 1.0)
-        verdict = audit_res.get("verdict", "REJECT")
-        
-        # 编年史作为正典/准正典，要求较高
-        if score <= 0.5:
+
+        # 编年史作为正典/准正典，要求较高；审计本身失败（audit_error）时不拒绝用户内容
+        if not audit_res.get("audit_error") and score <= 0.5:
             # 严重违背 -> 拒绝录入
             msg = audit_res.get("message", "因果律不匹配")
             raise HTTPException(status_code=400, detail=f"智子审计拒绝: {msg}")
             
     except HTTPException:
         raise
-    except Exception as e:
-        # 审计服务异常时，暂时放行但标记（或拒绝）
-        # 这里选择放行，避免阻断
+    except Exception:
+        # 审计服务未配置或异常时放行，避免阻断录入
         pass
 
     is_ugc = (body.event_type or "").strip().lower() == "ugc"
