@@ -34,8 +34,6 @@ jobs:
           cd frontend
           npm ci
           npm run build -- --base=/3body/
-        env:
-          NODE_ENV: production
 
       # GitHub Pages 下 SPA 路由需 404.html 回退到 index
       - name: Fix SPA fallback for GitHub Pages
