@@ -5,7 +5,7 @@ name: CI
 on:
   pull_request:
   push:
-    branches-ignore: [main]
+    branches-ignore: [main, 'ci/**']
   workflow_dispatch:
 
 permissions:
@@ -34,8 +34,21 @@ jobs:
       - name: Install
         run: npm ci
 
-      - name: Build (type-check + bundle)
-        run: npm run build -- --base=/3body/
+      # 类型检查单独一步：把 vue-tsc 的错误写成 Actions 注释（文件 + 行号），无需翻日志
+      - name: Type-check (vue-tsc)
+        run: |
+          set +e
+          npx vue-tsc -b > tsc.log 2>&1
+          status=$?
+          cat tsc.log
+          errors=$(grep -cE '^src/.+\([0-9]+,[0-9]+\): error' tsc.log)
+          grep -E '^src/.+\([0-9]+,[0-9]+\): error' tsc.log | head -n 50 \
+            | sed -E 's#^(src/[^(]+)\(([0-9]+),([0-9]+)\): error (TS[0-9]+): (.*)$#::error file=frontend/\1,line=\2,col=\3,title=\4::\5#'
+          echo "::notice title=vue-tsc::exit=${status}, errors=${errors}"
+          exit $status
+
+      - name: Bundle
+        run: npx vite build --base=/3body/
 
   backend:
     name: Backend tests (pytest)
