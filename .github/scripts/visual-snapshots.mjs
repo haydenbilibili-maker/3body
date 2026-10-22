@@ -117,7 +117,25 @@ async function snapshotRoute(browser, viewport, [slug, title]) {
         if (style.visibility === 'hidden' || style.display === 'none' || rect.width === 0) continue
         if (parseFloat(style.fontSize) < 12) tinyText += 1
       }
+      // 溢出元凶：右边缘超出视口、而父元素没有超出的元素（即「第一个撑出屏幕」的元素）
+      const vw = window.innerWidth
+      const describe = (el) =>
+        el.tagName.toLowerCase() +
+        (el.id ? `#${el.id}` : '') +
+        [...el.classList].slice(0, 3).map((c) => `.${c}`).join('')
+      const offenders = []
+      if (overflowX > 0) {
+        for (const el of document.querySelectorAll('.app-main *')) {
+          const r = el.getBoundingClientRect()
+          if (r.width === 0 || r.right <= vw + 1) continue
+          const pr = el.parentElement?.getBoundingClientRect()
+          if (pr && pr.right > vw + 1) continue
+          offenders.push(`${describe(el)} w=${Math.round(r.width)} right=${Math.round(r.right)} (in ${describe(el.parentElement)})`)
+          if (offenders.length >= 5) break
+        }
+      }
       return {
+        offenders,
         overflowX: Math.round(overflowX),
         scrollHeight: main ? main.scrollHeight : doc.scrollHeight,
         viewportHeight: main ? main.clientHeight : window.innerHeight,
@@ -221,6 +239,11 @@ async function main() {
   ].join('\n')
   await writeFile(path.join(OUT_DIR, 'README.md'), md)
 
+  for (const r of results) {
+    if ((r.overflowX ?? 0) > 0 && r.offenders?.length) {
+      console.log(`::warning title=overflow::${r.viewport}/${r.slug} +${r.overflowX}px ← ${r.offenders.join(' ; ')}`.slice(0, 900))
+    }
+  }
   const broken = results.filter((r) => r.navError || r.pageErrors.length)
   console.log(`\n共 ${results.length} 张，${broken.length} 页存在未捕获异常或导航失败`)
   for (const r of broken) {
