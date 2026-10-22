@@ -20,6 +20,12 @@ concurrency:
   group: npm-maintenance-${{ github.ref }}
   cancel-in-progress: false
 
+
+# lockfile 中的依赖地址指向国内镜像（registry.npmmirror.com），GitHub 托管的运行器访问很慢；
+# 让 npm 把 resolved 地址换成官方源（完整性校验值不变）。
+env:
+  NPM_CONFIG_REPLACE_REGISTRY_HOST: always
+
 jobs:
   apply:
     runs-on: ubuntu-24.04

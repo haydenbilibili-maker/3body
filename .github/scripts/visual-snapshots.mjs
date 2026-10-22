@@ -15,6 +15,16 @@ const SETTLE_MS = Number(process.env.SETTLE_MS ?? 3000)
 // 页面在 .app-main 内部滚动（外层固定 100vh），整页截图拍不到下方内容，改为分段滚动截图
 const SCROLL_CONTAINER = '.app-main'
 const MAX_SEGMENTS = Number(process.env.MAX_SEGMENTS ?? 4)
+// 单页总时限：某页卡死（如主线程死循环）时跳过它，并以 Actions 注释报告，而不是拖垮整个任务
+const PAGE_TIMEOUT_MS = Number(process.env.PAGE_TIMEOUT_MS ?? 45_000)
+
+function withTimeout(promise, ms, label) {
+  let timer
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`timeout after ${ms}ms: ${label}`)), ms)
+  })
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer))
+}
 
 // 与 frontend/src/router/index.ts 保持一致
 const ROUTES = [
@@ -157,11 +167,30 @@ async function snapshotRoute(browser, viewport, [slug, title]) {
 
 async function main() {
   for (const v of VIEWPORTS) await mkdir(path.join(OUT_DIR, v.name), { recursive: true })
-  const browser = await chromium.launch()
+  let browser = await chromium.launch()
   const results = []
   for (const viewport of VIEWPORTS) {
     for (const route of ROUTES) {
-      const r = await snapshotRoute(browser, viewport, route)
+      const started = Date.now()
+      let r
+      try {
+        r = await withTimeout(snapshotRoute(browser, viewport, route), PAGE_TIMEOUT_MS, `${viewport.name}/${route[0]}`)
+      } catch (e) {
+        console.log(`::warning title=snapshot-timeout::${viewport.name}/${route[0]} 超过 ${PAGE_TIMEOUT_MS}ms 未完成（页面可能卡死）`)
+        r = {
+          slug: route[0],
+          title: route[1],
+          viewport: viewport.name,
+          loadMs: Date.now() - started,
+          navError: short(e.message),
+          consoleErrors: [],
+          pageErrors: ['snapshot timeout'],
+          failedRequests: [],
+        }
+        // 卡死页面的上下文可能仍占着浏览器，重启浏览器后继续
+        await withTimeout(browser.close(), 10_000, 'browser.close').catch(() => {})
+        browser = await chromium.launch()
+      }
       results.push(r)
       console.log(
         `[${viewport.name}] ${route[0]} ${r.loadMs}ms overflowX=${r.overflowX} errors=${r.consoleErrors.length + r.pageErrors.length} failed=${r.failedRequests.length}`,
@@ -194,6 +223,9 @@ async function main() {
 
   const broken = results.filter((r) => r.navError || r.pageErrors.length)
   console.log(`\n共 ${results.length} 张，${broken.length} 页存在未捕获异常或导航失败`)
+  for (const r of broken) {
+    console.log(`::warning title=page-error::${r.viewport}/${r.slug} ${r.navError ?? ''} ${r.pageErrors.join(' | ')}`.slice(0, 900))
+  }
 }
 
 main().catch((e) => {
