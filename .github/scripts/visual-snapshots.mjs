@@ -130,12 +130,14 @@ async function snapshotRoute(browser, viewport, [slug, title]) {
           if (r.width === 0 || r.right <= vw + 1) continue
           const pr = el.parentElement?.getBoundingClientRect()
           if (pr && pr.right > vw + 1) continue
-          offenders.push(`${describe(el)} w=${Math.round(r.width)} right=${Math.round(r.right)} (in ${describe(el.parentElement)})`)
-          if (offenders.length >= 5) break
+          offenders.push({ right: r.right, text: `${describe(el)} w=${Math.round(r.width)} right=${Math.round(r.right)} (in ${describe(el.parentElement)})` })
         }
+        // 按右边缘从远到近排序：真正把页面撑宽的元素排在最前（被 overflow:hidden 裁掉的小元素排在后面）
+        offenders.sort((a, b) => b.right - a.right)
+        offenders.splice(5)
       }
       return {
-        offenders,
+        offenders: offenders.map((o) => o.text),
         overflowX: Math.round(overflowX),
         scrollHeight: main ? main.scrollHeight : doc.scrollHeight,
         viewportHeight: main ? main.clientHeight : window.innerHeight,
