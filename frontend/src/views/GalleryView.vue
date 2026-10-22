@@ -501,6 +501,8 @@ const fallenWorks = [
 
 .monitor-row {
   display: flex;
+  flex-wrap: wrap;
+  gap: 0 0.5rem;
   justify-content: space-between;
   margin-bottom: 0.5rem;
   font-size: 1.1rem;

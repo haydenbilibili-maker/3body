@@ -1301,6 +1301,9 @@ onMounted(() => {
 
 
 .main-content {
+  /* 根节点是纵向 flex：auto 外边距会让它按内容收缩，被不换行的选项卡撑到 718px（手机溢出 344px） */
+  width: 100%;
+  min-width: 0;
   max-width: 1000px;
   margin: 0 auto;
   position: relative;
