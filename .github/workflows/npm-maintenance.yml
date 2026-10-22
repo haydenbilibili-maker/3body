@@ -1,0 +1,62 @@
+# 前端依赖维护：在没有 npm 仓库访问权限的环境里（或想让 lockfile 由 CI 统一生成时）调整依赖。
+#
+# 用法：在分支上提交 frontend/npm-request.txt，每行一条 npm 命令，例如：
+#   npm uninstall framer-motion
+#   npm install -D vitest@2.1.9
+# 推送后本工作流执行这些命令，删除请求文件，并把更新后的 package.json / package-lock.json
+# 提交回同一分支。只允许 npm install / uninstall 加包名（白名单校验），不执行任意 shell。
+name: npm maintenance
+
+on:
+  push:
+    branches-ignore: [main, 'ci/**']
+    paths:
+      - 'frontend/npm-request.txt'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: npm-maintenance-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Apply npm requests
+        working-directory: frontend
+        run: |
+          test -f npm-request.txt || { echo "no request file"; exit 0; }
+          npm ci --no-audit --no-fund
+          pkg='(@[a-z0-9._-]+/)?[a-z0-9._-]+(@[A-Za-z0-9.^~_-]+)?'
+          while IFS= read -r line || [ -n "$line" ]; do
+            line="$(echo "$line" | sed 's/#.*//' | xargs)"
+            [ -z "$line" ] && continue
+            if ! echo "$line" | grep -Eq "^npm (install|uninstall|i|un) (-D |--save-dev |-E |--save-exact )*${pkg}( ${pkg})*$"; then
+              echo "::error title=npm-request::拒绝执行（不在白名单内）: $line"
+              exit 1
+            fi
+            echo "::group::$line"
+            $line --no-audit --no-fund
+            echo "::endgroup::"
+            echo "::notice title=npm-request::已执行 $line"
+          done < npm-request.txt
+          git rm -q npm-request.txt
+
+      - name: Commit lockfile
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add frontend/package.json frontend/package-lock.json
+          git commit -q -m "chore(deps): 按 npm-request.txt 更新前端依赖（CI 生成 lockfile）"
+          git push -q origin "HEAD:${{ github.ref_name }}"
+          echo "::notice title=npm-maintenance::已提交 $(git rev-parse --short HEAD)"
