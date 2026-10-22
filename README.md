@@ -8,9 +8,10 @@
 |------|------|
 | **https://github.com/ugrysjdnbdbdkdndbndbdbd-ui/3body** | 项目 GitHub 仓库（代码、Issues、克隆） |
 | **https://ugrysjdnbdbdkdndbndbdbd-ui.github.io/3body/** | GitHub Pages 在线预览（仅前端，无后端时部分功能不可用） |
+| **https://3body-5px.pages.dev/** | Cloudflare Pages 在线预览（仅前端，SPA 深链可直接访问） |
 | 克隆：`git clone https://github.com/ugrysjdnbdbdkdndbndbdbd-ui/3body.git` | 本地运行请按下方「快速开始」启动前后端 |
 
-GitHub Pages 由 Actions 自动部署：推送到 `main` 后触发构建并发布。**若打开 Pages 链接出现 404**，请在仓库 **Settings → Pages → Build and deployment → Source** 中选择 **GitHub Actions**（详见 [docs/GITHUB-PAGES-SETUP.md](docs/GITHUB-PAGES-SETUP.md)）。Pages 仅托管前端静态资源，智子/人物对话、宇宙广播等依赖 API 的模块需自建后端并配置 `VITE_API_BASE` 后才有数据。
+GitHub Pages 由 Actions 自动部署：推送到 `main` 后触发构建并发布。**若打开 Pages 链接出现 404**，请在仓库 **Settings → Pages → Build and deployment → Source** 中选择 **GitHub Actions**（详见 [docs/GITHUB-PAGES-SETUP.md](docs/GITHUB-PAGES-SETUP.md)）。Cloudflare Pages 走 `cd frontend && npm run build && npm run deploy:cloudflare` 手动部署（详见 [docs/CLOUDFLARE-PAGES.md](docs/CLOUDFLARE-PAGES.md)）。两者均仅托管前端静态资源，智子/人物对话、宇宙广播等依赖 API 的模块需自建后端并配置 `VITE_API_BASE` 后才有数据。
 
 ---
 
