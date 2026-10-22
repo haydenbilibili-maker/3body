@@ -1,4 +1,0 @@
-# 未使用的依赖：framer-motion 是 React 动画库，vfonts 未被引用
-npm uninstall framer-motion vfonts
-# 前端单元测试
-npm install -D vitest@2.1.9
