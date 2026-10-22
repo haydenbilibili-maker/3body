@@ -1,5 +1,4 @@
 <script setup lang="ts">
-// @ts-nocheck
 /**
  * Sector E: 黑暗森林广场 (Dark Forest Square)
  * 宇宙社会学公理 + 猜疑链可视化 + 星际猎人模拟器 + 广播坐标

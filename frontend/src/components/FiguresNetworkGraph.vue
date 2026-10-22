@@ -1,5 +1,4 @@
 <script setup lang="ts">
-// @ts-nocheck
 /**
  * 人物关系星图 (Constellation Network)
  * 以「星图/星座」形式展示人物关系网络：节点为人物，边为关系，力导向布局 + 悬停高亮路径
