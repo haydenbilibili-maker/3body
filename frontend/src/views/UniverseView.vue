@@ -4,10 +4,11 @@
  * 核心：3D 三体运动背景 + 战术 HUD 布局
  * 优化：全面汉化，修复乱纪元文字抖动导致的布局错乱
  */
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed, defineAsyncComponent } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUniverseStore } from '@/stores/universe'
-import ThreeBodyBackground from '@/components/ThreeBodyBackground.vue'
+// 三体动画依赖 Three.js（约 900 KB）：异步加载，首页文字与入口卡片先渲染，3D 背景随后淡入
+const ThreeBodyBackground = defineAsyncComponent(() => import('@/components/ThreeBodyBackground.vue'))
 import GlitchText from '@/components/GlitchText.vue'
 
 const router = useRouter()
@@ -97,7 +98,7 @@ function handleNavClick(path: string) {
         <div class="hud-left">
           <div class="hud-brand">
             <h1 class="brand-title">THREE BODY</h1>
-            <div class="brand-sub">PLANETARY DEFENSE SYSTEM // 行星防御系统</div>
+            <div class="brand-sub">PLANETARY DEFENSE SYSTEM <span class="nowrap">// 行星防御系统</span></div>
           </div>
           <div class="hud-status-grid">
             <div class="status-item">
@@ -245,6 +246,11 @@ function handleNavClick(path: string) {
   line-height: 1;
   margin: 0;
   text-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+}
+
+.brand-sub .nowrap {
+  white-space: nowrap;
+  display: inline-block;
 }
 
 .brand-sub {

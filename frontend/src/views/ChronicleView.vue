@@ -38,8 +38,8 @@ const formData = reactive<ChronicleEventCreate>({
 
 const eraOptions = ERA_PRESETS.map(e => ({ label: e, value: e }))
 const typeOptions = [
-  { label: 'PGC (正典)', value: 'pgc' },
-  { label: 'UGC (变体)', value: 'ugc' }
+  { label: '正典（官方事件）', value: 'pgc' },
+  { label: '变体（同人创作）', value: 'ugc' }
 ]
 
 function resetForm() {
@@ -246,7 +246,7 @@ onMounted(loadEvents)
                 <div class="content-box" :style="{ '--era-accent': eraAccent(ev.era) }">
                   <div class="ev-meta">
                     <span class="ev-type-badge" :class="ev.event_type === 'ugc' ? 'badge-ugc' : 'badge-pgc'">
-                      {{ ev.event_type === 'ugc' ? 'UGC' : 'PGC' }}
+                      {{ ev.event_type === 'ugc' ? '变体' : '正典' }}
                     </span>
                   </div>
                   <h3 class="ev-title">{{ normalizeEraYearInText(ev.era, ev.year, ev.title) }}</h3>
@@ -563,4 +563,15 @@ onMounted(loadEvents)
 .header-left { display: flex; flex-direction: column; gap: 0.5rem; }
 .header-right { display: flex; align-items: center; }
 .manage-container { max-height: 70vh; overflow-y: auto; }
+
+/* 小屏：页头纵向排列；维度切换器横向滑动，按钮不再被挤成逐字竖排 */
+@media (max-width: 768px) {
+  .sector-header { flex-direction: column; align-items: stretch; gap: 0.75rem; padding: 0.75rem; }
+  .header-left { min-width: 0; }
+  .dimension-switch { display: flex; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+  .dim-btn { white-space: nowrap; flex: 0 0 auto; padding: 0.4rem 0.75rem; }
+  .header-right { justify-content: space-between; }
+  .legend { margin-right: 0.75rem; gap: 0.75rem; }
+  .legend-hint { display: none; }
+}
 </style>

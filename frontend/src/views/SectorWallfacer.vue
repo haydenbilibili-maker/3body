@@ -1418,7 +1418,7 @@ onMounted(() => {
 .lore-text {
   margin-top: auto;
   font-style: italic;
-  color: #555;
+  color: #8a8a8a; /* 原 #555 与 #050505 背景对比度约 2.5:1，几乎看不清 */
   border-left: 2px solid #333;
   padding-left: 1rem;
   font-size: 0.9rem;
@@ -1877,4 +1877,12 @@ onMounted(() => {
 .heat-item { display: grid; grid-template-columns: 26px 1fr 28px; align-items: center; gap: 0.5rem; font-size: 0.8rem; }
 .heat-item .bar { height: 8px; background: #1a1a1a; border-radius: 2px; overflow: hidden; }
 .heat-item .bar i { display: block; height: 100%; background: #ff6666; }
+
+/* 小屏：页头纵向排列、状态标签换行；雷达信息栏收窄 */
+@media (max-width: 768px) {
+  .header { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+  .status-bar { flex-wrap: wrap; gap: 0.5rem; }
+  .radar-info { width: 110px; padding: 0.75rem; }
+  .header-main { flex-wrap: wrap; gap: 0.75rem; }
+}
 </style>

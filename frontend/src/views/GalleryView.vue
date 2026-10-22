@@ -196,7 +196,7 @@ const fallenWorks = [
                 <div v-if="!imageUrl" class="upload-area">
                   <div class="upload-cta">
                     <div class="upload-icon" aria-hidden="true">↑</div>
-                    <p class="upload-hint">选择一张三维图像，启动降维打击</p>
+                    <p class="upload-hint">选择一张三维图像，<br />启动降维打击</p>
                     <NUpload :show-file-list="false" @before-upload="data => handleFileUpload(data.file.file as File)">
                       <NButton color="#d4af37" ghost round class="upload-btn">上传图像</NButton>
                     </NUpload>

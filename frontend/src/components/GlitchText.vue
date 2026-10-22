@@ -3,14 +3,21 @@
  * GlitchText.vue - 赛博朋克解密文字
  * 效果：随机字符滚动 -> 最终文字
  */
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
 
-const props = defineProps<{
-  text: string
-  active?: boolean
-  speed?: number // ms per frame
-  scramble?: number // duration of scramble
-}>()
+// active 必须给默认值 true：Vue 会把未传的布尔 prop 转成 false（而不是 undefined），
+// 此前 active 恒为 false，解密动画从不执行，文字一直是空的（首页「恒星纪元」无值）。
+const props = withDefaults(
+  defineProps<{
+    text: string
+    active?: boolean
+    speed?: number // ms per frame
+    scramble?: number // duration of scramble
+  }>(),
+  { active: true, speed: 30, scramble: 20 },
+)
+
+let timer: ReturnType<typeof setInterval> | null = null
 
 const displayText = ref('')
 const chars = '!@#$%^&*()_+-=[]{}|;:,.<>/?0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
@@ -21,6 +28,7 @@ function decrypt() {
   let frame = 0
   const duration = props.scramble || 20 // frames
   
+  if (timer) clearInterval(timer)
   const interval = setInterval(() => {
     let result = ''
     for (let i = 0; i < length; i++) {
@@ -38,14 +46,21 @@ function decrypt() {
       displayText.value = target
     }
   }, props.speed || 30)
+  timer = interval
 }
 
 watch(() => props.text, () => {
-  if (props.active !== false) decrypt()
+  if (props.active) decrypt()
+  else displayText.value = props.text
 })
 
 onMounted(() => {
-  if (props.active !== false) decrypt()
+  if (props.active) decrypt()
+  else displayText.value = props.text
+})
+
+onUnmounted(() => {
+  if (timer) clearInterval(timer)
 })
 </script>
 

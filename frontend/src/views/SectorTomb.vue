@@ -429,6 +429,9 @@ function carveStone() {
 .epitaph-section {
   min-width: 320px;
 }
+@media (max-width: 768px) {
+  .epitaph-section { min-width: 0; }
+}
 
 .civ-list {
   display: flex;
@@ -444,6 +447,8 @@ function carveStone() {
   border-radius: 2px;
   overflow: visible;
   display: flex;
+  /* 列表是限高的 flex 纵向容器：不禁止收缩时卡片会被压扁，描述文字溢出到下一张卡片下方 */
+  flex-shrink: 0;
   min-height: 156px;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
@@ -543,14 +548,14 @@ function carveStone() {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
-  font-size: 0.72rem;
-  color: #555;
+  font-size: 0.75rem;
+  color: #8a8a8a;
   margin-bottom: 0.2rem;
-  font-family: monospace;
+  font-family: var(--font-tech);
 }
 
 .civ-meta .meta-item em {
-  color: #444;
+  color: #6b6b6b;
   font-style: normal;
   margin-right: 0.25rem;
 }

@@ -157,6 +157,31 @@ onUnmounted(() => {
   letter-spacing: 0.1em;
 }
 
+/* 小屏：外层与扇区根节点的左右边距合计约 16px（原为 3rem + 各页 2rem，内容区只剩约 230px） */
+@media (max-width: 768px) {
+  .app-main {
+    padding: 0.75rem 0.5rem;
+  }
+  .app-main:not(.app-main--full) > * {
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+  }
+  .app-footer {
+    justify-content: center;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.7rem;
+  }
+  .app-footer .slogan {
+    display: none;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1100px) {
+  .app-main {
+    padding: 1.5rem;
+  }
+}
+
 /* --- COSMIC VOID BACKGROUND --- */
 .cosmic-void {
   position: absolute;

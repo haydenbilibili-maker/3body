@@ -128,7 +128,7 @@ onUnmounted(() => {
           <h1 class="u-title">Universe 647</h1>
           <p class="u-tagline">第 {{ ecoStatus.day }} 天 · 质量与记忆的归宿</p>
           <div class="u-mass-bar">
-            <span class="u-mass-label">TOTAL MASS</span>
+            <span class="u-mass-label">TOTAL MASS&nbsp;</span>
             <span class="u-mass-value">{{ mass.toFixed(2) }} kg</span>
           </div>
         </div>

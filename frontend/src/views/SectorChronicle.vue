@@ -568,4 +568,23 @@ function parseBook(filename: string, text: string) {
 .theme-opt.light { background: #fff; color: #000; }
 .theme-opt.sepia { background: #f4ecd8; color: #5b4636; }
 .theme-opt.active { border: 2px solid var(--accent); }
+
+/* 小屏：目录改为正文上方的两条横向滑动栏（书目 / 章节），正文占满宽度。
+   此前 300px 目录固定在左侧，手机上正文每行只剩 2–3 个字。 */
+@media (max-width: 768px) {
+  .library-header { padding: 0 0.75rem; height: 52px; }
+  .library-body { flex-direction: column; overflow: hidden; }
+  .library-sidebar { width: 100%; flex: 0 0 auto; border-right: none; border-bottom: 1px solid var(--border); }
+  .book-tabs { display: flex; overflow-x: auto; scrollbar-width: none; }
+  .book-tab { flex: 0 0 auto; padding: 0.6rem 1rem; border-left: none; border-bottom: 3px solid transparent; }
+  .book-tab.active { border-bottom-color: var(--book-color); }
+  .book-sub { display: none; }
+  .chapter-nav { flex: 0 0 auto; }
+  .chapter-list { display: flex; overflow-x: auto; padding: 0.25rem 0; scrollbar-width: none; }
+  .chapter-item { flex: 0 0 auto; white-space: nowrap; padding: 0.5rem 0.75rem; border-left: none; border-bottom: 2px solid transparent; }
+  .chapter-item.active { border-bottom-color: var(--accent); }
+  .reader-container { flex: 1 1 auto; min-height: 0; }
+  .paper { padding: 1.5rem 1rem; }
+  :deep(h2) { margin-bottom: 1.5rem; }
+}
 </style>
