@@ -1884,5 +1884,9 @@ onMounted(() => {
   .status-bar { flex-wrap: wrap; gap: 0.5rem; }
   .radar-info { width: 110px; padding: 0.75rem; }
   .header-main { flex-wrap: wrap; gap: 0.75rem; }
+  /* 操作按钮换行：「DEPLOY MACRO-ATOMS (部署宏原子)」与「ATTACK」并排时卡片被撑宽约 440px */
+  .controls, .bomb-controls { flex-wrap: wrap; }
+  .controls :deep(.n-button), .bomb-controls :deep(.n-button) { white-space: normal; height: auto; min-height: 34px; }
+  .card-header h2 { font-size: 1.4rem; }
 }
 </style>

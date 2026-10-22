@@ -852,5 +852,7 @@ onUnmounted(() => {
   .sys-controls { flex-wrap: wrap; gap: 0.5rem; }
   .sys-info { flex-wrap: wrap; gap: 0.25rem 0.75rem; }
   .sys-info span { white-space: nowrap; }
+  /* 三栏（300px / 自适应 / 300px）在手机上改为单栏堆叠，中间日志栏不再被挤成一条 */
+  .console-grid { grid-template-columns: 1fr; }
 }
 </style>

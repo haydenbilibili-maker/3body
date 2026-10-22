@@ -445,4 +445,12 @@ const currentDesc = computed(() => {
 }
 
 .mt-4 { margin-top: 1rem; }
+
+/* 小屏：信息栏（固定 350px）与运算演示上下排列。
+   原横向排列且居中，内容宽于屏幕时左右两侧都被裁掉（左侧无法滚动到）。 */
+@media (max-width: 768px) {
+  .main-stage { flex-direction: column; align-items: stretch; gap: 1.5rem; }
+  .info-panel { flex: 0 0 auto; }
+  .visual-panel { height: auto; min-height: 360px; padding: 1rem 0; overflow-x: auto; }
+}
 </style>

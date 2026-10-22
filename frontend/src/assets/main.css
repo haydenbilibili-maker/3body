@@ -206,6 +206,8 @@ button, a, input, .card {
   }
   .app-main .n-tabs .n-tabs-tab {
     white-space: nowrap;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
   }
 }
 
