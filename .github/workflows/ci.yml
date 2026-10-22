@@ -34,6 +34,9 @@ jobs:
       - name: Install
         run: npm ci
 
+      - name: Unit tests (Vitest)
+        run: npm test
+
       # 类型检查单独一步：把 vue-tsc 的错误写成 Actions 注释（文件 + 行号），无需翻日志
       - name: Type-check (vue-tsc)
         run: |
