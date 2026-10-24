@@ -179,7 +179,7 @@ function handleNavClick(path: string) {
   height: 100%;
   overflow: hidden;
   background: #000;
-  font-family: 'Rajdhani', monospace;
+  font-family: var(--font-sans);
   color: #fff;
 }
 

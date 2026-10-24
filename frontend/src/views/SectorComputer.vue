@@ -237,7 +237,7 @@ const currentDesc = computed(() => {
 }
 
 .title {
-  font-family: monospace;
+  font-family: var(--font-mono);
   color: #00ffff;
   font-size: 1.8rem;
   letter-spacing: 0.1em;
@@ -267,7 +267,7 @@ const currentDesc = computed(() => {
 
 .lore-box h2 {
   color: #fff;
-  font-family: monospace;
+  font-family: var(--font-mono);
   border-left: 3px solid #00ffff;
   padding-left: 1rem;
   margin: 0 0 1rem 0;
@@ -294,8 +294,8 @@ const currentDesc = computed(() => {
   align-items: center;
 }
 
-.stat .label { font-size: 0.7rem; color: #666; font-family: monospace; }
-.stat .val { font-size: 1rem; color: #00ffff; font-family: monospace; }
+.stat .label { font-size: 0.7rem; color: #666; font-family: var(--font-mono); }
+.stat .val { font-size: 1rem; color: #00ffff; font-family: var(--font-mono); }
 
 .visual-panel {
   flex: 1;
@@ -390,7 +390,7 @@ const currentDesc = computed(() => {
 .flag.none { opacity: 0; }
 
 .label {
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 0.8rem;
   color: #666;
   letter-spacing: 0.1em;
@@ -433,7 +433,7 @@ const currentDesc = computed(() => {
   color: #666;
   background: #111;
   margin: 10px 0;
-  font-family: monospace;
+  font-family: var(--font-mono);
 }
 
 .hint-text {

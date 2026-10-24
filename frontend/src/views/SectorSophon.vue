@@ -297,15 +297,13 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap');
-
 .sector-sophon {
   height: 100%;
   flex: 1;
   min-height: 0;
   background: #000;
   color: #fff;
-  font-family: 'Rajdhani', sans-serif;
+  font-family: var(--font-sans);
   overflow: hidden;
   position: relative;
 }
@@ -314,7 +312,7 @@ onUnmounted(() => {
 .retina-countdown {
   position: fixed;
   pointer-events: none;
-  font-family: 'Orbitron', monospace;
+  font-family: var(--font-title);
   font-size: 1.5rem;
   color: rgba(255, 0, 0, 0.6);
   text-shadow: 0 0 5px rgba(255, 0, 0, 0.8);
@@ -385,14 +383,14 @@ onUnmounted(() => {
 }
 
 .countdown-box .label {
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--font-title);
   font-size: 0.8rem;
   color: #00f0ff;
   letter-spacing: 2px;
 }
 
 .countdown-box .timer {
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--font-title);
   font-size: 2rem;
   color: #fff;
   text-shadow: 0 0 10px #00f0ff;
@@ -453,7 +451,7 @@ onUnmounted(() => {
 
 .bug-text {
   position: absolute;
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--font-title);
   color: #f00;
   font-size: 2rem;
   font-weight: bold;
@@ -541,7 +539,7 @@ onUnmounted(() => {
   border: none;
   border-bottom: 1px solid #444;
   color: #fff;
-  font-family: 'Rajdhani', sans-serif;
+  font-family: var(--font-sans);
   font-size: 1.2rem;
   padding: 0.5rem;
   outline: none;
@@ -566,7 +564,7 @@ onUnmounted(() => {
 
 .dim-label {
   display: block;
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--font-title);
   color: #00f0ff;
   margin-bottom: 0.5rem;
 }

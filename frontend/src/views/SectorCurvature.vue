@@ -430,13 +430,11 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
-
 .sector-l {
   min-height: 0;
   background: #0a0a1a;
   color: #aaddff;
-  font-family: 'Share Tech Mono', monospace;
+  font-family: var(--font-mono);
   display: flex;
   flex-direction: column;
 }

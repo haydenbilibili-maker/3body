@@ -1261,7 +1261,7 @@ onMounted(() => {
   background: #050505;
   color: #ccc;
   padding: 2rem;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-sans);
 }
 .bg-noise {
   position: fixed;
@@ -1282,7 +1282,7 @@ onMounted(() => {
   z-index: 1;
 }
 .title {
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 1.5rem;
   color: #fff;
   letter-spacing: 2px;
@@ -1290,7 +1290,7 @@ onMounted(() => {
 .status-bar {
   display: flex;
   gap: 1rem;
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 0.8rem;
   color: #666;
 }
@@ -1333,7 +1333,7 @@ onMounted(() => {
 .wallbreaker-tag.danger:hover { background: rgba(244, 67, 54, 0.1); }
 
 .wb-label { display: block; font-size: 0.7rem; color: #888; letter-spacing: 1px; }
-.wb-name { display: block; font-family: monospace; font-size: 1.1rem; color: #ccc; font-weight: bold; }
+.wb-name { display: block; font-family: var(--font-mono); font-size: 1.1rem; color: #ccc; font-weight: bold; }
 
 .confrontation-scene {
   display: flex;
@@ -1362,7 +1362,7 @@ onMounted(() => {
 .wb-dialog {
   flex: 1;
   text-align: center;
-  font-family: 'Noto Serif SC', serif;
+  font-family: var(--font-serif);
   font-size: 1.2rem;
   line-height: 1.6;
 }
@@ -1404,7 +1404,7 @@ onMounted(() => {
   letter-spacing: 1px;
 }
 .subtitle {
-  font-family: monospace;
+  font-family: var(--font-mono);
   color: #666;
   font-size: 0.9rem;
 }
@@ -1469,7 +1469,7 @@ onMounted(() => {
 .radar-info {
   width: 150px;
   padding: 1rem;
-  font-family: monospace;
+  font-family: var(--font-mono);
   color: #8bc34a;
   border-left: 1px solid #33691e;
   font-size: 0.8rem;
@@ -1517,7 +1517,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 1rem;
-  font-family: monospace;
+  font-family: var(--font-mono);
 }
 .buttons { display: flex; gap: 1rem; justify-content: center; margin-top: 1rem; }
 .detonate-btn { font-weight: bold; letter-spacing: 1px; }
@@ -1547,7 +1547,7 @@ onMounted(() => {
   pointer-events: none;
 }
 .imprint-status {
-  font-family: monospace;
+  font-family: var(--font-mono);
   color: #fff;
   background: #000;
   padding: 0.5rem;
@@ -1643,7 +1643,7 @@ onMounted(() => {
   color: #e1bee7;
   font-size: 0.9rem;
   margin-bottom: 1rem;
-  font-family: monospace;
+  font-family: var(--font-mono);
   border-bottom: 1px solid #4a148c;
   padding-bottom: 0.5rem;
 }
@@ -1669,7 +1669,7 @@ onMounted(() => {
   align-items: center;
   margin-bottom: 0.5rem;
   color: #f2d0ff;
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 0.8rem;
 }
 
@@ -1696,7 +1696,7 @@ onMounted(() => {
 .wb-empty {
   font-size: 0.78rem;
   color: #888;
-  font-family: monospace;
+  font-family: var(--font-mono);
 }
 
 .wb-list {
@@ -1717,7 +1717,7 @@ onMounted(() => {
   display: flex;
   gap: 0.4rem;
   align-items: center;
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 0.72rem;
   margin-bottom: 0.2rem;
 }
@@ -1744,7 +1744,7 @@ onMounted(() => {
 }
 .wb-facade { color: #c5b6d0; }
 .wb-truth { color: #ffd7ff; }
-.wb-confidence { color: #b39ddb; font-family: monospace; }
+.wb-confidence { color: #b39ddb; font-family: var(--font-mono); }
 
 @keyframes drift { from { background-position: 0 0; } to { background-position: 20px 20px; } }
 @keyframes pulse { 0% { opacity: 0.3; } 50% { opacity: 0.7; } 100% { opacity: 0.3; } }
@@ -1766,7 +1766,7 @@ onMounted(() => {
   background: rgba(20, 0, 0, 0.9);
   color: #ffe0e0;
   padding: 1.2rem;
-  font-family: monospace;
+  font-family: var(--font-mono);
 }
 .breach-overlay-inner h2 { margin: 0 0 0.5rem; }
 .overlay-quote { margin: 0.5rem 0; font-style: italic; }
@@ -1845,10 +1845,10 @@ onMounted(() => {
 .suspicion-gauge.gauge-danger { border-color: rgba(255, 80, 80, 0.4); animation: gauge-pulse 1.5s ease-in-out infinite; }
 @keyframes gauge-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(255, 80, 80, 0); } 50% { box-shadow: 0 0 12px 2px rgba(255, 80, 80, 0.2); } }
 .gauge-header { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.4rem; }
-.gauge-label { font-family: monospace; font-size: 0.85rem; color: #8ab3b3; }
+.gauge-label { font-family: var(--font-mono); font-size: 0.85rem; color: #8ab3b3; }
 .gauge-stage { font-weight: 700; font-size: 0.9rem; }
 .gauge-desc { font-size: 0.8rem; }
-.gauge-value { font-family: monospace; font-size: 0.75rem; color: #7a9a9a; }
+.gauge-value { font-family: var(--font-mono); font-size: 0.75rem; color: #7a9a9a; }
 .directive-logs { border: 1px solid #1e2e2e; padding: 0.6rem; background: rgba(0, 10, 15, 0.3); border-radius: 4px; }
 .logs-empty { padding: 0.8rem; text-align: center; font-size: 0.85rem; }
 .directive-card {
@@ -1861,7 +1861,7 @@ onMounted(() => {
 }
 .directive-card.rejected { border-left-color: #cc4444; }
 .directive-card-meta { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.35rem; }
-.log-time { font-family: monospace; font-size: 0.7rem; color: #6a8585; }
+.log-time { font-family: var(--font-mono); font-size: 0.7rem; color: #6a8585; }
 .log-delta { font-size: 0.75rem; color: #8ab0b0; margin-left: auto; }
 .directive-text { margin: 0; font-size: 0.9rem; color: #c8e0e0; line-height: 1.45; }
 .directive-reason { margin: 0.25rem 0 0; font-size: 0.8rem; }

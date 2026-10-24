@@ -479,14 +479,12 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
-
 .sector-j {
   min-height: 0;
   flex: 1;
   background: #15100a;
   color: #ffaa00;
-  font-family: 'Share Tech Mono', monospace;
+  font-family: var(--font-mono);
   display: flex;
   flex-direction: column;
 }
@@ -681,7 +679,7 @@ onUnmounted(() => {
 .trigger-btn { width: 100%; padding: 1rem; background: #aa2222; color: #fff; border: none; font-weight: bold; cursor: pointer; margin-top: auto; }
 .trigger-btn:hover { background: #ff3333; }
 .trigger-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.radar-logs { flex: 1; background: #000; border: 1px solid #333; padding: 1rem; font-family: monospace; overflow-y: auto; font-size: 0.8rem; height: 150px; }
+.radar-logs { flex: 1; background: #000; border: 1px solid #333; padding: 1rem; font-family: var(--font-mono); overflow-y: auto; font-size: 0.8rem; height: 150px; }
 .log-entry { margin-bottom: 0.3rem; border-bottom: 1px solid #111; padding-bottom: 0.2rem; }
 .log-entry.crit { color: #ff3333; font-weight: bold; }
 

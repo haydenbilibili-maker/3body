@@ -65,7 +65,7 @@ const themeOverrides: GlobalThemeOverrides = {
 }
 
 .resonance-1d {
-  font-family: monospace !important;
+  font-family: var(--font-mono) !important;
   background: #000 !important;
   color: #0f0 !important;
 }
@@ -89,7 +89,7 @@ const themeOverrides: GlobalThemeOverrides = {
 .mode-dehydrated {
   background: #fff !important;
   color: #000 !important;
-  font-family: serif !important;
+  font-family: var(--font-serif) !important;
 }
 .mode-dehydrated * {
   border: none !important;

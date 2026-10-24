@@ -1203,7 +1203,7 @@ const axioms = [
 }
 
 .df-title {
-  font-family: monospace;
+  font-family: var(--font-mono);
   color: #00ffff;
   margin: 0;
   font-size: 1.5rem;
@@ -1245,7 +1245,7 @@ const axioms = [
   border: 1px solid #333;
   color: #666;
   padding: 0.2rem 0.5rem;
-  font-family: monospace;
+  font-family: var(--font-mono);
   cursor: pointer;
 }
 
@@ -1268,8 +1268,8 @@ const axioms = [
   flex-direction: column;
 }
 
-.label { font-size: 0.6rem; color: #666; font-family: monospace; }
-.value { font-size: 1.2rem; font-family: monospace; color: #fff; }
+.label { font-size: 0.6rem; color: #666; font-family: var(--font-mono); }
+.value { font-size: 1.2rem; font-family: var(--font-mono); color: #fff; }
 .text-green { color: #00ff41; }
 .text-red { color: #ff3333; }
 
@@ -1316,7 +1316,7 @@ const axioms = [
   z-index: 10;
   width: 200px;
   backdrop-filter: blur(5px);
-  font-family: monospace;
+  font-family: var(--font-mono);
 }
 
 .tt-header {
@@ -1360,7 +1360,7 @@ const axioms = [
 
 .ticker-label {
   flex-shrink: 0;
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 0.7rem;
   color: #666;
   letter-spacing: 0.1em;
@@ -1390,7 +1390,7 @@ const axioms = [
 .ticker-chip {
   display: inline-block;
   padding: 0.2rem 0.6rem;
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 0.75rem;
   border-radius: 2px;
   flex-shrink: 0;
@@ -1436,7 +1436,7 @@ const axioms = [
 
 .axiom-box h2, .chain-box h2 {
   color: #00ffff;
-  font-family: monospace;
+  font-family: var(--font-mono);
   margin-bottom: 1.5rem;
 }
 
@@ -1447,7 +1447,7 @@ const axioms = [
 .axiom-box li {
   font-size: 1.2rem;
   margin-bottom: 1rem;
-  font-family: 'Noto Serif SC', serif;
+  font-family: var(--font-serif);
 }
 
 .chain-diagram {
@@ -1521,7 +1521,7 @@ const axioms = [
 
 .meter-text .val {
   font-size: 2.5rem;
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-weight: bold;
   color: #fff;
 }
@@ -1561,7 +1561,7 @@ const axioms = [
 @keyframes scan { 0% { left: 0; } 100% { left: 100%; } }
 
 .monitor-label {
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 0.8rem;
   color: #666;
   text-align: right;
@@ -1571,7 +1571,7 @@ const axioms = [
   background: #0a0a0f;
   border: 1px solid #333;
   padding: 1rem;
-  font-family: monospace;
+  font-family: var(--font-mono);
   min-height: 100px;
   display: flex;
   flex-direction: column;
@@ -1639,7 +1639,7 @@ const axioms = [
 .danger-text {
   color: #ffcc00;
   font-weight: bold;
-  font-family: monospace;
+  font-family: var(--font-mono);
   letter-spacing: 2px;
   background: rgba(0,0,0,0.8);
   padding: 0.2rem 0.5rem;
@@ -1788,7 +1788,7 @@ const axioms = [
   border: 1px solid #333;
   padding: 1rem;
   overflow-y: auto;
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 0.9rem;
 }
 .game-log p { margin: 0.2rem 0; }
@@ -1845,8 +1845,8 @@ const axioms = [
 .worldline-panel .reason { font-size: 0.8rem; color: #7a9a9a; }
 .config-row, .worldline-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1rem; }
 .config-row .select, .worldline-row .select { min-width: 120px; }
-.toolbar { display: flex; gap: 0.6rem; align-items: center; font-family: monospace; flex-wrap: wrap; }
-.diag-line { font-family: monospace; font-size: 12px; color: #8ba5a5; border: 1px dashed #294040; padding: 0.3rem 0.45rem; }
+.toolbar { display: flex; gap: 0.6rem; align-items: center; font-family: var(--font-mono); flex-wrap: wrap; }
+.diag-line { font-family: var(--font-mono); font-size: 12px; color: #8ba5a5; border: 1px dashed #294040; padding: 0.3rem 0.45rem; }
 .curve-panel { border: 1px solid #1f1f1f; padding: 0.4rem; border-radius: 4px; }
 .curve-svg { width: 100%; height: 90px; display: block; }
 .curve-axis { stroke: #333; stroke-width: 1; fill: none; }
@@ -1859,5 +1859,5 @@ const axioms = [
 .worldline-panel .logs { border: 1px solid #1e2e2e; padding: 0.6rem; background: rgba(0, 10, 15, 0.2); border-radius: 4px; max-height: 200px; overflow-y: auto; }
 .log-item { margin-bottom: 0.5rem; font-size: 0.85rem; }
 .log-item p { margin: 0.2rem 0; }
-.stream-line { font-size: 0.75rem; color: #9ab5b5; margin-bottom: 0.2rem; font-family: monospace; }
+.stream-line { font-size: 0.75rem; color: #9ab5b5; margin-bottom: 0.2rem; font-family: var(--font-mono); }
 </style>

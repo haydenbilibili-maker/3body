@@ -65,7 +65,7 @@ const randomQuote = computed(() => quotes[Math.floor(Math.random() * quotes.leng
   text-align: center;
   width: 400px;
   box-shadow: 0 0 50px rgba(255, 0, 0, 0.2);
-  font-family: 'Share Tech Mono', monospace;
+  font-family: var(--font-mono);
   animation: glitch 0.3s cubic-bezier(.25, .46, .45, .94) both infinite;
 }
 

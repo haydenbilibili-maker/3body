@@ -398,11 +398,11 @@ const envText = computed(() => {
 .label {
   font-size: 0.7rem;
   color: #888;
-  font-family: monospace;
+  font-family: var(--font-mono);
 }
 .value {
   font-size: 1.2rem;
-  font-family: monospace;
+  font-family: var(--font-mono);
   color: #00ffff;
 }
 .value.stable { color: #00ff41; }
@@ -431,7 +431,7 @@ const envText = computed(() => {
 
 .sub-value {
   font-size: 0.7rem;
-  font-family: monospace;
+  font-family: var(--font-mono);
   color: #666;
 }
 
@@ -456,7 +456,7 @@ const envText = computed(() => {
   transition: opacity 0.3s;
 }
 .granary.active { opacity: 1; border-color: #b8860b; }
-.granary-label { font-size: 0.7rem; color: #888; margin-bottom: 0.5rem; font-family: monospace; }
+.granary-label { font-size: 0.7rem; color: #888; margin-bottom: 0.5rem; font-family: var(--font-mono); }
 .granary-slots { display: flex; gap: 0.5rem; justify-content: center; }
 .roll {
   font-size: 1.5rem;

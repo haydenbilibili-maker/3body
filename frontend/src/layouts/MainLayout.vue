@@ -253,7 +253,7 @@ onUnmounted(() => {
 }
 
 .slogan {
-  font-family: 'Noto Serif SC', serif;
+  font-family: var(--font-serif);
   font-style: italic;
   opacity: 0.7;
 }
@@ -269,7 +269,7 @@ onUnmounted(() => {
   justify-content: center;
   gap: 1rem;
   color: #00ffff;
-  font-family: monospace;
+  font-family: var(--font-mono);
   letter-spacing: 2px;
 }
 

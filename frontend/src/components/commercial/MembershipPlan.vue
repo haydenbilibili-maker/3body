@@ -87,7 +87,7 @@ function selectPlan(role: UserRole) {
   padding: 2rem;
   border: 1px solid #333;
   color: #fff;
-  font-family: 'Noto Serif SC', serif;
+  font-family: var(--font-serif);
 }
 
 .recruit-title {
@@ -133,7 +133,7 @@ function selectPlan(role: UserRole) {
 }
 
 .price {
-  font-family: monospace;
+  font-family: var(--font-mono);
   margin-top: 0.5rem;
   font-size: 1.1rem;
 }

@@ -762,13 +762,11 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Noto+Serif+SC:wght@400;700&display=swap');
-
 .sector-s {
   min-height: 0;
   background: #0f0f1a;
   color: #d8d8ff;
-  font-family: 'Noto Serif SC', serif;
+  font-family: var(--font-serif);
   display: flex;
   flex-direction: column;
 }
@@ -781,7 +779,7 @@ onUnmounted(() => {
 
 .title {
   margin: 0;
-  font-family: 'Dancing Script', cursive;
+  font-family: var(--font-serif);
   letter-spacing: 2px;
   color: #fff;
 }
@@ -940,7 +938,7 @@ onUnmounted(() => {
 }
 
 .speed-hud-title {
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 0.75rem;
   color: #9fc2ff;
   margin-bottom: 0.35rem;
@@ -962,7 +960,7 @@ onUnmounted(() => {
 .speed-hud-scale {
   display: flex;
   justify-content: space-between;
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 0.7rem;
   color: #8f95c9;
   margin-top: 0.25rem;
@@ -1026,7 +1024,7 @@ onUnmounted(() => {
   cursor: pointer;
   border-radius: 4px;
   border: 1px solid transparent;
-  font-family: 'Noto Serif SC', serif;
+  font-family: var(--font-serif);
   transition: all 0.2s;
   background: rgba(255,255,255,0.3);
 }
@@ -1094,7 +1092,7 @@ onUnmounted(() => {
 .story-text-interactive {
   font-size: 1.2rem;
   line-height: 2;
-  font-family: 'Noto Serif SC', serif;
+  font-family: var(--font-serif);
 }
 
 .secret-word {
@@ -1350,11 +1348,11 @@ onUnmounted(() => {
   letter-spacing: 0.2em;
   color: rgba(255, 220, 200, 0.85);
   margin-bottom: 0.5rem;
-  font-family: 'Noto Serif SC', serif;
+  font-family: var(--font-serif);
 }
 
 .star-name {
-  font-family: 'Dancing Script', cursive;
+  font-family: var(--font-serif);
   font-size: 2.5rem;
   color: #fff;
   margin: 0 0 0.25rem;
@@ -1387,7 +1385,7 @@ onUnmounted(() => {
   cursor: pointer;
   font-size: 1rem;
   letter-spacing: 0.15em;
-  font-family: 'Noto Serif SC', serif;
+  font-family: var(--font-serif);
   transition: all 0.4s ease;
   border-radius: 2px;
 }
@@ -1419,7 +1417,7 @@ onUnmounted(() => {
 
 .quote {
   font-style: italic;
-  font-family: 'Dancing Script', cursive;
+  font-family: var(--font-serif);
   font-size: 1.35rem;
   color: rgba(255, 240, 220, 0.95);
   margin: 0.5rem 0;

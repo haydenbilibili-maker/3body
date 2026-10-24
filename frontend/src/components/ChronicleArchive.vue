@@ -36,7 +36,7 @@ onMounted(async () => {
   background: #fdf6e3;
   color: #333;
   padding: 2rem;
-  font-family: 'Courier New', monospace;
+  font-family: var(--font-mono);
   position: relative;
   box-shadow: 2px 2px 10px rgba(0,0,0,0.5);
   transform: rotate(-1deg);

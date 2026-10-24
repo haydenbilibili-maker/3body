@@ -39,7 +39,7 @@ defineProps<{
 }
 
 .diag-line {
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 12px;
   color: #8ba5a5;
   border: 1px dashed #294040;
@@ -49,7 +49,7 @@ defineProps<{
 .diag-history {
   border: 1px solid #202f2f;
   padding: 0.35rem 0.5rem;
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   color: #86a1a1;
 }

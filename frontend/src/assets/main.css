@@ -8,12 +8,19 @@
 */
 
 :root {
-  --font-tech: 'JetBrains Mono', 'SF Mono', monospace;
-  --font-display: 'Inter', sans-serif;
-  /* tailwind.config.js 引用的字体角色（此前未定义，font-mono / font-serif 类无效） */
-  --font-sans: 'Inter', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  --font-mono: var(--font-tech);
-  --font-serif: 'Noto Serif SC', 'Songti SC', serif;
+  /*
+   * 字体角色（全站只用这几个变量，不直接写字体名）。
+   * 字体文件由 @fontsource 自托管（见 main.ts），不依赖 Google Fonts——中国大陆无法访问。
+   * 中文字形：等宽 / 无衬线回落到系统黑体，衬线使用自托管的 Noto Serif SC。
+   */
+  --font-mono: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, 'PingFang SC', 'Microsoft YaHei', monospace;   /* 数据、终端、代号 */
+  --font-sans: 'Inter', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;  /* 界面与正文 */
+  --font-serif: 'Noto Serif SC', 'Songti SC', 'SimSun', serif;                                              /* 叙事、原著、碑文 */
+  --font-title: 'Orbitron', 'Inter', 'PingFang SC', 'Microsoft YaHei', sans-serif;                          /* 科技感标题（只用于标题） */
+  --font-title-classic: 'Cinzel', 'Noto Serif SC', 'Songti SC', serif;                                      /* 古典标题：画廊、档案馆、归零者 */
+  /* 兼容旧名 */
+  --font-tech: var(--font-mono);
+  --font-display: var(--font-sans);
   
   /* Palette Mappings */
   --bg-deep: #000510;

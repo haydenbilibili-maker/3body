@@ -382,7 +382,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 1rem;
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 0.7rem;
   color: rgba(0, 255, 255, 0.7);
 }

@@ -296,7 +296,7 @@ onUnmounted(() => {
   min-height: 0;
   background: linear-gradient(180deg, #060810 0%, #0b0e18 50%, #080a12 100%);
   color: #e8eaef;
-  font-family: 'Rajdhani', 'Segoe UI', sans-serif;
+  font-family: var(--font-sans);
   padding: 2rem;
   display: flex;
   /* 布局层把扇区根节点强制为纵向 flex：这里用 align-items 做水平居中。

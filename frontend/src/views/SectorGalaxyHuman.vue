@@ -176,7 +176,7 @@ const eraColor = (i: number) => {
   min-height: 100%;
   background: #050508;
   color: #c0c0c0;
-  font-family: 'Noto Serif SC', serif;
+  font-family: var(--font-serif);
   display: flex;
   flex-direction: column;
   position: relative;
@@ -207,7 +207,7 @@ const eraColor = (i: number) => {
 }
 
 .title {
-  font-family: 'Russo One', sans-serif;
+  font-family: var(--font-title);
   font-size: 1.75rem;
   letter-spacing: 0.08em;
   color: #00ffff;
@@ -221,7 +221,7 @@ const eraColor = (i: number) => {
   margin-top: 0.5rem;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  font-family: monospace;
+  font-family: var(--font-mono);
 }
 
 .header-meta {
@@ -231,7 +231,7 @@ const eraColor = (i: number) => {
 }
 
 .meta-tag {
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 0.65rem;
   padding: 2px 8px;
   border: 1px solid rgba(0, 255, 255, 0.3);
@@ -260,7 +260,7 @@ const eraColor = (i: number) => {
 }
 
 .viz-title {
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 0.7rem;
   letter-spacing: 0.2em;
   color: rgba(0, 255, 255, 0.6);
@@ -306,7 +306,7 @@ const eraColor = (i: number) => {
 .tree-label {
   fill: rgba(255, 255, 255, 0.5);
   font-size: 10px;
-  font-family: monospace;
+  font-family: var(--font-mono);
   text-anchor: middle;
 }
 
@@ -319,7 +319,7 @@ const eraColor = (i: number) => {
   margin-top: 1rem;
   font-size: 0.65rem;
   color: #555;
-  font-family: monospace;
+  font-family: var(--font-mono);
 }
 
 /* Main: Timeline */
@@ -345,13 +345,13 @@ const eraColor = (i: number) => {
 
 .galaxy-timeline :deep(.n-timeline-item-content__time) {
   color: rgba(0, 255, 255, 0.6);
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 0.75rem;
 }
 
 .card-era {
   display: inline-block;
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 0.7rem;
   padding: 2px 8px;
   border: 1px solid;
@@ -390,7 +390,7 @@ const eraColor = (i: number) => {
 .card-meta {
   border-top: 1px dashed rgba(255, 255, 255, 0.1);
   padding-top: 0.75rem;
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 0.78rem;
   color: #777;
 }

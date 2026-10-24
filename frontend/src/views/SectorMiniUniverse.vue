@@ -227,7 +227,7 @@ onUnmounted(() => {
   min-height: 0;
   background: #f8f6f2;
   color: #3e2723;
-  font-family: 'Noto Serif SC', serif;
+  font-family: var(--font-serif);
   padding: 2rem;
   overflow-y: auto;
 }
@@ -305,7 +305,7 @@ onUnmounted(() => {
 .status-overlay {
   position: absolute; top: 10px; right: 10px;
   text-align: right;
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 0.8rem;
 }
 

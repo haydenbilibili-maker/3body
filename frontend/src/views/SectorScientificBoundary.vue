@@ -518,7 +518,7 @@ onUnmounted(() => {
   min-height: 0;
   background: #0a0a12;
   color: #ccc;
-  font-family: 'Noto Serif SC', serif;
+  font-family: var(--font-serif);
   display: flex;
   flex-direction: column;
 }
@@ -575,7 +575,7 @@ onUnmounted(() => {
   mix-blend-mode: difference;
 }
 .countdown-digits {
-  font-family: 'Courier New', monospace;
+  font-family: var(--font-mono);
   font-size: 10vw;
   color: rgba(255, 0, 0, 0.4);
   text-shadow: 0 0 20px rgba(255, 0, 0, 0.8), 2px 2px 0px rgba(0,0,0,0.5);
@@ -651,7 +651,7 @@ onUnmounted(() => {
   position: absolute;
   top: 10px;
   right: 10px;
-  font-family: monospace;
+  font-family: var(--font-mono);
   color: #6a6;
 }
 .collapse-tip {

@@ -309,7 +309,7 @@ onMounted(loadItems)
   border: 2px solid rgba(255, 60, 0, 0.5);
   color: rgba(255, 60, 0, 0.5);
   padding: 2px 5px;
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-weight: bold;
   font-size: 0.8rem;
   transform: rotate(-15deg);
@@ -428,7 +428,7 @@ onMounted(loadItems)
   flex: 1;
   padding: 2rem;
   overflow-y: auto;
-  font-family: 'Special Elite', var(--font-tech); /* 优先打字机字体 */
+  font-family: var(--font-mono); /* 优先打字机字体 */
 }
 
 .retina-text {
