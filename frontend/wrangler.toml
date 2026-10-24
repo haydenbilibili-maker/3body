@@ -1,0 +1,4 @@
+# Cloudflare Pages 项目配置
+# 部署：cd frontend && npm run build && npm run deploy:cloudflare
+name = "3body"
+pages_build_output_dir = "./dist"
