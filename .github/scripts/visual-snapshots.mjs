@@ -185,6 +185,66 @@ async function snapshotRoute(browser, viewport, [slug, title]) {
   }
 }
 
+// 交互态快照：只靠逐页截图看不到的界面（下拉菜单、手机抽屉）。每项：视口、页面、操作、截图名
+const STATES = [
+  {
+    name: 'desktop-nav-dropdown',
+    viewport: 'desktop',
+    slug: 'sector-c',
+    act: async (page) => {
+      await page.hover('.nav-group >> nth=1')
+      await page.waitForTimeout(600)
+    },
+  },
+  {
+    name: 'mobile-nav-drawer',
+    viewport: 'mobile',
+    slug: 'sector-c',
+    act: async (page) => {
+      await page.click('.nav-hamburger')
+      await page.waitForTimeout(600)
+    },
+  },
+  {
+    name: 'mobile-nav-drawer-scrolled',
+    viewport: 'mobile',
+    slug: 'sector-c',
+    act: async (page) => {
+      await page.click('.nav-hamburger')
+      await page.waitForTimeout(400)
+      await page.evaluate(() => {
+        const el = document.querySelector('.drawer-body') ?? document.querySelector('.nav-drawer')
+        if (el) el.scrollTop = el.scrollHeight
+      })
+      await page.waitForTimeout(300)
+    },
+  },
+]
+
+async function snapshotState(browser, state) {
+  const viewport = VIEWPORTS.find((v) => v.name === state.viewport)
+  const context = await browser.newContext({
+    viewport: { width: viewport.width, height: viewport.height },
+    isMobile: viewport.isMobile,
+    hasTouch: viewport.isMobile,
+    deviceScaleFactor: 1,
+  })
+  const page = await context.newPage()
+  const pageErrors = []
+  page.on('pageerror', (err) => pageErrors.push(short(err.message)))
+  let error = null
+  try {
+    await page.goto(new URL(state.slug, BASE_URL).toString(), { waitUntil: 'domcontentloaded', timeout: 30_000 })
+    await page.waitForTimeout(1500)
+    await state.act(page)
+    await page.screenshot({ path: path.join(OUT_DIR, 'states', `${state.name}.jpg`), type: 'jpeg', quality: 70 })
+  } catch (e) {
+    error = short(e.message)
+  }
+  await context.close()
+  return { name: state.name, viewport: state.viewport, slug: state.slug, error, pageErrors }
+}
+
 async function main() {
   for (const v of VIEWPORTS) await mkdir(path.join(OUT_DIR, v.name), { recursive: true })
   let browser = await chromium.launch()
@@ -217,9 +277,24 @@ async function main() {
       )
     }
   }
+  await mkdir(path.join(OUT_DIR, 'states'), { recursive: true })
+  const states = []
+  for (const state of STATES) {
+    const r = await withTimeout(snapshotState(browser, state), PAGE_TIMEOUT_MS, state.name).catch((e) => ({
+      name: state.name,
+      viewport: state.viewport,
+      slug: state.slug,
+      error: short(e.message),
+      pageErrors: [],
+    }))
+    states.push(r)
+    console.log(`[state] ${r.name} ${r.error ? `ERROR ${r.error}` : 'ok'}`)
+    if (r.error) console.log(`::warning title=state-snapshot::${r.name} ${r.error}`.slice(0, 900))
+  }
   await browser.close()
 
   await writeFile(path.join(OUT_DIR, 'report.json'), JSON.stringify(results, null, 2))
+  await writeFile(path.join(OUT_DIR, 'states.json'), JSON.stringify(states, null, 2))
 
   const rows = results.map(
     (r) =>
@@ -237,6 +312,10 @@ async function main() {
     '| 视口 | 页面 | 内容高度/屏数 | 横向溢出(px) | <12px 文字 | 报错 | 失败请求 | 耗时(ms) |',
     '| --- | --- | --- | --- | --- | --- | --- | --- |',
     ...rows,
+    '',
+    '## 交互态',
+    '',
+    ...states.map((r) => `- [${r.name}](states/${r.name}.jpg)${r.error ? ` — 失败：${r.error}` : ''}`),
     '',
   ].join('\n')
   await writeFile(path.join(OUT_DIR, 'README.md'), md)

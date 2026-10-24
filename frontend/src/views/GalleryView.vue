@@ -328,14 +328,14 @@ const fallenWorks = [
 .header {
   padding: 1.5rem 2rem;
   background: radial-gradient(circle at center, #1a1a2e 0%, #050510 100%);
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid var(--gray-700);
   text-align: center;
 }
 
 .title {
   font-family: var(--font-title-classic);
   font-size: 2rem;
-  color: #d4af37;
+  color: var(--c-gold);
   letter-spacing: 0.2em;
   text-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
   margin: 0;
@@ -344,7 +344,7 @@ const fallenWorks = [
 .deco-line {
   width: 60px;
   height: 2px;
-  background: #d4af37;
+  background: var(--c-gold);
   margin: 0.5rem auto;
 }
 
@@ -395,8 +395,8 @@ const fallenWorks = [
 .canvas-frame {
   position: relative;
   aspect-ratio: 1/1;
-  background: #000;
-  border: 12px solid #1a1a1a;
+  background: var(--black);
+  border: 12px solid var(--gray-850);
   box-shadow: 0 0 40px rgba(0,0,0,0.6);
   overflow: hidden;
 }
@@ -454,7 +454,7 @@ const fallenWorks = [
 .upload-hint {
   margin: 0;
   font-size: 0.95rem;
-  color: #888;
+  color: var(--gray-400);
   line-height: 1.4;
 }
 
@@ -465,15 +465,15 @@ const fallenWorks = [
 
 .upload-sub {
   font-size: 0.75rem;
-  color: #8a8a8a;
+  color: var(--gray-400);
 }
 
 .scan-line {
   position: absolute;
   left: 0; right: 0;
   height: 2px;
-  background: #fff;
-  box-shadow: 0 0 10px #fff, 0 0 20px #00ffff;
+  background: var(--white);
+  box-shadow: 0 0 10px var(--white), 0 0 20px var(--c-cyan);
   z-index: 10;
 }
 
@@ -484,16 +484,16 @@ const fallenWorks = [
 
 .controls-panel {
   background: #0a0a12;
-  border: 1px solid #222;
+  border: 1px solid var(--gray-800);
   padding: 1.5rem;
 }
 
 .monitor-screen {
   font-family: var(--font-sans);
   margin-bottom: 1.5rem;
-  background: #000;
+  background: var(--black);
   padding: 1rem;
-  border: 1px solid #333;
+  border: 1px solid var(--gray-700);
   color: #00ffaa;
 }
 
@@ -507,17 +507,17 @@ const fallenWorks = [
 }
 
 .monitor-val {
-  color: #d4af37;
+  color: var(--c-gold);
 }
 
 .monitor-bar {
   height: 4px;
-  background: #111;
+  background: var(--gray-900);
   margin-top: 0.5rem;
 }
 .monitor-fill {
   height: 100%;
-  background: #ff3333;
+  background: var(--c-red);
   transition: width 0.1s linear;
 }
 
@@ -530,7 +530,7 @@ const fallenWorks = [
 .lore-box {
   margin-top: 1rem;
   text-align: center;
-  color: #8a8a8a;
+  color: var(--gray-400);
   font-style: italic;
   font-size: 0.9rem;
 }
@@ -546,26 +546,26 @@ const fallenWorks = [
 }
 
 .gallery-intro h2 {
-  color: #d4af37;
+  color: var(--c-gold);
   font-family: var(--font-title-classic);
 }
 
 .gallery-intro p {
-  color: #888;
+  color: var(--gray-400);
   max-width: 600px;
   margin: 0 auto;
 }
 
 .art-frame {
-  background: #0a0a0a;
-  border: 1px solid #333;
+  background: var(--gray-950);
+  border: 1px solid var(--gray-700);
   padding: 10px;
   transition: transform 0.3s;
 }
 
 .art-frame:hover {
   transform: translateY(-5px);
-  border-color: #d4af37;
+  border-color: var(--c-gold);
   box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
 
@@ -588,13 +588,13 @@ const fallenWorks = [
 }
 
 .art-title {
-  color: #ddd;
+  color: var(--gray-150);
   font-family: var(--font-title-classic);
   margin-bottom: 0.3rem;
 }
 
 .art-meta {
-  color: #8a8a8a;
+  color: var(--gray-400);
   font-size: 0.75rem;
   font-family: var(--font-sans);
   text-transform: uppercase;
@@ -634,12 +634,12 @@ const fallenWorks = [
 .line {
   font-size: 1.2rem;
   margin-bottom: 1rem;
-  color: #ccc;
+  color: var(--gray-200);
   font-family: var(--font-title-classic);
 }
 
 .highlight {
-  color: #d4af37;
+  color: var(--c-gold);
   font-size: 1.4rem;
   text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
 }
@@ -648,7 +648,7 @@ const fallenWorks = [
   margin-top: 2rem;
   padding-top: 1rem;
   border-top: 1px solid rgba(255,255,255,0.1);
-  color: #8a8a8a;
+  color: var(--gray-400);
   line-height: 1.6;
 }
 </style>

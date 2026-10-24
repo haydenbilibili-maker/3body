@@ -785,7 +785,7 @@ onUnmounted(() => {
   margin: 0;
   font-family: var(--font-serif);
   letter-spacing: 2px;
-  color: #fff;
+  color: var(--white);
 }
 
 .s-tabs {
@@ -804,7 +804,7 @@ onUnmounted(() => {
 .track {
   width: 100%;
   height: 100px;
-  border-bottom: 2px solid #555;
+  border-bottom: 2px solid var(--gray-550);
   position: relative;
   margin-top: 50px;
 }
@@ -816,7 +816,7 @@ onUnmounted(() => {
   height: 16px;
   border-radius: 50%;
   transform: translateX(-50%);
-  border: 2px solid #ff6666;
+  border: 2px solid var(--c-red);
   box-shadow: 0 0 16px rgba(255, 80, 80, 0.7);
   animation: pulse-ring 0.75s ease-out forwards;
 }
@@ -842,7 +842,7 @@ onUnmounted(() => {
   border-radius: 50%;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
 }
 
 .brain-matter {
@@ -875,7 +875,7 @@ onUnmounted(() => {
   transform: translateX(-50%);
   width: 4px;
   height: 20px;
-  background: linear-gradient(to bottom, #00ffff, transparent);
+  background: linear-gradient(to bottom, var(--c-cyan), transparent);
   opacity: 0.7;
   filter: blur(2px);
 }
@@ -886,7 +886,7 @@ onUnmounted(() => {
   left: 0;
   width: 100%;
   height: 1px;
-  background: repeating-linear-gradient(90deg, #444, #444 5px, transparent 5px, transparent 10px);
+  background: repeating-linear-gradient(90deg, var(--gray-600), var(--gray-600) 5px, transparent 5px, transparent 10px);
   z-index: 0;
 }
 
@@ -924,7 +924,7 @@ onUnmounted(() => {
   opacity: 0.5;
   transition: all 0.3s;
 }
-.bomb-icon.active { opacity: 1; transform: translateX(-50%) scale(1.2); color: #ff3333; }
+.bomb-icon.active { opacity: 1; transform: translateX(-50%) scale(1.2); color: var(--c-red); }
 .bomb-icon.used { opacity: 0.2; transform: translateX(-50%) scale(0.8); }
 
 .controls {
@@ -985,8 +985,8 @@ onUnmounted(() => {
   width: 120px;
   height: 120px;
   border-radius: 50%;
-  background: #ff3333;
-  color: #fff;
+  background: var(--c-red);
+  color: var(--white);
   font-weight: bold;
   border: 4px solid #aa0000;
   cursor: pointer;
@@ -997,8 +997,8 @@ onUnmounted(() => {
 
 .start-btn {
   padding: 0.5rem 2rem;
-  background: #fff;
-  color: #000;
+  background: var(--white);
+  color: var(--black);
   border: none;
   cursor: pointer;
 }
@@ -1035,11 +1035,11 @@ onUnmounted(() => {
 
 .story-tab:hover {
   background: rgba(255,255,255,0.6);
-  border-color: #bbb;
+  border-color: var(--gray-250);
 }
 
 .story-tab.active {
-  background: #fff;
+  background: var(--white);
   border-left: 4px solid #d35400;
   box-shadow: 0 2px 5px rgba(0,0,0,0.05);
   font-weight: bold;
@@ -1056,7 +1056,7 @@ onUnmounted(() => {
 
 .clue-sidebar {
   width: 250px;
-  border-left: 1px solid #ccc;
+  border-left: 1px solid var(--gray-200);
   padding-left: 1rem;
   display: flex;
   flex-direction: column;
@@ -1065,8 +1065,8 @@ onUnmounted(() => {
 .clue-sidebar h4 {
   margin: 0 0 1rem 0;
   font-size: 0.9rem;
-  color: #8a8a8a;
-  border-bottom: 1px solid #ddd;
+  color: var(--gray-400);
+  border-bottom: 1px solid var(--gray-150);
   padding-bottom: 0.5rem;
 }
 
@@ -1079,7 +1079,7 @@ onUnmounted(() => {
   padding: 0.8rem;
   margin-bottom: 0.8rem;
   background: rgba(255,255,255,0.5);
-  border: 1px dashed #ccc;
+  border: 1px dashed var(--gray-200);
   border-radius: 4px;
 }
 
@@ -1091,7 +1091,7 @@ onUnmounted(() => {
 .clue-text { font-weight: bold; font-size: 0.9rem; margin-bottom: 0.3rem; }
 .clue-status { font-size: 0.8rem; }
 .status-solved { color: #155724; }
-.status-pending { color: #999; }
+.status-pending { color: var(--gray-350); }
 
 .story-text-interactive {
   font-size: 1.2rem;
@@ -1100,7 +1100,7 @@ onUnmounted(() => {
 }
 
 .secret-word {
-  border-bottom: 2px dashed #999;
+  border-bottom: 2px dashed var(--gray-350);
   cursor: pointer;
   padding: 0 2px;
   transition: all 0.2s;
@@ -1123,28 +1123,28 @@ onUnmounted(() => {
 .concept-popover {
   position: fixed;
   z-index: 2000;
-  background: #222;
-  border: 1px solid #444;
+  background: var(--gray-800);
+  border: 1px solid var(--gray-600);
   box-shadow: 0 5px 20px rgba(0,0,0,0.5);
   border-radius: 4px;
   width: 280px;
-  color: #eee;
+  color: var(--gray-100);
   transform: translateY(5px);
 }
 
 .popover-header {
   padding: 0.5rem 0.8rem;
-  background: #333;
-  border-bottom: 1px solid #444;
+  background: var(--gray-700);
+  border-bottom: 1px solid var(--gray-600);
   display: flex;
   justify-content: space-between;
   align-items: center;
   font-size: 0.85rem;
-  color: #aaa;
+  color: var(--gray-300);
 }
 
 .close-btn {
-  background: none; border: none; color: #aaa; cursor: pointer; font-size: 1.2rem; line-height: 1;
+  background: none; border: none; color: var(--gray-300); cursor: pointer; font-size: 1.2rem; line-height: 1;
 }
 
 .popover-body {
@@ -1156,12 +1156,12 @@ onUnmounted(() => {
 .popover-option {
   padding: 0.6rem;
   cursor: pointer;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid var(--gray-700);
   font-size: 0.9rem;
   transition: all 0.2s;
 }
 .popover-option:last-child { border-bottom: none; }
-.popover-option:hover { background: #00ffff; color: #000; }
+.popover-option:hover { background: var(--c-cyan); color: var(--black); }
 
 /* Star — 星星的礼物（浪漫版） */
 .star-view {
@@ -1219,7 +1219,7 @@ onUnmounted(() => {
 .telescope {
   width: 280px;
   height: 280px;
-  background: radial-gradient(circle at 50% 50%, #0a0a14 0%, #000 70%);
+  background: radial-gradient(circle at 50% 50%, #0a0a14 0%, var(--black) 70%);
   border-radius: 50%;
   border: 1px solid rgba(255, 220, 180, 0.15);
   position: relative;
@@ -1241,7 +1241,7 @@ onUnmounted(() => {
   border-radius: 50%;
   border: 1px solid transparent;
   background: linear-gradient(135deg, rgba(255,220,180,0.2), transparent 40%, transparent 60%, rgba(200,180,255,0.2)) border-box;
-  mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(var(--white) 0 0) padding-box, linear-gradient(var(--white) 0 0);
   mask-composite: exclude;
   -webkit-mask-composite: xor;
   padding: 1px;
@@ -1258,9 +1258,9 @@ onUnmounted(() => {
 .star-core {
   width: 14px;
   height: 14px;
-  background: #fff;
+  background: var(--white);
   border-radius: 50%;
-  box-shadow: 0 0 20px #fff, 0 0 40px rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 20px var(--white), 0 0 40px rgba(255, 255, 255, 0.5);
   animation: star-breathe 4s ease-in-out infinite;
 }
 
@@ -1358,7 +1358,7 @@ onUnmounted(() => {
 .star-name {
   font-family: var(--font-serif);
   font-size: 2.5rem;
-  color: #fff;
+  color: var(--white);
   margin: 0 0 0.25rem;
   letter-spacing: 0.1em;
   text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
@@ -1397,7 +1397,7 @@ onUnmounted(() => {
 .gift-btn:hover:not(:disabled) {
   background: rgba(255, 220, 180, 0.15);
   border-color: rgba(255, 220, 180, 0.8);
-  color: #fff;
+  color: var(--white);
   box-shadow: 0 0 24px rgba(255, 220, 180, 0.2);
 }
 
@@ -1453,7 +1453,7 @@ onUnmounted(() => {
 
 /* C. 云天明隐喻加密局（合并自三体体验沙盒） */
 .tianming-panel {
-  border: 1px solid #252525;
+  border: 1px solid var(--gray-800);
   background: rgba(0, 0, 0, 0.4);
   padding: 1rem;
   display: flex;
@@ -1513,16 +1513,16 @@ onUnmounted(() => {
 .decode-badge { margin-top: 0.4rem; }
 .tianming-compare { margin-top: 1rem; display: flex; flex-direction: column; gap: 0.8rem; }
 .compare-block { min-width: 0; }
-.compare-pre { margin: 0; padding: 0.5rem; border: 1px solid #222; background: #060606; color: #b7c6c6; white-space: pre-wrap; font-size: 0.85rem; max-height: 200px; overflow: auto; }
-.semantic-box { padding: 0.5rem; border: 1px solid #222; background: #060606; color: #b7c6c6; font-size: 0.85rem; }
-.sem-empty { color: #8a8a8a; }
+.compare-pre { margin: 0; padding: 0.5rem; border: 1px solid var(--gray-800); background: var(--gray-950); color: #b7c6c6; white-space: pre-wrap; font-size: 0.85rem; max-height: 200px; overflow: auto; }
+.semantic-box { padding: 0.5rem; border: 1px solid var(--gray-800); background: var(--gray-950); color: #b7c6c6; font-size: 0.85rem; }
+.sem-empty { color: var(--gray-400); }
 .sem-hit-phrase { color: #00ff88; background: rgba(0, 255, 136, 0.15); }
 .sem-hit-char { color: #88ff88; }
-.sem-miss { color: #8a8a8a; }
+.sem-miss { color: var(--gray-400); }
 .sem-stats { margin-top: 0.5rem; }
 .sem-stat-item { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 0.2rem; }
 
 :deep(.n-tabs-nav) { background: #151525; }
 :deep(.n-tabs-tab) { color: #8888aa; }
-:deep(.n-tabs-tab--active) { color: #fff; font-weight: bold; }
+:deep(.n-tabs-tab--active) { color: var(--white); font-weight: bold; }
 </style>

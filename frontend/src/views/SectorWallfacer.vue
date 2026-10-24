@@ -1267,8 +1267,8 @@ onMounted(() => {
 <style scoped>
 .sector-wallfacer {
   min-height: 0;
-  background: #050505;
-  color: #ccc;
+  background: var(--gray-950);
+  color: var(--gray-200);
   padding: 2rem;
   font-family: var(--font-sans);
 }
@@ -1281,7 +1281,7 @@ onMounted(() => {
   z-index: 0;
 }
 .header {
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid var(--gray-700);
   padding-bottom: 1rem;
   margin-bottom: 2rem;
   display: flex;
@@ -1293,12 +1293,12 @@ onMounted(() => {
 .title {
   font-family: var(--font-mono);
   font-size: 1.5rem;
-  color: #fff;
+  color: var(--white);
   letter-spacing: 2px;
 }
 
 .status-item {
-  border: 1px solid #333;
+  border: 1px solid var(--gray-700);
   padding: 2px 6px;
 }
 
@@ -1321,22 +1321,22 @@ onMounted(() => {
 
 .wallbreaker-tag {
   background: rgba(0, 0, 0, 0.6);
-  border: 1px solid #666;
+  border: 1px solid var(--gray-500);
   padding: 0.5rem 1rem;
   cursor: pointer;
   text-align: right;
   transition: all 0.3s;
 }
 .wallbreaker-tag:hover {
-  background: #222;
-  border-color: #fff;
+  background: var(--gray-800);
+  border-color: var(--white);
   transform: translateX(-5px);
 }
-.wallbreaker-tag.danger { border-color: #f44336; }
+.wallbreaker-tag.danger { border-color: var(--c-red); }
 .wallbreaker-tag.danger:hover { background: rgba(244, 67, 54, 0.1); }
 
-.wb-label { display: block; font-size: 0.75rem; color: #888; letter-spacing: 1px; }
-.wb-name { display: block; font-family: var(--font-mono); font-size: 1.1rem; color: #ccc; font-weight: bold; }
+.wb-label { display: block; font-size: 0.75rem; color: var(--gray-400); letter-spacing: 1px; }
+.wb-name { display: block; font-family: var(--font-mono); font-size: 1.1rem; color: var(--gray-200); font-weight: bold; }
 
 .confrontation-scene {
   display: flex;
@@ -1349,7 +1349,7 @@ onMounted(() => {
 
 .wb-avatar {
   width: 100px; height: 100px;
-  background: #000;
+  background: var(--black);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -1358,7 +1358,7 @@ onMounted(() => {
 }
 .hooded-figure {
   width: 60px; height: 60px;
-  background: linear-gradient(135deg, #333, #000);
+  background: linear-gradient(135deg, var(--gray-700), var(--black));
   clip-path: polygon(50% 0, 100% 100%, 0 100%);
 }
 
@@ -1369,7 +1369,7 @@ onMounted(() => {
   font-size: 1.2rem;
   line-height: 1.6;
 }
-.wb-line { color: #ccc; margin-bottom: 1rem; }
+.wb-line { color: var(--gray-200); margin-bottom: 1rem; }
 .wb-line.reveal { color: #ffeb3b; font-weight: bold; text-shadow: 0 0 10px rgba(255, 235, 59, 0.3); }
 
 .wb-actions { margin-top: auto; }
@@ -1377,7 +1377,7 @@ onMounted(() => {
 /* Tab Cards */
 .wallfacer-card {
   background: rgba(20, 20, 20, 0.8);
-  border: 1px solid #333;
+  border: 1px solid var(--gray-700);
   padding: 2rem;
   min-height: 500px;
   display: flex;
@@ -1391,12 +1391,12 @@ onMounted(() => {
 }
 
 .holo-card:hover {
-  box-shadow: 0 0 30px rgba(0, 255, 255, 0.1);
+  box-shadow: 0 0 30px rgba(0, 240, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.2);
 }
 
 .card-header {
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid var(--gray-700);
   margin-bottom: 1.5rem;
   padding-bottom: 0.5rem;
   transform: translateZ(20px);
@@ -1408,7 +1408,7 @@ onMounted(() => {
 }
 .subtitle {
   font-family: var(--font-mono);
-  color: #8a8a8a;
+  color: var(--gray-400);
   font-size: 0.9rem;
 }
 .card-body {
@@ -1424,8 +1424,8 @@ onMounted(() => {
 .lore-text {
   margin-top: auto;
   font-style: italic;
-  color: #8a8a8a; /* 原 #555 与 #050505 背景对比度约 2.5:1，几乎看不清 */
-  border-left: 2px solid #333;
+  color: var(--gray-400); /* 原 var(--gray-550) 与 var(--gray-950) 背景对比度约 2.5:1，几乎看不清 */
+  border-left: 2px solid var(--gray-700);
   padding-left: 1rem;
   font-size: 0.9rem;
   transform: translateZ(5px);
@@ -1434,7 +1434,7 @@ onMounted(() => {
 /* Tyler Theme */
 .tyler-theme h2 { color: #8bc34a; }
 .radar-view {
-  background: #000;
+  background: var(--black);
   border: 1px solid #33691e;
   height: 250px;
   position: relative;
@@ -1452,10 +1452,10 @@ onMounted(() => {
   position: absolute;
   top: 50%; left: 50%;
   width: 10px; height: 10px;
-  background: #f44336;
+  background: var(--c-red);
   border-radius: 50%;
   transform: translate(-50%, -50%);
-  box-shadow: 0 0 10px #f44336;
+  box-shadow: 0 0 10px var(--c-red);
 }
 .target-fleet.ghost {
   opacity: 0.3;
@@ -1482,7 +1482,7 @@ onMounted(() => {
 /* Diaz Theme */
 .diaz-theme h2 { color: #ff9800; }
 .solar-view {
-  background: #000;
+  background: var(--black);
   height: 200px;
   position: relative;
   overflow: hidden;
@@ -1492,7 +1492,7 @@ onMounted(() => {
   position: absolute;
   left: -50px; top: 50%;
   width: 150px; height: 150px;
-  background: radial-gradient(circle, #ffeb3b, #f44336);
+  background: radial-gradient(circle, #ffeb3b, var(--c-red));
   border-radius: 50%;
   transform: translateY(-50%);
   box-shadow: 0 0 50px #ff9800;
@@ -1507,7 +1507,7 @@ onMounted(() => {
   transform: translateY(-50%);
   transition: all 2s;
 }
-.doomsday .sun { width: 300px; height: 300px; box-shadow: 0 0 100px #f44336; }
+.doomsday .sun { width: 300px; height: 300px; box-shadow: 0 0 100px var(--c-red); }
 .doomsday .mercury { left: 50px; opacity: 0; }
 .bomb-controls {
   display: flex;
@@ -1526,12 +1526,12 @@ onMounted(() => {
 .detonate-btn { font-weight: bold; letter-spacing: 1px; }
 
 /* Hines Theme */
-.hines-theme h2 { color: #00bcd4; }
+.hines-theme h2 { color: var(--c-sky); }
 .hines-body { display: flex; flex-direction: column; height: 100%; }
 
 .neural-network {
-  background: #000;
-  border: 1px solid #00bcd4;
+  background: var(--black);
+  border: 1px solid var(--c-sky);
   height: 250px;
   position: relative;
   margin-bottom: 1.5rem;
@@ -1551,16 +1551,16 @@ onMounted(() => {
 }
 .imprint-status {
   font-family: var(--font-mono);
-  color: #fff;
-  background: #000;
+  color: var(--white);
+  background: var(--black);
   padding: 0.5rem;
-  border: 1px solid #fff;
+  border: 1px solid var(--white);
 }
 .scanning-line {
   position: absolute;
   top: 0; left: 0; right: 0; height: 2px;
-  background: #00bcd4;
-  box-shadow: 0 0 10px #00bcd4;
+  background: var(--c-sky);
+  box-shadow: 0 0 10px var(--c-sky);
   animation: scan 2s linear infinite;
 }
 @keyframes scan { 0% { top: 0; } 100% { top: 100%; } }
@@ -1572,7 +1572,7 @@ onMounted(() => {
 }
 
 .seal-option {
-  border: 1px solid #333;
+  border: 1px solid var(--gray-700);
   padding: 1rem;
   cursor: pointer;
   transition: all 0.2s;
@@ -1590,7 +1590,7 @@ onMounted(() => {
   font-weight: bold;
   margin-bottom: 0.3rem;
 }
-.option-sub { font-size: 0.8rem; color: #8a8a8a; }
+.option-sub { font-size: 0.8rem; color: var(--gray-400); }
 
 .sealed-view {
   flex: 1;
@@ -1602,7 +1602,7 @@ onMounted(() => {
 }
 
 .seal-stamp-container {
-  border: 5px double #00bcd4;
+  border: 5px double var(--c-sky);
   padding: 2rem;
   transform: rotate(-5deg);
   position: relative;
@@ -1612,7 +1612,7 @@ onMounted(() => {
 .seal-stamp {
   font-size: 2rem;
   font-weight: bold;
-  color: #00bcd4;
+  color: var(--c-sky);
   letter-spacing: 5px;
   text-transform: uppercase;
 }
@@ -1623,9 +1623,9 @@ onMounted(() => {
   transform: translate(-50%, -50%) rotate(-15deg);
   font-size: 4rem;
   opacity: 0.1;
-  color: #00bcd4;
+  color: var(--c-sky);
   font-weight: bold;
-  border: 2px solid #00bcd4;
+  border: 2px solid var(--c-sky);
   padding: 0.5rem;
 }
 
@@ -1652,9 +1652,9 @@ onMounted(() => {
 }
 .spell-input-group { display: flex; gap: 0.5rem; flex-direction: column; }
 .chat-interface { display: flex; flex-direction: column; height: 300px; }
-.chat-history { flex: 1; overflow-y: auto; font-size: 0.85rem; padding: 0.5rem; border: 1px solid #333; margin-bottom: 0.5rem; background: #000; }
+.chat-history { flex: 1; overflow-y: auto; font-size: 0.85rem; padding: 0.5rem; border: 1px solid var(--gray-700); margin-bottom: 0.5rem; background: var(--black); }
 .msg-row { margin-bottom: 0.5rem; }
-.msg-name { font-weight: bold; margin-right: 0.5rem; color: #999; }
+.msg-name { font-weight: bold; margin-right: 0.5rem; color: var(--gray-350); }
 .msg-row.user .msg-name { color: #ce93d8; }
 .msg-row.user { text-align: right; }
 .chat-input { display: flex; gap: 0.5rem; }
@@ -1693,12 +1693,12 @@ onMounted(() => {
 
 .wb-target-btn.active {
   background: #4a148c;
-  color: #fff;
+  color: var(--white);
 }
 
 .wb-empty {
   font-size: 0.78rem;
-  color: #888;
+  color: var(--gray-400);
   font-family: var(--font-mono);
 }
 
@@ -1734,7 +1734,7 @@ onMounted(() => {
 .wb-threat {
   margin-left: auto;
   padding: 0 0.25rem;
-  border: 1px solid #666;
+  border: 1px solid var(--gray-500);
 }
 .wb-threat.low { color: #9ccc65; border-color: #558b2f; }
 .wb-threat.medium { color: #ffb74d; border-color: #f57c00; }
@@ -1778,7 +1778,7 @@ onMounted(() => {
 @keyframes breach-pulse { 0% { filter: saturate(100%); } 50% { filter: saturate(150%); } 100% { filter: saturate(100%); } }
 
 .zv2-panel {
-  border: 1px solid #252525;
+  border: 1px solid var(--gray-800);
   background: rgba(0, 0, 0, 0.4);
   padding: 1rem;
   display: flex;
@@ -1817,7 +1817,7 @@ onMounted(() => {
 .stat-item { font-size: 0.8rem; color: #9ab5b5; }
 .stat-item strong { color: #c0e0e0; }
 .stat-ok strong { color: #00cc88; }
-.stat-no strong { color: #ff6666; }
+.stat-no strong { color: var(--c-red); }
 .real-goal-row, .directive-row { display: flex; gap: 0.6rem; align-items: flex-start; }
 .real-goal-row .n-input, .directive-row .n-input { flex: 1; }
 .preset-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.5rem; }
@@ -1876,13 +1876,13 @@ onMounted(() => {
 .infection-cell { height: 10px; background: rgba(255, 40, 40, var(--cell-opacity, 0.2)); border-radius: 1px; }
 .curve-panel { border: 1px solid #1f1f1f; padding: 0.4rem; border-radius: 4px; }
 .curve-svg { width: 100%; height: 90px; display: block; }
-.curve-axis { stroke: #333; stroke-width: 1; fill: none; }
+.curve-axis { stroke: var(--gray-700); stroke-width: 1; fill: none; }
 .curve-line { fill: none; stroke: #ff5252; stroke-width: 1.5; }
 .curve-line-intensity { fill: none; stroke: #4fc3ff; stroke-width: 1.5; }
 .heat { border: 1px solid #1f1f1f; padding: 0.6rem; display: grid; gap: 0.4rem; }
 .heat-item { display: grid; grid-template-columns: 26px 1fr 28px; align-items: center; gap: 0.5rem; font-size: 0.8rem; }
-.heat-item .bar { height: 8px; background: #1a1a1a; border-radius: 2px; overflow: hidden; }
-.heat-item .bar i { display: block; height: 100%; background: #ff6666; }
+.heat-item .bar { height: 8px; background: var(--gray-850); border-radius: 2px; overflow: hidden; }
+.heat-item .bar i { display: block; height: 100%; background: var(--c-red); }
 
 /* 小屏：页头纵向排列、状态标签换行；雷达信息栏收窄 */
 @media (max-width: 768px) {

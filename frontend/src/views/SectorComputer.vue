@@ -222,30 +222,30 @@ const currentDesc = computed(() => {
 <style scoped>
 .sector-computer {
   height: 100%;
-  background: #050505;
-  color: #ccc;
+  background: var(--gray-950);
+  color: var(--gray-200);
   display: flex;
   flex-direction: column;
   padding: 2rem;
-  background-image: radial-gradient(circle at 50% 50%, #111 0%, #050505 80%);
+  background-image: radial-gradient(circle at 50% 50%, var(--gray-900) 0%, var(--gray-950) 80%);
 }
 
 .header {
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid var(--gray-700);
   padding-bottom: 1rem;
   margin-bottom: 2rem;
 }
 
 .title {
   font-family: var(--font-mono);
-  color: #00ffff;
+  color: var(--c-cyan);
   font-size: 1.8rem;
   letter-spacing: 0.1em;
   margin: 0;
 }
 
 .subtitle {
-  color: #8a8a8a;
+  color: var(--gray-400);
   font-size: 0.9rem;
   margin: 0.5rem 0 0 0;
 }
@@ -266,15 +266,15 @@ const currentDesc = computed(() => {
 }
 
 .lore-box h2 {
-  color: #fff;
+  color: var(--white);
   font-family: var(--font-mono);
-  border-left: 3px solid #00ffff;
+  border-left: 3px solid var(--c-cyan);
   padding-left: 1rem;
   margin: 0 0 1rem 0;
 }
 
 .desc {
-  color: #888;
+  color: var(--gray-400);
   line-height: 1.6;
   font-size: 0.9rem;
 }
@@ -282,7 +282,7 @@ const currentDesc = computed(() => {
 .stats-box {
   background: rgba(255, 255, 255, 0.05);
   padding: 1.5rem;
-  border: 1px solid #333;
+  border: 1px solid var(--gray-700);
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -294,8 +294,8 @@ const currentDesc = computed(() => {
   align-items: center;
 }
 
-.stat .label { font-size: 0.75rem; color: #8a8a8a; font-family: var(--font-mono); }
-.stat .val { font-size: 1rem; color: #00ffff; font-family: var(--font-mono); }
+.stat .label { font-size: 0.75rem; color: var(--gray-400); font-family: var(--font-mono); }
+.stat .val { font-size: 1rem; color: var(--c-cyan); font-family: var(--font-mono); }
 
 .visual-panel {
   flex: 1;
@@ -305,7 +305,7 @@ const currentDesc = computed(() => {
   align-items: center;
   justify-content: center;
   background: rgba(0, 0, 0, 0.3);
-  border: 1px dashed #333;
+  border: 1px dashed var(--gray-700);
   position: relative;
 }
 
@@ -344,12 +344,12 @@ const currentDesc = computed(() => {
 }
 
 .body {
-  color: #7a7a7a;
+  color: var(--gray-450);
   z-index: 1;
   transition: color 0.3s;
 }
 
-.soldier.active .body { color: #fff; text-shadow: 0 0 20px rgba(255,255,255,0.5); }
+.soldier.active .body { color: var(--white); text-shadow: 0 0 20px rgba(255,255,255,0.5); }
 
 .flag {
   position: absolute;
@@ -357,7 +357,7 @@ const currentDesc = computed(() => {
   left: 50%;
   width: 4px;
   height: 80px;
-  background: #666;
+  background: var(--gray-500);
   transform-origin: bottom center;
   transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
   transform: rotate(-30deg); /* Down/Black */
@@ -371,7 +371,7 @@ const currentDesc = computed(() => {
   left: 0;
   width: 40px;
   height: 30px;
-  background: #111;
+  background: var(--gray-900);
   transition: background 0.3s, box-shadow 0.3s;
 }
 
@@ -379,8 +379,8 @@ const currentDesc = computed(() => {
   transform: rotate(0deg) translateY(-20px);
 }
 .flag.red::after {
-  background: #ff3333;
-  box-shadow: 0 0 15px #ff3333;
+  background: var(--c-red);
+  box-shadow: 0 0 15px var(--c-red);
 }
 
 .flag.black {
@@ -392,12 +392,12 @@ const currentDesc = computed(() => {
 .label {
   font-family: var(--font-mono);
   font-size: 0.8rem;
-  color: #8a8a8a;
+  color: var(--gray-400);
   letter-spacing: 0.1em;
 }
 
 .bit {
-  color: #00ffff;
+  color: var(--c-cyan);
   font-weight: bold;
   margin-left: 0.5rem;
   font-size: 1rem;
@@ -415,23 +415,23 @@ const currentDesc = computed(() => {
 .line {
   width: 2px;
   height: 30px;
-  background: #333;
+  background: var(--gray-700);
   transition: background 0.3s, box-shadow 0.3s;
 }
 
-.line.active { background: #00ffff; box-shadow: 0 0 10px #00ffff; }
+.line.active { background: var(--c-cyan); box-shadow: 0 0 10px var(--c-cyan); }
 
 .gate-symbol {
   width: 50px;
   height: 50px;
-  border: 2px solid #666;
+  border: 2px solid var(--gray-500);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.5rem;
-  color: #8a8a8a;
-  background: #111;
+  color: var(--gray-400);
+  background: var(--gray-900);
   margin: 10px 0;
   font-family: var(--font-mono);
 }
@@ -439,7 +439,7 @@ const currentDesc = computed(() => {
 .hint-text {
   margin-top: 3rem;
   text-align: center;
-  color: #8a8a8a;
+  color: var(--gray-400);
   font-style: italic;
   font-size: 0.85rem;
 }

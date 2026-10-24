@@ -34,7 +34,7 @@ onMounted(async () => {
 }
 .doc-file {
   background: #fdf6e3;
-  color: #7a7a7a;
+  color: var(--gray-450);
   padding: 2rem;
   font-family: var(--font-mono);
   position: relative;
@@ -49,7 +49,7 @@ onMounted(async () => {
 .doc-header {
   display: flex;
   justify-content: space-between;
-  border-bottom: 1px solid #999;
+  border-bottom: 1px solid var(--gray-350);
   margin-bottom: 1rem;
   padding-bottom: 0.5rem;
 }

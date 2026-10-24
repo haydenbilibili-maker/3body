@@ -490,8 +490,8 @@ onUnmounted(() => {
 <style scoped>
 .sector-r-console {
   min-height: 0;
-  background-color: #050505;
-  color: #0f0;
+  background-color: var(--gray-950);
+  color: var(--holo-green);
   font-family: var(--font-mono);
   padding: 1rem;
   position: relative;
@@ -569,15 +569,15 @@ onUnmounted(() => {
 
 .sector-r-console {
   min-height: 0;
-  background-color: #050505;
-  color: #0f0;
+  background-color: var(--gray-950);
+  color: var(--holo-green);
   font-family: var(--font-mono);
   padding: 1rem;
   position: relative;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  text-shadow: 0 0 2px #0f0, 0 0 5px rgba(0, 255, 0, 0.5); /* Glow */
+  text-shadow: 0 0 2px var(--holo-green), 0 0 5px rgba(0, 255, 0, 0.5); /* Glow */
 }
 
 .sys-controls {
@@ -588,8 +588,8 @@ onUnmounted(() => {
 
 .lang-btn {
   background: #003300;
-  border: 1px solid #0f0;
-  color: #0f0;
+  border: 1px solid var(--holo-green);
+  color: var(--holo-green);
   font-family: inherit;
   cursor: pointer;
   padding: 0 0.5rem;
@@ -597,8 +597,8 @@ onUnmounted(() => {
 }
 
 .lang-btn:hover, .lang-btn.active {
-  background: #0f0;
-  color: #000;
+  background: var(--holo-green);
+  color: var(--black);
 }
 
 
@@ -610,7 +610,7 @@ onUnmounted(() => {
 .eto-wrapper {
   flex: 1;
   min-height: 0;
-  border: 1px solid #333;
+  border: 1px solid var(--gray-700);
 }
 
 .console-grid {
@@ -632,10 +632,10 @@ onUnmounted(() => {
 
 .panel-title {
   margin: 0;
-  border-bottom: 1px dashed #0f0;
+  border-bottom: 1px dashed var(--holo-green);
   padding-bottom: 0.5rem;
   font-size: 1.2rem;
-  color: #0f0;
+  color: var(--holo-green);
 }
 
 /* Antenna Panel */
@@ -643,7 +643,7 @@ onUnmounted(() => {
   width: 100%;
   aspect-ratio: 1;
   background: #001100;
-  border: 1px solid #0f0;
+  border: 1px solid var(--holo-green);
   position: relative;
   border-radius: 50%;
   overflow: hidden;
@@ -669,7 +669,7 @@ onUnmounted(() => {
 
 .current-aim {
   position: absolute;
-  color: #0f0;
+  color: var(--holo-green);
   font-size: 1.5rem;
   transform: translate(-50%, -50%);
   transition: all 0.1s;
@@ -678,8 +678,8 @@ onUnmounted(() => {
 /* Monitor Panel */
 .monitor-panel {
   position: relative;
-  background: #000;
-  border: 2px solid #0f0;
+  background: var(--black);
+  border: 2px solid var(--holo-green);
   box-shadow: 0 0 15px rgba(0, 255, 0, 0.2);
 }
 
@@ -705,7 +705,7 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   background: rgba(50, 0, 0, 0.9);
-  color: #f00;
+  color: var(--c-red);
   z-index: 10;
 }
 
@@ -717,23 +717,23 @@ onUnmounted(() => {
 
 /* Tx Panel */
 .digital-readout {
-  background: #000;
-  border: 1px inset #0f0;
+  background: var(--black);
+  border: 1px inset var(--holo-green);
   padding: 0.5rem;
   font-size: 1.2rem;
   text-align: right;
-  color: #0f0;
+  color: var(--holo-green);
 }
 
 .digital-readout.danger {
-  color: #ff9900;
-  border-color: #ff9900;
+  color: var(--c-amber);
+  border-color: var(--c-amber);
 }
 
 .charge-bar {
   height: 20px;
-  background: #111;
-  border: 1px solid #555;
+  background: var(--gray-900);
+  border: 1px solid var(--gray-550);
   margin-bottom: 0.5rem;
 }
 
@@ -741,8 +741,8 @@ onUnmounted(() => {
   height: 100%;
   background: repeating-linear-gradient(
     45deg,
-    #ff9900,
-    #ff9900 10px,
+    var(--c-amber),
+    var(--c-amber) 10px,
     #cc7a00 10px,
     #cc7a00 20px
   );
@@ -750,9 +750,9 @@ onUnmounted(() => {
 }
 
 .auth-input {
-  background: #000;
-  border: 1px solid #0f0;
-  color: #0f0;
+  background: var(--black);
+  border: 1px solid var(--holo-green);
+  color: var(--holo-green);
   padding: 0.5rem;
   width: 100%;
   font-family: inherit;
@@ -780,16 +780,16 @@ onUnmounted(() => {
 }
 
 .big-red-button.disabled {
-  background: #333;
-  color: #8a8a8a;
+  background: var(--gray-700);
+  color: var(--gray-400);
   box-shadow: none;
   cursor: not-allowed;
 }
 
 .retro-btn {
   background: #003300;
-  border: 1px solid #0f0;
-  color: #0f0;
+  border: 1px solid var(--holo-green);
+  color: var(--holo-green);
   padding: 0.5rem 1rem;
   cursor: pointer;
   font-family: inherit;
@@ -797,13 +797,13 @@ onUnmounted(() => {
 }
 
 .retro-btn:hover {
-  background: #0f0;
-  color: #000;
+  background: var(--holo-green);
+  color: var(--black);
 }
 
 .retro-btn.active {
-  background: #0f0;
-  color: #000;
+  background: var(--holo-green);
+  color: var(--black);
 }
 
 @keyframes blink {
@@ -813,7 +813,7 @@ onUnmounted(() => {
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar { width: 8px; }
-::-webkit-scrollbar-track { background: #000; }
+::-webkit-scrollbar-track { background: var(--black); }
 ::-webkit-scrollbar-thumb { background: #005500; }
 
 /* Naive UI Overrides */
@@ -821,26 +821,26 @@ onUnmounted(() => {
   background-color: #003300;
 }
 :deep(.n-slider .n-slider-rail .n-slider-rail__fill) {
-  background-color: #0f0;
+  background-color: var(--holo-green);
 }
 :deep(.n-slider .n-slider-handle) {
-  background-color: #000;
-  border: 2px solid #0f0;
-  box-shadow: 0 0 5px #0f0;
+  background-color: var(--black);
+  border: 2px solid var(--holo-green);
+  box-shadow: 0 0 5px var(--holo-green);
 }
 :deep(.n-switch.n-switch--active .n-switch__rail) {
-  background-color: #0f0;
+  background-color: var(--holo-green);
 }
 :deep(.n-switch__rail) {
   background-color: #003300;
-  border: 1px solid #0f0;
+  border: 1px solid var(--holo-green);
 }
 :deep(.n-progress .n-progress-graph-line-rail) {
   background-color: #003300;
 }
 :deep(.n-progress .n-progress-graph-line-fill) {
-  background-color: #0f0;
-  box-shadow: 0 0 5px #0f0;
+  background-color: var(--holo-green);
+  box-shadow: 0 0 5px var(--holo-green);
 }
 
 

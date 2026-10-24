@@ -491,7 +491,7 @@ onUnmounted(() => {
 .star-dot {
   position: absolute;
   border-radius: 50%;
-  background: #fff;
+  background: var(--white);
   transform: translate(-50%, -50%);
   box-shadow: 0 0 6px rgba(255, 255, 255, 0.5), 0 0 12px rgba(200, 220, 255, 0.2);
   animation: star-twinkle 4s ease-in-out infinite;

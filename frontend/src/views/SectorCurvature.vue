@@ -445,7 +445,7 @@ onUnmounted(() => {
   background: #050510;
 }
 
-.title { margin: 0; letter-spacing: 2px; font-size: 1.5rem; color: #fff; }
+.title { margin: 0; letter-spacing: 2px; font-size: 1.5rem; color: var(--white); }
 .subtitle { color: #557799; font-size: 0.8rem; margin-top: 0.5rem; }
 
 .l-tabs { flex: 1; display: flex; flex-direction: column; }
@@ -457,7 +457,7 @@ onUnmounted(() => {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: #000;
+  background: var(--black);
   position: relative;
 }
 
@@ -477,7 +477,7 @@ onUnmounted(() => {
 .hud-item { display: flex; flex-direction: column; }
 .label { font-size: 0.75rem; color: #557799; letter-spacing: 1px; }
 .value { font-size: 1.2rem; font-weight: bold; }
-.c-reduced { color: #ff3333; text-shadow: 0 0 10px #ff0000; }
+.c-reduced { color: var(--c-red); text-shadow: 0 0 10px var(--c-red); }
 .hint { opacity: 0.6; font-size: 0.8rem; max-width: 300px; text-align: right; }
 
 .canvas-wrapper { flex: 1; width: 100%; height: 100%; position: relative; }

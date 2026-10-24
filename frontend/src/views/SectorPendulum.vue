@@ -355,7 +355,7 @@ const envText = computed(() => {
 .sector-pendulum {
   position: relative;
   min-height: 0;
-  background: #000;
+  background: var(--black);
   overflow: hidden;
 }
 .pendulum-canvas {
@@ -374,7 +374,7 @@ const envText = computed(() => {
   max-height: calc(100vh - 4rem);
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: rgba(0, 255, 255, 0.3) rgba(0, 0, 0, 0.5);
+  scrollbar-color: rgba(0, 240, 255, 0.3) rgba(0, 0, 0, 0.5);
 }
 
 .monitor-overlay::-webkit-scrollbar {
@@ -384,7 +384,7 @@ const envText = computed(() => {
   background: rgba(0, 0, 0, 0.5);
 }
 .monitor-overlay::-webkit-scrollbar-thumb {
-  background: rgba(0, 255, 255, 0.3);
+  background: rgba(0, 240, 255, 0.3);
   border-radius: 2px;
 }
 
@@ -393,9 +393,9 @@ const envText = computed(() => {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  background: rgba(0, 255, 255, 0.05);
+  background: rgba(0, 240, 255, 0.05);
   padding: 1.5rem;
-  border: 1px solid rgba(0, 255, 255, 0.2);
+  border: 1px solid rgba(0, 240, 255, 0.2);
   backdrop-filter: blur(5px);
 }
 .metric {
@@ -404,18 +404,18 @@ const envText = computed(() => {
 }
 .label {
   font-size: 0.75rem;
-  color: #888;
+  color: var(--gray-400);
   font-family: var(--font-mono);
 }
 .value {
   font-size: 1.2rem;
   font-family: var(--font-mono);
-  color: #00ffff;
+  color: var(--c-cyan);
 }
-.value.stable { color: #00ff41; }
+.value.stable { color: var(--holo-green); }
 .value.cold { color: #88ccff; text-shadow: 0 0 10px #88ccff; }
-.value.heat { color: #ff3333; text-shadow: 0 0 10px #ff3333; }
-.value.rip { color: #ff00ff; animation: shake 0.1s infinite; }
+.value.heat { color: var(--c-red); text-shadow: 0 0 10px var(--c-red); }
+.value.rip { color: var(--c-magenta); animation: shake 0.1s infinite; }
 .value.dehydrated { color: #b8860b; }
 
 .metric.highlight-civ .value {
@@ -426,7 +426,7 @@ const envText = computed(() => {
 .progress-bar {
   width: 100%;
   height: 4px;
-  background: #333;
+  background: var(--gray-700);
   margin: 0.5rem 0;
   overflow: hidden;
 }
@@ -439,7 +439,7 @@ const envText = computed(() => {
 .sub-value {
   font-size: 0.75rem;
   font-family: var(--font-mono);
-  color: #8a8a8a;
+  color: var(--gray-400);
 }
 
 .action-panel {
@@ -448,22 +448,22 @@ const envText = computed(() => {
 .hint {
   margin-top: 0.5rem;
   font-size: 0.8rem;
-  color: #888;
+  color: var(--gray-400);
 }
 .hint.warn { color: #f59e0b; }
-.hint.lore { color: #00ffff; opacity: 0.9; }
+.hint.lore { color: var(--c-cyan); opacity: 0.9; }
 
 /* Granary Visual */
 .granary {
   margin-top: 1.5rem;
   padding: 1rem;
-  border: 1px dashed #444;
+  border: 1px dashed var(--gray-600);
   background: rgba(0,0,0,0.5);
   opacity: 0.5;
   transition: opacity 0.3s;
 }
 .granary.active { opacity: 1; border-color: #b8860b; }
-.granary-label { font-size: 0.75rem; color: #888; margin-bottom: 0.5rem; font-family: var(--font-mono); }
+.granary-label { font-size: 0.75rem; color: var(--gray-400); margin-bottom: 0.5rem; font-family: var(--font-mono); }
 .granary-slots { display: flex; gap: 0.5rem; justify-content: center; }
 .roll {
   font-size: 1.5rem;

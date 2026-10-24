@@ -66,8 +66,8 @@ const themeOverrides: GlobalThemeOverrides = {
 
 .resonance-1d {
   font-family: var(--font-mono) !important;
-  background: #000 !important;
-  color: #0f0 !important;
+  background: var(--black) !important;
+  color: var(--holo-green) !important;
 }
 .resonance-1d * {
   border: none !important;
@@ -87,8 +87,8 @@ const themeOverrides: GlobalThemeOverrides = {
 
 /* Dehydrated: Minimal HTML Mode */
 .mode-dehydrated {
-  background: #fff !important;
-  color: #000 !important;
+  background: var(--white) !important;
+  color: var(--black) !important;
   font-family: var(--font-serif) !important;
 }
 .mode-dehydrated * {
@@ -103,8 +103,8 @@ const themeOverrides: GlobalThemeOverrides = {
   display: none !important;
 }
 .mode-dehydrated .app-header, .mode-dehydrated .app-footer {
-  border-bottom: 1px solid #000 !important;
-  border-top: 1px solid #000 !important;
+  border-bottom: 1px solid var(--black) !important;
+  border-top: 1px solid var(--black) !important;
 }
 
 /* Chaotic Cold: Frost */

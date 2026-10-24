@@ -156,7 +156,7 @@ defineEmits<{ restart: [] }>()
   padding: 0.1rem 0.5rem;
   font-size: 0.75rem;
   letter-spacing: 0.1em;
-  color: #050505;
+  color: var(--gray-950);
   background: var(--sector-accent);
   border-radius: 3px;
 }

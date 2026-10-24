@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { markStarterVisited } from '@/utils/starterRoute'
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -179,6 +180,7 @@ router.beforeEach((_to, _from, next) => {
 })
 
 router.afterEach((to) => {
+  markStarterVisited(to.path)
   const title = (to.meta?.title as string) || '3body'
   document.title = `${title} — 3Body X`
 })

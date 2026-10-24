@@ -10,6 +10,7 @@ import { useUniverseStore } from '@/stores/universe'
 // 三体动画依赖 Three.js（约 900 KB）：异步加载，首页文字与入口卡片先渲染，3D 背景随后淡入
 const ThreeBodyBackground = defineAsyncComponent(() => import('@/components/ThreeBodyBackground.vue'))
 import GlitchText from '@/components/GlitchText.vue'
+import { STARTER_ROUTE, nextStarterIndex, readStarterVisited } from '@/utils/starterRoute'
 
 const router = useRouter()
 const universe = useUniverseStore()
@@ -52,6 +53,12 @@ const navGroups = [
     color: '#aa00ff'
   }
 ]
+
+// 新手路线：数据与访问记录见 utils/starterRoute（访问记录由路由守卫写入）
+const starterRoute = STARTER_ROUTE
+const visited = ref<Set<string>>(readStarterVisited())
+const visitedCount = computed(() => starterRoute.filter((s) => visited.value.has(s.path)).length)
+const nextIndex = computed(() => nextStarterIndex(visited.value))
 
 // 随机生成的环境状态 (汉化)
 const eraStatus = ref('乱纪元')
@@ -126,6 +133,34 @@ function handleNavClick(path: string) {
               </div>
             </div>
           </div>
+
+          <!-- 新手路线：按原著顺序的四站，走过的打勾，下一站高亮 -->
+          <section class="starter-route" aria-label="新手推荐路线">
+            <div class="route-head">
+              <span class="route-title">第一次来？按这条路线走</span>
+              <span class="route-progress">{{ visitedCount }} / {{ starterRoute.length }}</span>
+            </div>
+            <ol class="route-list">
+              <li
+                v-for="(stop, i) in starterRoute"
+                :key="stop.path"
+                class="route-stop"
+                :class="{ done: visited.has(stop.path), next: i === nextIndex }"
+              >
+                <button type="button" class="route-btn" @click="handleNavClick(stop.path)">
+                  <span class="route-index" aria-hidden="true">{{ visited.has(stop.path) ? '✓' : i + 1 }}</span>
+                  <span class="route-text">
+                    <span class="route-name">
+                      {{ stop.label }}
+                      <span class="route-kind">{{ stop.kind }} · {{ stop.minutes }} 分钟</span>
+                    </span>
+                    <span class="route-desc">{{ stop.desc }}</span>
+                  </span>
+                  <span v-if="i === nextIndex" class="route-next">下一站 →</span>
+                </button>
+              </li>
+            </ol>
+          </section>
         </div>
       </header>
 
@@ -178,9 +213,9 @@ function handleNavClick(path: string) {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: #000;
+  background: var(--black);
   font-family: var(--font-sans);
-  color: #fff;
+  color: var(--white);
 }
 
 /* Background Layer */
@@ -193,7 +228,7 @@ function handleNavClick(path: string) {
 .terminal__vignette {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at center, transparent 40%, #000 100%);
+  background: radial-gradient(circle at center, transparent 40%, var(--black) 100%);
   pointer-events: none;
 }
 
@@ -245,7 +280,7 @@ function handleNavClick(path: string) {
   letter-spacing: 0.2em;
   line-height: 1;
   margin: 0;
-  text-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+  text-shadow: 0 0 20px rgba(0, 240, 255, 0.5);
 }
 
 .brand-sub .nowrap {
@@ -289,12 +324,12 @@ function handleNavClick(path: string) {
 .status-item .value {
   font-size: 1.2rem;
   font-weight: 600;
-  color: #00ccff;
+  color: var(--c-sky);
 }
 
 .status-item .value--alert {
-  color: #ff4400;
-  text-shadow: 0 0 10px #ff4400;
+  color: var(--holo-red);
+  text-shadow: 0 0 10px var(--holo-red);
 }
 
 /* Center Reticle */
@@ -367,7 +402,7 @@ function handleNavClick(path: string) {
 .module-label {
   font-size: 1.2rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--white);
   margin-bottom: 0.2rem;
 }
 
@@ -409,7 +444,7 @@ function handleNavClick(path: string) {
   display: inline-block;
   font-size: 0.8rem;
   letter-spacing: 0.1em;
-  color: rgba(0, 255, 255, 0.7);
+  color: rgba(0, 240, 255, 0.7);
   animation: ticker-move 40s linear infinite; /* 调慢一点 */
 }
 
@@ -419,7 +454,96 @@ function handleNavClick(path: string) {
 }
 
 /* Responsive */
+/* 新手路线 */
+.starter-route {
+  margin-top: 0.5rem;
+  padding: 0.9rem 1rem 0.6rem;
+  background: rgba(2, 6, 23, 0.72);
+  border: 1px solid rgba(0, 240, 255, 0.18);
+  border-left: 3px solid var(--holo-blue);
+  backdrop-filter: blur(6px);
+}
+.route-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.5rem;
+}
+.route-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--text);
+}
+.route-progress {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+.route-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.route-btn {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.55rem 0.4rem;
+  background: none;
+  border: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.route-stop:first-child .route-btn { border-top: 0; }
+.route-btn:hover { background: rgba(0, 240, 255, 0.06); }
+.route-btn:focus-visible { outline: 2px solid var(--holo-blue); outline-offset: -2px; }
+.route-index {
+  flex: 0 0 1.5rem;
+  height: 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  border: 1px solid var(--gray-550);
+  border-radius: 50%;
+  color: var(--gray-300);
+}
+.route-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.15rem; }
+.route-name { font-size: 0.9rem; color: var(--gray-100); }
+.route-kind { margin-left: 0.4rem; font-size: 0.75rem; color: var(--text-muted); }
+.route-desc { font-size: 0.8rem; line-height: 1.5; color: var(--gray-350); }
+.route-next {
+  flex-shrink: 0;
+  align-self: center;
+  font-size: 0.75rem;
+  color: var(--holo-blue);
+  white-space: nowrap;
+}
+.route-stop.next .route-index { border-color: var(--holo-blue); color: var(--holo-blue); box-shadow: 0 0 8px rgba(0, 255, 200, 0.35); }
+.route-stop.next .route-name { color: var(--white); }
+.route-stop.done .route-index { background: rgba(0, 255, 200, 0.15); border-color: rgba(0, 255, 200, 0.5); color: var(--holo-blue); }
+.route-stop.done .route-name, .route-stop.done .route-desc { opacity: 0.6; }
+
+/* 矮屏桌面：路线收起说明文字，避免压到底部滚动条 */
+@media (min-width: 769px) and (max-height: 820px) {
+  .route-desc { display: none; }
+}
+
 @media (max-width: 768px) {
+  /* 手机端内容高于一屏：此前 overflow:hidden 把 04、05 两个入口裁掉且无法滚动 */
+  .terminal { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .terminal__bg { position: fixed; }
+  .terminal__ui { height: auto; min-height: 100%; padding-bottom: 4rem; }
+  .hud-footer { margin-top: 2rem; }
+  .hud-left { max-width: none; }
+
   .hud-header {
     flex-direction: column;
     gap: 1rem;

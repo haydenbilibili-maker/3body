@@ -81,7 +81,7 @@ onUnmounted(() => {
   width: 100%;
   min-height: 0;
   position: relative;
-  background: #000;
+  background: var(--black);
   overflow: hidden;
 }
 
@@ -100,7 +100,7 @@ onUnmounted(() => {
   left: 0;
   width: 100%;
   text-align: center;
-  color: #fff;
+  color: var(--white);
   z-index: 10;
   pointer-events: none;
 }
@@ -109,7 +109,7 @@ onUnmounted(() => {
   font-family: var(--font-sans);
   letter-spacing: 0.2em;
   font-size: 2rem;
-  text-shadow: 0 0 10px #00ffff;
+  text-shadow: 0 0 10px var(--c-cyan);
   margin: 0;
 }
 
@@ -123,7 +123,7 @@ onUnmounted(() => {
   bottom: 4rem;
   width: 100%;
   text-align: center;
-  color: #fff;
+  color: var(--white);
   z-index: 10;
   pointer-events: none;
   font-family: var(--font-serif);
@@ -132,6 +132,6 @@ onUnmounted(() => {
 .footer-overlay p {
   margin: 0.5rem;
   font-size: 1.1rem;
-  text-shadow: 0 0 5px #000;
+  text-shadow: 0 0 5px var(--black);
 }
 </style>

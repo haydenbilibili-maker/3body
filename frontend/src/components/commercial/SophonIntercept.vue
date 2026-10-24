@@ -60,7 +60,7 @@ const randomQuote = computed(() => quotes[Math.floor(Math.random() * quotes.leng
 
 .intercept-content {
   background: rgba(0, 0, 0, 0.9);
-  border: 1px solid #ff0000;
+  border: 1px solid var(--c-red);
   padding: 3rem;
   text-align: center;
   width: 400px;
@@ -81,20 +81,20 @@ const randomQuote = computed(() => quotes[Math.floor(Math.random() * quotes.leng
 }
 
 .title {
-  color: #ff0000;
+  color: var(--c-red);
   font-size: 1.5rem;
   margin-bottom: 1rem;
   letter-spacing: 2px;
 }
 
 .reason {
-  color: #fff;
+  color: var(--white);
   margin-bottom: 2rem;
   font-size: 1rem;
 }
 
 .quote {
-  color: #666;
+  color: var(--gray-500);
   font-style: italic;
   margin-bottom: 3rem;
 }
