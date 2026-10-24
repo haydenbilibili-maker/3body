@@ -4,6 +4,7 @@
  * 宇宙社会学公理 + 猜疑链可视化 + 星际猎人模拟器 + 广播坐标
  */
 import { ref, onMounted, onUnmounted, reactive, watch, computed } from 'vue'
+import SectorHeader from '@/components/SectorHeader.vue'
 import { useRouter } from 'vue-router'
 import { NInput, NButton, NModal, useMessage, NTabs, NTabPane, NProgress } from 'naive-ui'
 import { soundManager } from '@/utils/sound'
@@ -878,10 +879,12 @@ const axioms = [
 
 <template>
   <div class="df-page">
-    <header class="df-header">
-      <h1 class="df-title">SECTOR E // DARK FOREST</h1>
-      <p class="df-subtitle">黑暗森林广场</p>
-    </header>
+    <SectorHeader
+      code="SECTOR E · DARK FOREST"
+      title="黑暗森林广场"
+      subtitle="宇宙是一座黑暗森林，每个文明都是带枪的猎人"
+      goal="在暴露与沉默之间做选择：沙盒里观察文明如何互相清除，博弈中让你的文明活到最后。"
+    />
 
     <NTabs v-model:value="activeTab" type="segment" class="df-tabs">
       <!-- Tab 1: Hunter Simulator -->
@@ -1196,24 +1199,11 @@ const axioms = [
   flex-direction: column;
 }
 
-.df-header {
-  padding: 1rem 2rem;
-  background: #0a0a0f;
-  border-bottom: 1px solid #222;
-}
 
-.df-title {
-  font-family: monospace;
-  color: #00ffff;
-  margin: 0;
-  font-size: 1.5rem;
-}
 
-.df-subtitle {
-  margin: 0;
-  font-size: 0.8rem;
-  color: #666;
-}
+
+
+
 
 
 .df-tabs {
@@ -1243,9 +1233,9 @@ const axioms = [
 .mode-switch button {
   background: #111;
   border: 1px solid #333;
-  color: #666;
+  color: #8a8a8a;
   padding: 0.2rem 0.5rem;
-  font-family: monospace;
+  font-family: var(--font-mono);
   cursor: pointer;
 }
 
@@ -1268,8 +1258,8 @@ const axioms = [
   flex-direction: column;
 }
 
-.label { font-size: 0.6rem; color: #666; font-family: monospace; }
-.value { font-size: 1.2rem; font-family: monospace; color: #fff; }
+.label { font-size: 0.75rem; color: #8a8a8a; font-family: var(--font-mono); }
+.value { font-size: 1.2rem; font-family: var(--font-mono); color: #fff; }
 .text-green { color: #00ff41; }
 .text-red { color: #ff3333; }
 
@@ -1316,7 +1306,7 @@ const axioms = [
   z-index: 10;
   width: 200px;
   backdrop-filter: blur(5px);
-  font-family: monospace;
+  font-family: var(--font-mono);
 }
 
 .tt-header {
@@ -1338,7 +1328,7 @@ const axioms = [
 
 .tt-log {
   margin-top: 0.5rem;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   color: #ffcc00;
   border-top: 1px dashed #333;
   padding-top: 0.3rem;
@@ -1360,9 +1350,9 @@ const axioms = [
 
 .ticker-label {
   flex-shrink: 0;
-  font-family: monospace;
-  font-size: 0.7rem;
-  color: #666;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: #8a8a8a;
   letter-spacing: 0.1em;
 }
 
@@ -1390,7 +1380,7 @@ const axioms = [
 .ticker-chip {
   display: inline-block;
   padding: 0.2rem 0.6rem;
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 0.75rem;
   border-radius: 2px;
   flex-shrink: 0;
@@ -1436,7 +1426,7 @@ const axioms = [
 
 .axiom-box h2, .chain-box h2 {
   color: #00ffff;
-  font-family: monospace;
+  font-family: var(--font-mono);
   margin-bottom: 1.5rem;
 }
 
@@ -1447,7 +1437,7 @@ const axioms = [
 .axiom-box li {
   font-size: 1.2rem;
   margin-bottom: 1rem;
-  font-family: 'Noto Serif SC', serif;
+  font-family: var(--font-serif);
 }
 
 .chain-diagram {
@@ -1472,7 +1462,7 @@ const axioms = [
 .civ-a { border-color: #00ffff; color: #00ffff; }
 .civ-b { border-color: #ff3333; color: #ff3333; }
 
-.arrow { font-size: 2rem; color: #666; }
+.arrow { font-size: 2rem; color: #8a8a8a; }
 
 .conclusion {
   margin-top: 2rem;
@@ -1521,7 +1511,7 @@ const axioms = [
 
 .meter-text .val {
   font-size: 2.5rem;
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-weight: bold;
   color: #fff;
 }
@@ -1561,9 +1551,9 @@ const axioms = [
 @keyframes scan { 0% { left: 0; } 100% { left: 100%; } }
 
 .monitor-label {
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 0.8rem;
-  color: #666;
+  color: #8a8a8a;
   text-align: right;
 }
 
@@ -1571,7 +1561,7 @@ const axioms = [
   background: #0a0a0f;
   border: 1px solid #333;
   padding: 1rem;
-  font-family: monospace;
+  font-family: var(--font-mono);
   min-height: 100px;
   display: flex;
   flex-direction: column;
@@ -1583,7 +1573,7 @@ const axioms = [
   justify-content: space-between;
   border-bottom: 1px solid #222;
   padding-bottom: 0.5rem;
-  color: #666;
+  color: #8a8a8a;
   font-size: 0.8rem;
 }
 
@@ -1639,7 +1629,7 @@ const axioms = [
 .danger-text {
   color: #ffcc00;
   font-weight: bold;
-  font-family: monospace;
+  font-family: var(--font-mono);
   letter-spacing: 2px;
   background: rgba(0,0,0,0.8);
   padding: 0.2rem 0.5rem;
@@ -1679,10 +1669,10 @@ const axioms = [
 }
 
 .nuc-icon { font-size: 2rem; }
-.btn-label { font-size: 0.7rem; font-weight: bold; }
+.btn-label { font-size: 0.75rem; font-weight: bold; }
 
 .console-hint {
-  color: #666;
+  color: #8a8a8a;
   text-align: center;
   font-size: 0.8rem;
 }
@@ -1746,7 +1736,7 @@ const axioms = [
 }
 .player .avatar { background: #003333; border-color: #00ffff; }
 .opponent .avatar { background: #330000; border-color: #ff3333; }
-.unknown .avatar { background: #222; border-color: #666; color: #666; }
+.unknown .avatar { background: #222; border-color: #666; color: #8a8a8a; }
 
 .info h3 { margin: 0 0 0.5rem 0; font-size: 1rem; color: #ccc; }
 .info p { margin: 0; font-size: 0.8rem; color: #888; }
@@ -1770,7 +1760,7 @@ const axioms = [
 .distance-label {
   margin-top: 0.5rem;
   font-size: 0.8rem;
-  color: #666;
+  color: #8a8a8a;
 }
 
 .action-icon {
@@ -1788,7 +1778,7 @@ const axioms = [
   border: 1px solid #333;
   padding: 1rem;
   overflow-y: auto;
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 0.9rem;
 }
 .game-log p { margin: 0.2rem 0; }
@@ -1822,12 +1812,12 @@ const axioms = [
 
 .icon { font-size: 1.5rem; margin-bottom: 0.5rem; }
 .label { font-weight: bold; margin-bottom: 0.2rem; }
-.desc { font-size: 0.7rem; color: #666; }
+.desc { font-size: 0.75rem; color: #8a8a8a; }
 
 .axiom-ref {
   text-align: center;
   font-size: 0.8rem;
-  color: #444;
+  color: #7a7a7a;
   margin-top: 1rem;
 }
 
@@ -1845,8 +1835,8 @@ const axioms = [
 .worldline-panel .reason { font-size: 0.8rem; color: #7a9a9a; }
 .config-row, .worldline-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1rem; }
 .config-row .select, .worldline-row .select { min-width: 120px; }
-.toolbar { display: flex; gap: 0.6rem; align-items: center; font-family: monospace; flex-wrap: wrap; }
-.diag-line { font-family: monospace; font-size: 12px; color: #8ba5a5; border: 1px dashed #294040; padding: 0.3rem 0.45rem; }
+.toolbar { display: flex; gap: 0.6rem; align-items: center; font-family: var(--font-mono); flex-wrap: wrap; }
+.diag-line { font-family: var(--font-mono); font-size: 12px; color: #8ba5a5; border: 1px dashed #294040; padding: 0.3rem 0.45rem; }
 .curve-panel { border: 1px solid #1f1f1f; padding: 0.4rem; border-radius: 4px; }
 .curve-svg { width: 100%; height: 90px; display: block; }
 .curve-axis { stroke: #333; stroke-width: 1; fill: none; }
@@ -1854,10 +1844,10 @@ const axioms = [
 .summary-card { border: 1px solid #1e2e2e; padding: 0.6rem; background: rgba(0, 10, 15, 0.3); border-radius: 4px; }
 .summary-pre { margin: 0; font-size: 0.8rem; white-space: pre-wrap; color: #b8d0d0; max-height: 120px; overflow: auto; }
 .worldline-map { position: relative; height: 180px; background: #080808; border: 1px solid #222; border-radius: 4px; }
-.agent-dot { position: absolute; transform: translate(-50%, -50%); padding: 2px 6px; font-size: 0.7rem; background: rgba(0, 200, 100, 0.3); border: 1px solid #00cc88; border-radius: 2px; color: #00ff88; }
-.agent-dot.dead { background: rgba(80, 80, 80, 0.5); border-color: #444; color: #666; }
+.agent-dot { position: absolute; transform: translate(-50%, -50%); padding: 2px 6px; font-size: 0.75rem; background: rgba(0, 200, 100, 0.3); border: 1px solid #00cc88; border-radius: 2px; color: #00ff88; }
+.agent-dot.dead { background: rgba(80, 80, 80, 0.5); border-color: #444; color: #8a8a8a; }
 .worldline-panel .logs { border: 1px solid #1e2e2e; padding: 0.6rem; background: rgba(0, 10, 15, 0.2); border-radius: 4px; max-height: 200px; overflow-y: auto; }
 .log-item { margin-bottom: 0.5rem; font-size: 0.85rem; }
 .log-item p { margin: 0.2rem 0; }
-.stream-line { font-size: 0.75rem; color: #9ab5b5; margin-bottom: 0.2rem; font-family: monospace; }
+.stream-line { font-size: 0.75rem; color: #9ab5b5; margin-bottom: 0.2rem; font-family: var(--font-mono); }
 </style>

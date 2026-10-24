@@ -309,7 +309,7 @@ onMounted(loadItems)
   border: 2px solid rgba(255, 60, 0, 0.5);
   color: rgba(255, 60, 0, 0.5);
   padding: 2px 5px;
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-weight: bold;
   font-size: 0.8rem;
   transform: rotate(-15deg);
@@ -327,11 +327,11 @@ onMounted(loadItems)
 }
 .foil-meta {
   display: flex; justify-content: space-between; align-items: center;
-  font-family: var(--font-tech); font-size: 0.65rem; color: var(--text-muted);
+  font-family: var(--font-tech); font-size: 0.75rem; color: var(--text-muted);
 }
 .action-btn {
   background: transparent; border: 1px solid var(--holo-blue);
-  color: var(--holo-blue); font-family: var(--font-tech); font-size: 0.65rem;
+  color: var(--holo-blue); font-family: var(--font-tech); font-size: 0.75rem;
   padding: 0.2rem 0.5rem; cursor: pointer;
   transition: all 0.2s;
 }
@@ -428,7 +428,7 @@ onMounted(loadItems)
   flex: 1;
   padding: 2rem;
   overflow-y: auto;
-  font-family: 'Special Elite', var(--font-tech); /* 优先打字机字体 */
+  font-family: var(--font-mono); /* 优先打字机字体 */
 }
 
 .retina-text {
@@ -454,7 +454,7 @@ onMounted(loadItems)
   display: flex;
   justify-content: space-between;
   font-family: var(--font-tech);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
 }
 

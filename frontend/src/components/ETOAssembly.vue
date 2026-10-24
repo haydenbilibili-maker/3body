@@ -161,7 +161,7 @@ function selectFaction(id: string) {
   height: 100%;
   background: #111;
   color: #eee;
-  font-family: 'Helvetica Neue', sans-serif;
+  font-family: var(--font-sans);
   display: flex;
   flex-direction: column;
   padding: 1rem;
@@ -190,7 +190,7 @@ function selectFaction(id: string) {
 }
 
 .subtitle {
-  color: #666;
+  color: #8a8a8a;
   margin-top: 0.5rem;
   font-size: 0.9rem;
   letter-spacing: 2px;
@@ -260,11 +260,11 @@ function selectFaction(id: string) {
   flex: 1;
   padding: 1rem;
   overflow-y: auto;
-  font-family: monospace;
+  font-family: var(--font-mono);
 }
 
 .chat-line { margin-bottom: 0.5rem; line-height: 1.4; }
-.chat-line.info { color: #555; font-style: italic; }
+.chat-line.info { color: #8a8a8a; font-style: italic; }
 .chat-line.msg { color: #ccc; }
 .sender { color: gold; margin-right: 0.5rem; font-weight: bold; }
 
@@ -279,7 +279,7 @@ function selectFaction(id: string) {
   border: none;
   color: #fff;
   padding: 1rem;
-  font-family: monospace;
+  font-family: var(--font-mono);
   outline: none;
 }
 

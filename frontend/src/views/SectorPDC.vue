@@ -4,6 +4,7 @@
  * 核心玩法：资源分配模拟器 — 在危机纪元平衡三大计划与民生，生存至威慑或毁灭。
  */
 import { ref, computed, onUnmounted } from 'vue'
+import SectorHeader from '@/components/SectorHeader.vue'
 import { NButton, NSlider, NProgress, useMessage, NModal, NCard, NTag } from 'naive-ui'
 
 const message = useMessage()
@@ -156,18 +157,22 @@ onUnmounted(() => {
 <template>
   <div class="sector-pdc">
     <div class="pdc-container">
-      <header class="pdc-header">
-        <div class="pdc-title-block">
-          <h1>行星防御理事会</h1>
-          <p class="pdc-sub">PLANETARY DEFENSE COUNCIL · 面壁计划 · 全球战区协调</p>
-        </div>
-        <div class="pdc-meta">
+      <SectorHeader
+        code="SECTOR PDC · PLANETARY DEFENSE COUNCIL"
+        title="行星防御理事会"
+        subtitle="面壁计划 · 全球战区协调"
+        goal="分配战略预算（合计 100%）：在恐慌达到 100% 或人口归零之前，完成掩体、黑域、曲率中的任意一项。"
+        accent="#00ccff"
+        show-restart
+        @restart="resetGame"
+      >
+        <template #meta>
           <NTag :color="{ color: eraInfo.color, textColor: '#000' }" round size="small">
             {{ eraInfo.name }}
           </NTag>
           <span class="year-display">第 {{ year }} 年</span>
-        </div>
-      </header>
+        </template>
+      </SectorHeader>
 
       <section class="pdc-bulletins">
         <div class="bulletin-label">理事会公告</div>
@@ -296,7 +301,7 @@ onUnmounted(() => {
   min-height: 0;
   background: linear-gradient(180deg, #060810 0%, #0b0e18 50%, #080a12 100%);
   color: #e8eaef;
-  font-family: 'Rajdhani', 'Segoe UI', sans-serif;
+  font-family: var(--font-sans);
   padding: 2rem;
   display: flex;
   /* 布局层把扇区根节点强制为纵向 flex：这里用 align-items 做水平居中。
@@ -313,36 +318,13 @@ onUnmounted(() => {
   gap: 1.5rem;
 }
 
-.pdc-header {
-  border-bottom: 1px solid rgba(0, 204, 255, 0.25);
-  padding-bottom: 1rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
 
-.pdc-title-block h1 {
-  font-size: 2rem;
-  margin: 0;
-  letter-spacing: 0.12em;
-  color: #00ccff;
-  font-weight: 600;
-}
 
-.pdc-sub {
-  margin: 0.35rem 0 0;
-  font-size: 0.8rem;
-  color: rgba(170, 200, 220, 0.85);
-  letter-spacing: 0.06em;
-}
 
-.pdc-meta {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
+
+
+
+
 
 .year-display {
   font-size: 1.25rem;

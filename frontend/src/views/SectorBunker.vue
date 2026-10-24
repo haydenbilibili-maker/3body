@@ -479,14 +479,12 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
-
 .sector-j {
   min-height: 0;
   flex: 1;
   background: #15100a;
   color: #ffaa00;
-  font-family: 'Share Tech Mono', monospace;
+  font-family: var(--font-mono);
   display: flex;
   flex-direction: column;
 }
@@ -671,17 +669,17 @@ onUnmounted(() => {
 .sun-explode { animation: explode 0.5s infinite alternate; box-shadow: 0 0 20px #ffaa00; }
 .radar-orbit { position: absolute; border: 1px dashed rgba(255, 255, 255, 0.2); border-radius: 50%; }
 .shockwave { position: absolute; border: 2px solid #ff3333; border-radius: 50%; background: rgba(255, 50, 50, 0.1); transform: translate(-50%, -50%); top: 50%; left: 50%; box-shadow: 0 0 10px #ff0000; }
-.planet-marker { position: absolute; width: 4px; height: 4px; background: #00ff41; border-radius: 50%; font-size: 0.6rem; color: #ccc; transform: translate(-50%, -50%); }
+.planet-marker { position: absolute; width: 4px; height: 4px; background: #00ff41; border-radius: 50%; font-size: 0.75rem; color: #ccc; transform: translate(-50%, -50%); }
 .radar-data { width: 300px; background: #221a15; border: 1px solid #554433; padding: 1rem; display: flex; flex-direction: column; }
 .countdown-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0; }
 .count-item { background: #000; padding: 0.5rem; border: 1px solid #333; text-align: center; }
-.count-item .label { display: block; font-size: 0.7rem; color: #888; margin-bottom: 0.2rem; }
+.count-item .label { display: block; font-size: 0.75rem; color: #888; margin-bottom: 0.2rem; }
 .count-item .time { display: block; font-size: 1.2rem; color: #00ff41; }
 .count-item .time.impacted { color: #ff0000; text-decoration: line-through; }
 .trigger-btn { width: 100%; padding: 1rem; background: #aa2222; color: #fff; border: none; font-weight: bold; cursor: pointer; margin-top: auto; }
 .trigger-btn:hover { background: #ff3333; }
 .trigger-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.radar-logs { flex: 1; background: #000; border: 1px solid #333; padding: 1rem; font-family: monospace; overflow-y: auto; font-size: 0.8rem; height: 150px; }
+.radar-logs { flex: 1; background: #000; border: 1px solid #333; padding: 1rem; font-family: var(--font-mono); overflow-y: auto; font-size: 0.8rem; height: 150px; }
 .log-entry { margin-bottom: 0.3rem; border-bottom: 1px solid #111; padding-bottom: 0.2rem; }
 .log-entry.crit { color: #ff3333; font-weight: bold; }
 

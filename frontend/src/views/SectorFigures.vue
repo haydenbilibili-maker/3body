@@ -704,7 +704,7 @@ onMounted(() => {
   background: #050505;
   color: #c0c0c0;
   position: relative;
-  font-family: 'Noto Serif SC', serif;
+  font-family: var(--font-serif);
 }
 .bg-grid {
   position: fixed;
@@ -731,7 +731,7 @@ onMounted(() => {
   flex-shrink: 0;
 }
 .title {
-  font-family: 'Russo One', sans-serif; /* Tech font */
+  font-family: var(--font-title); /* Tech font */
   color: #00ffff;
   font-size: 2rem;
   letter-spacing: 2px;
@@ -739,8 +739,8 @@ onMounted(() => {
   text-shadow: 0 0 10px rgba(0,255,255,0.3);
 }
 .subtitle {
-  color: #666;
-  font-family: monospace;
+  color: #8a8a8a;
+  font-family: var(--font-mono);
   margin-top: 0.5rem;
   letter-spacing: 1px;
 }
@@ -761,7 +761,7 @@ onMounted(() => {
   align-items: center;
   gap: 0.4rem;
   padding: 0.5rem 1rem;
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 0.8rem;
   color: #888;
   background: rgba(0, 0, 0, 0.5);
@@ -804,7 +804,7 @@ onMounted(() => {
   width: 250px;
 }
 .tech-input :deep(.n-input__input-el) {
-  font-family: monospace;
+  font-family: var(--font-mono);
 }
 
 .filters {
@@ -813,7 +813,7 @@ onMounted(() => {
 }
 .filter-tag {
   cursor: pointer;
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 0.75rem;
   padding: 4px 10px;
   border: 1px solid rgba(255,255,255,0.2);
@@ -837,7 +837,7 @@ onMounted(() => {
   z-index: 1;
 }
 .loading-text {
-  font-family: monospace;
+  font-family: var(--font-mono);
   color: #00ffff;
   font-size: 0.95rem;
   animation: pulse 1.5s ease-in-out infinite;
@@ -863,7 +863,7 @@ onMounted(() => {
 }
 .empty-state h2 {
   color: #00ffff;
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 1.2rem;
   margin: 0 0 0.5rem;
 }
@@ -950,8 +950,8 @@ onMounted(() => {
   right: 0;
   background: rgba(0,0,0,0.8);
   color: #00ffff;
-  font-family: monospace;
-  font-size: 0.7rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
   padding: 4px 8px;
   text-align: right;
   border-top: 1px solid rgba(0,255,255,0.2);
@@ -986,11 +986,11 @@ onMounted(() => {
   margin-bottom: 0.5rem;
 }
 .cn-name { font-weight: bold; color: #fff; font-size: 1.1rem; }
-.en-name { font-size: 0.7rem; font-family: monospace; opacity: 0.6; }
+.en-name { font-size: 0.75rem; font-family: var(--font-mono); opacity: 0.6; }
 
 .meta-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 .role-tag, .era-tag {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   padding: 2px 6px;
   background: rgba(255,255,255,0.05);
   border: 1px solid rgba(255,255,255,0.1);
@@ -1013,7 +1013,7 @@ onMounted(() => {
 }
 .dossier-modal :deep(.n-card-header__main) {
   color: #00ffff;
-  font-family: monospace;
+  font-family: var(--font-mono);
 }
 
 .dossier-content {
@@ -1064,7 +1064,7 @@ onMounted(() => {
   left: 0;
   right: 0;
   text-align: center;
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-weight: bold;
   font-size: 0.9rem;
   padding: 4px;
@@ -1076,15 +1076,15 @@ onMounted(() => {
 
 .basic-info { margin-bottom: 2rem; }
 .cn-name-lg { font-size: 2rem; color: #fff; margin: 0; line-height: 1.2; }
-.en-name-lg { font-family: monospace; color: #666; font-size: 0.9rem; margin: 0 0 1rem; }
+.en-name-lg { font-family: var(--font-mono); color: #8a8a8a; font-size: 0.9rem; margin: 0 0 1rem; }
 
 .info-grid { display: flex; flex-direction: column; gap: 0.5rem; }
-.info-item { display: flex; justify-content: space-between; font-family: monospace; font-size: 0.8rem; border-bottom: 1px dashed #333; padding-bottom: 4px; }
-.info-item label { color: #666; }
+.info-item { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 0.8rem; border-bottom: 1px dashed #333; padding-bottom: 4px; }
+.info-item label { color: #8a8a8a; }
 .info-item span { color: #ccc; text-align: right; }
 
 .section-title {
-  font-family: monospace;
+  font-family: var(--font-mono);
   color: #00ffff;
   font-size: 0.9rem;
   border-bottom: 1px solid #333;
@@ -1094,7 +1094,7 @@ onMounted(() => {
 }
 
 .metrics-list { display: flex; flex-direction: column; gap: 0.5rem; }
-.metric-row { display: flex; align-items: center; gap: 0.5rem; font-family: monospace; font-size: 0.7rem; }
+.metric-row { display: flex; align-items: center; gap: 0.5rem; font-family: var(--font-mono); font-size: 0.75rem; }
 .metric-name { width: 60px; color: #888; }
 .metric-bar-container { flex: 1; height: 4px; background: #222; }
 .metric-bar { height: 100%; }
@@ -1117,7 +1117,7 @@ onMounted(() => {
   padding: 1rem;
 }
 .quote-text {
-  font-family: 'Noto Serif SC', serif;
+  font-family: var(--font-serif);
   font-size: 1.1rem;
   font-style: italic;
   color: #fff;
@@ -1125,9 +1125,9 @@ onMounted(() => {
 }
 .quote-meta {
   font-size: 0.8rem;
-  color: #666;
+  color: #8a8a8a;
   text-align: right;
-  font-family: monospace;
+  font-family: var(--font-mono);
 }
 
 .timeline-simple {
@@ -1168,7 +1168,7 @@ onMounted(() => {
   font-size: 0.8rem;
 }
 .rel-target { color: #fff; font-weight: bold; }
-.rel-type { color: #00ffff; font-family: monospace; }
+.rel-type { color: #00ffff; font-family: var(--font-mono); }
 .rel-desc { font-size: 0.75rem; color: #888; }
 
 /* 与他/与她对话：左侧显著入口 */
@@ -1238,7 +1238,7 @@ onMounted(() => {
 .dialogue-header-role {
   font-size: 0.8rem;
   color: #888;
-  font-family: monospace;
+  font-family: var(--font-mono);
 }
 .dialogue-intro {
   font-size: 0.9rem;
@@ -1289,10 +1289,10 @@ onMounted(() => {
 }
 .dialogue-figure-name {
   display: block;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   color: #00ffff;
   margin-bottom: 0.35rem;
-  font-family: monospace;
+  font-family: var(--font-mono);
 }
 .dialogue-bubble-text {
   white-space: pre-wrap;
@@ -1315,7 +1315,7 @@ onMounted(() => {
 }
 .dialogue-suggested-label {
   font-size: 0.75rem;
-  color: #666;
+  color: #8a8a8a;
   margin-right: 0.5rem;
 }
 .dialogue-suggested-chips {

@@ -228,7 +228,7 @@ onUnmounted(() => {
   min-height: 0;
   background: #050a05;
   color: #aaffaa;
-  font-family: 'Rajdhani', sans-serif;
+  font-family: var(--font-sans);
   display: flex;
   flex-direction: column;
 }
@@ -329,7 +329,7 @@ onUnmounted(() => {
 }
 
 .chat-bubble.encrypted {
-  font-family: 'Courier New', monospace;
+  font-family: var(--font-mono);
   color: #ff3333;
   border-color: #ff3333;
   background: #220000;
@@ -370,7 +370,7 @@ onUnmounted(() => {
   background: #001100;
   border: 1px solid #113311;
   padding: 1rem;
-  font-family: monospace;
+  font-family: var(--font-mono);
 }
 
 .log-item {

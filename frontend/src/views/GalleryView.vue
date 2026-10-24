@@ -316,13 +316,11 @@ const fallenWorks = [
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Rajdhani:wght@400;600&display=swap');
-
 .sector-d {
   min-height: 0;
   background: #050510;
   color: #e0d0a0;
-  font-family: 'Cinzel', serif;
+  font-family: var(--font-title-classic);
   display: flex;
   flex-direction: column;
 }
@@ -335,7 +333,7 @@ const fallenWorks = [
 }
 
 .title {
-  font-family: 'Cinzel', serif;
+  font-family: var(--font-title-classic);
   font-size: 2rem;
   color: #d4af37;
   letter-spacing: 0.2em;
@@ -352,7 +350,7 @@ const fallenWorks = [
 
 .subtitle {
   color: #8899aa;
-  font-family: 'Rajdhani', sans-serif;
+  font-family: var(--font-sans);
   letter-spacing: 0.1em;
   font-size: 0.9rem;
 }
@@ -372,7 +370,7 @@ const fallenWorks = [
 }
 
 :deep(.n-tabs-tab__label) {
-  font-family: 'Rajdhani', sans-serif;
+  font-family: var(--font-sans);
   letter-spacing: 0.1em;
   font-weight: 600;
   font-size: 1rem;
@@ -467,7 +465,7 @@ const fallenWorks = [
 
 .upload-sub {
   font-size: 0.75rem;
-  color: #555;
+  color: #8a8a8a;
 }
 
 .scan-line {
@@ -491,7 +489,7 @@ const fallenWorks = [
 }
 
 .monitor-screen {
-  font-family: 'Rajdhani', monospace;
+  font-family: var(--font-sans);
   margin-bottom: 1.5rem;
   background: #000;
   padding: 1rem;
@@ -524,7 +522,7 @@ const fallenWorks = [
 }
 
 .strike-btn {
-  font-family: 'Rajdhani', sans-serif;
+  font-family: var(--font-sans);
   letter-spacing: 0.1em;
   font-weight: bold;
 }
@@ -532,7 +530,7 @@ const fallenWorks = [
 .lore-box {
   margin-top: 1rem;
   text-align: center;
-  color: #666;
+  color: #8a8a8a;
   font-style: italic;
   font-size: 0.9rem;
 }
@@ -549,7 +547,7 @@ const fallenWorks = [
 
 .gallery-intro h2 {
   color: #d4af37;
-  font-family: 'Cinzel', serif;
+  font-family: var(--font-title-classic);
 }
 
 .gallery-intro p {
@@ -591,14 +589,14 @@ const fallenWorks = [
 
 .art-title {
   color: #ddd;
-  font-family: 'Cinzel', serif;
+  font-family: var(--font-title-classic);
   margin-bottom: 0.3rem;
 }
 
 .art-meta {
-  color: #555;
-  font-size: 0.7rem;
-  font-family: 'Rajdhani', sans-serif;
+  color: #8a8a8a;
+  font-size: 0.75rem;
+  font-family: var(--font-sans);
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }
@@ -637,7 +635,7 @@ const fallenWorks = [
   font-size: 1.2rem;
   margin-bottom: 1rem;
   color: #ccc;
-  font-family: 'Cinzel', serif;
+  font-family: var(--font-title-classic);
 }
 
 .highlight {
@@ -650,7 +648,7 @@ const fallenWorks = [
   margin-top: 2rem;
   padding-top: 1rem;
   border-top: 1px solid rgba(255,255,255,0.1);
-  color: #666;
+  color: #8a8a8a;
   line-height: 1.6;
 }
 </style>

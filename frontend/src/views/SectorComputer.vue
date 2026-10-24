@@ -237,7 +237,7 @@ const currentDesc = computed(() => {
 }
 
 .title {
-  font-family: monospace;
+  font-family: var(--font-mono);
   color: #00ffff;
   font-size: 1.8rem;
   letter-spacing: 0.1em;
@@ -245,7 +245,7 @@ const currentDesc = computed(() => {
 }
 
 .subtitle {
-  color: #666;
+  color: #8a8a8a;
   font-size: 0.9rem;
   margin: 0.5rem 0 0 0;
 }
@@ -267,7 +267,7 @@ const currentDesc = computed(() => {
 
 .lore-box h2 {
   color: #fff;
-  font-family: monospace;
+  font-family: var(--font-mono);
   border-left: 3px solid #00ffff;
   padding-left: 1rem;
   margin: 0 0 1rem 0;
@@ -294,8 +294,8 @@ const currentDesc = computed(() => {
   align-items: center;
 }
 
-.stat .label { font-size: 0.7rem; color: #666; font-family: monospace; }
-.stat .val { font-size: 1rem; color: #00ffff; font-family: monospace; }
+.stat .label { font-size: 0.75rem; color: #8a8a8a; font-family: var(--font-mono); }
+.stat .val { font-size: 1rem; color: #00ffff; font-family: var(--font-mono); }
 
 .visual-panel {
   flex: 1;
@@ -344,7 +344,7 @@ const currentDesc = computed(() => {
 }
 
 .body {
-  color: #444;
+  color: #7a7a7a;
   z-index: 1;
   transition: color 0.3s;
 }
@@ -390,9 +390,9 @@ const currentDesc = computed(() => {
 .flag.none { opacity: 0; }
 
 .label {
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 0.8rem;
-  color: #666;
+  color: #8a8a8a;
   letter-spacing: 0.1em;
 }
 
@@ -430,16 +430,16 @@ const currentDesc = computed(() => {
   align-items: center;
   justify-content: center;
   font-size: 1.5rem;
-  color: #666;
+  color: #8a8a8a;
   background: #111;
   margin: 10px 0;
-  font-family: monospace;
+  font-family: var(--font-mono);
 }
 
 .hint-text {
   margin-top: 3rem;
   text-align: center;
-  color: #555;
+  color: #8a8a8a;
   font-style: italic;
   font-size: 0.85rem;
 }

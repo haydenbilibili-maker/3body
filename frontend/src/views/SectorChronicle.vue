@@ -470,13 +470,13 @@ function parseBook(filename: string, text: string) {
 }
 
 
-.brand h1 { margin: 0; font-size: 1.2rem; font-family: 'Cinzel', serif; letter-spacing: 2px; color: var(--accent); }
+.brand h1 { margin: 0; font-size: 1.2rem; font-family: var(--font-title-classic); letter-spacing: 2px; color: var(--accent); }
 .sub { font-size: 0.8rem; opacity: 0.7; }
 
 .icon-btn {
   background: none; border: 1px solid var(--border); color: var(--text-color);
   width: 32px; height: 32px; border-radius: 4px; cursor: pointer;
-  font-family: serif; font-size: 1.1rem;
+  font-family: var(--font-serif); font-size: 1.1rem;
 }
 
 .library-body {
@@ -537,7 +537,7 @@ function parseBook(filename: string, text: string) {
   padding: 4rem 6rem;
   background: var(--paper-bg);
   box-shadow: 0 0 20px rgba(0,0,0,0.05);
-  font-family: 'Noto Serif SC', serif;
+  font-family: var(--font-serif);
 }
 
 .content { margin-bottom: 4rem; }
@@ -562,7 +562,7 @@ function parseBook(filename: string, text: string) {
 .theme-select { display: flex; gap: 0.5rem; }
 .theme-opt {
   flex: 1; height: 30px; border: 1px solid #ccc; cursor: pointer;
-  display: flex; align-items: center; justify-content: center; font-family: serif;
+  display: flex; align-items: center; justify-content: center; font-family: var(--font-serif);
 }
 .theme-opt.dark { background: #222; color: #fff; }
 .theme-opt.light { background: #fff; color: #000; }

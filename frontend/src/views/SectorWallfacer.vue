@@ -4,6 +4,7 @@
  * 包含四位面壁者的战略计划与思想钢印
  */
 import { ref, reactive, onMounted, watch, nextTick, computed } from 'vue'
+import SectorHeader from '@/components/SectorHeader.vue'
 import { useRoute, useRouter } from 'vue-router'
 import { NButton, NTabs, NTabPane, NSlider, NProgress, NInput, useMessage, NModal, NTag } from 'naive-ui'
 import { useUniverseStore } from '@/stores/universe'
@@ -836,14 +837,22 @@ onMounted(() => {
       </div>
     </div>
     <div class="bg-noise"></div>
-    <header class="header">
-      <h1 class="title">SECTOR F // WALLFACER PROJECT</h1>
-      <div class="status-bar">
+    <SectorHeader
+      code="SECTOR F · WALLFACER PROJECT"
+      title="面壁计划"
+      subtitle="你的真实战略只存在于你的脑海中"
+      goal="以面壁者身份下达资源指令，在破壁人的疑心值达到 90 之前，让尽量多的指令获批。"
+      accent="#8bc34a"
+      show-restart
+      restart-label="再玩一局"
+      @restart="resetWallfacerGame"
+    >
+      <template #meta>
         <span class="status-item">UN: ACTIVE</span>
         <span class="status-item">PDC: MONITORING</span>
         <span class="status-item">ETO: LURKING</span>
-      </div>
-    </header>
+      </template>
+    </SectorHeader>
 
     <main class="main-content">
       <!-- Confrontation Modal -->
@@ -1261,7 +1270,7 @@ onMounted(() => {
   background: #050505;
   color: #ccc;
   padding: 2rem;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-sans);
 }
 .bg-noise {
   position: fixed;
@@ -1282,18 +1291,12 @@ onMounted(() => {
   z-index: 1;
 }
 .title {
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 1.5rem;
   color: #fff;
   letter-spacing: 2px;
 }
-.status-bar {
-  display: flex;
-  gap: 1rem;
-  font-family: monospace;
-  font-size: 0.8rem;
-  color: #666;
-}
+
 .status-item {
   border: 1px solid #333;
   padding: 2px 6px;
@@ -1332,8 +1335,8 @@ onMounted(() => {
 .wallbreaker-tag.danger { border-color: #f44336; }
 .wallbreaker-tag.danger:hover { background: rgba(244, 67, 54, 0.1); }
 
-.wb-label { display: block; font-size: 0.7rem; color: #888; letter-spacing: 1px; }
-.wb-name { display: block; font-family: monospace; font-size: 1.1rem; color: #ccc; font-weight: bold; }
+.wb-label { display: block; font-size: 0.75rem; color: #888; letter-spacing: 1px; }
+.wb-name { display: block; font-family: var(--font-mono); font-size: 1.1rem; color: #ccc; font-weight: bold; }
 
 .confrontation-scene {
   display: flex;
@@ -1362,7 +1365,7 @@ onMounted(() => {
 .wb-dialog {
   flex: 1;
   text-align: center;
-  font-family: 'Noto Serif SC', serif;
+  font-family: var(--font-serif);
   font-size: 1.2rem;
   line-height: 1.6;
 }
@@ -1404,8 +1407,8 @@ onMounted(() => {
   letter-spacing: 1px;
 }
 .subtitle {
-  font-family: monospace;
-  color: #666;
+  font-family: var(--font-mono);
+  color: #8a8a8a;
   font-size: 0.9rem;
 }
 .card-body {
@@ -1469,7 +1472,7 @@ onMounted(() => {
 .radar-info {
   width: 150px;
   padding: 1rem;
-  font-family: monospace;
+  font-family: var(--font-mono);
   color: #8bc34a;
   border-left: 1px solid #33691e;
   font-size: 0.8rem;
@@ -1517,7 +1520,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 1rem;
-  font-family: monospace;
+  font-family: var(--font-mono);
 }
 .buttons { display: flex; gap: 1rem; justify-content: center; margin-top: 1rem; }
 .detonate-btn { font-weight: bold; letter-spacing: 1px; }
@@ -1547,7 +1550,7 @@ onMounted(() => {
   pointer-events: none;
 }
 .imprint-status {
-  font-family: monospace;
+  font-family: var(--font-mono);
   color: #fff;
   background: #000;
   padding: 0.5rem;
@@ -1587,7 +1590,7 @@ onMounted(() => {
   font-weight: bold;
   margin-bottom: 0.3rem;
 }
-.option-sub { font-size: 0.8rem; color: #666; }
+.option-sub { font-size: 0.8rem; color: #8a8a8a; }
 
 .sealed-view {
   flex: 1;
@@ -1643,7 +1646,7 @@ onMounted(() => {
   color: #e1bee7;
   font-size: 0.9rem;
   margin-bottom: 1rem;
-  font-family: monospace;
+  font-family: var(--font-mono);
   border-bottom: 1px solid #4a148c;
   padding-bottom: 0.5rem;
 }
@@ -1669,7 +1672,7 @@ onMounted(() => {
   align-items: center;
   margin-bottom: 0.5rem;
   color: #f2d0ff;
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 0.8rem;
 }
 
@@ -1684,7 +1687,7 @@ onMounted(() => {
   color: #ce93d8;
   background: transparent;
   padding: 0.2rem 0.5rem;
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   cursor: pointer;
 }
 
@@ -1696,7 +1699,7 @@ onMounted(() => {
 .wb-empty {
   font-size: 0.78rem;
   color: #888;
-  font-family: monospace;
+  font-family: var(--font-mono);
 }
 
 .wb-list {
@@ -1717,8 +1720,8 @@ onMounted(() => {
   display: flex;
   gap: 0.4rem;
   align-items: center;
-  font-family: monospace;
-  font-size: 0.72rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
   margin-bottom: 0.2rem;
 }
 
@@ -1744,7 +1747,7 @@ onMounted(() => {
 }
 .wb-facade { color: #c5b6d0; }
 .wb-truth { color: #ffd7ff; }
-.wb-confidence { color: #b39ddb; font-family: monospace; }
+.wb-confidence { color: #b39ddb; font-family: var(--font-mono); }
 
 @keyframes drift { from { background-position: 0 0; } to { background-position: 20px 20px; } }
 @keyframes pulse { 0% { opacity: 0.3; } 50% { opacity: 0.7; } 100% { opacity: 0.3; } }
@@ -1766,7 +1769,7 @@ onMounted(() => {
   background: rgba(20, 0, 0, 0.9);
   color: #ffe0e0;
   padding: 1.2rem;
-  font-family: monospace;
+  font-family: var(--font-mono);
 }
 .breach-overlay-inner h2 { margin: 0 0 0.5rem; }
 .overlay-quote { margin: 0.5rem 0; font-style: italic; }
@@ -1785,7 +1788,7 @@ onMounted(() => {
 .zv2-panel .row { display: grid; gap: 0.6rem; }
 .section-label {
   display: block;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   color: #6a8585;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -1845,10 +1848,10 @@ onMounted(() => {
 .suspicion-gauge.gauge-danger { border-color: rgba(255, 80, 80, 0.4); animation: gauge-pulse 1.5s ease-in-out infinite; }
 @keyframes gauge-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(255, 80, 80, 0); } 50% { box-shadow: 0 0 12px 2px rgba(255, 80, 80, 0.2); } }
 .gauge-header { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.4rem; }
-.gauge-label { font-family: monospace; font-size: 0.85rem; color: #8ab3b3; }
+.gauge-label { font-family: var(--font-mono); font-size: 0.85rem; color: #8ab3b3; }
 .gauge-stage { font-weight: 700; font-size: 0.9rem; }
 .gauge-desc { font-size: 0.8rem; }
-.gauge-value { font-family: monospace; font-size: 0.75rem; color: #7a9a9a; }
+.gauge-value { font-family: var(--font-mono); font-size: 0.75rem; color: #7a9a9a; }
 .directive-logs { border: 1px solid #1e2e2e; padding: 0.6rem; background: rgba(0, 10, 15, 0.3); border-radius: 4px; }
 .logs-empty { padding: 0.8rem; text-align: center; font-size: 0.85rem; }
 .directive-card {
@@ -1861,7 +1864,7 @@ onMounted(() => {
 }
 .directive-card.rejected { border-left-color: #cc4444; }
 .directive-card-meta { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.35rem; }
-.log-time { font-family: monospace; font-size: 0.7rem; color: #6a8585; }
+.log-time { font-family: var(--font-mono); font-size: 0.75rem; color: #6a8585; }
 .log-delta { font-size: 0.75rem; color: #8ab0b0; margin-left: auto; }
 .directive-text { margin: 0; font-size: 0.9rem; color: #c8e0e0; line-height: 1.45; }
 .directive-reason { margin: 0.25rem 0 0; font-size: 0.8rem; }
@@ -1884,7 +1887,7 @@ onMounted(() => {
 /* 小屏：页头纵向排列、状态标签换行；雷达信息栏收窄 */
 @media (max-width: 768px) {
   .header { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
-  .status-bar { flex-wrap: wrap; gap: 0.5rem; }
+
   .radar-info { width: 110px; padding: 0.75rem; }
   .header-main { flex-wrap: wrap; gap: 0.75rem; }
   /* 操作按钮换行：「DEPLOY MACRO-ATOMS (部署宏原子)」与「ATTACK」并排时卡片被撑宽约 440px */

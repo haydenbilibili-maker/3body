@@ -268,14 +268,14 @@ function toggleMobileMenu() {
 }
 
 .role-name {
-  font-family: 'Russo One', sans-serif;
+  font-family: var(--font-title);
   font-size: 0.7rem;
   color: var(--holo-green);
   letter-spacing: 0.05em;
 }
 
 .user-name {
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 0.6rem;
   color: rgba(255, 255, 255, 0.5);
 }
@@ -396,7 +396,7 @@ function toggleMobileMenu() {
 }
 
 .brand-logo {
-  font-family: 'Russo One', sans-serif;
+  font-family: var(--font-title);
   font-size: 1.4rem;
   color: #fff;
   margin: 0;
@@ -444,7 +444,7 @@ function toggleMobileMenu() {
 .nav-single:hover { background: rgba(255,255,255,0.03); }
 
 .single-code {
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 0.55rem;
   color: rgba(255,255,255,0.4);
   margin-bottom: 2px;
@@ -498,7 +498,7 @@ function toggleMobileMenu() {
 }
 
 .group-code {
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 0.55rem;
   color: rgba(255,255,255,0.4);
   letter-spacing: 0.1em;
@@ -580,7 +580,7 @@ function toggleMobileMenu() {
 }
 
 .item-label { font-size: 0.85rem; }
-.item-code { font-family: monospace; font-size: 0.6rem; opacity: 0.5; }
+.item-code { font-family: var(--font-mono); font-size: 0.6rem; opacity: 0.5; }
 
 /* Transitions */
 .dropdown-enter-active,
@@ -621,7 +621,7 @@ function toggleMobileMenu() {
 }
 
 .status-text {
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 0.7rem;
   color: var(--holo-green);
   letter-spacing: 0.1em;
@@ -717,7 +717,7 @@ function toggleMobileMenu() {
   border-left-color: var(--holo-blue);
 }
 .drawer-item-label { font-size: 0.9rem; }
-.drawer-item-code { font-family: monospace; font-size: 0.6rem; opacity: 0.5; }
+.drawer-item-code { font-family: var(--font-mono); font-size: 0.6rem; opacity: 0.5; }
 
 .drawer-enter-active,
 .drawer-leave-active {
@@ -738,6 +738,17 @@ function toggleMobileMenu() {
 .drawer-enter-to .nav-drawer,
 .drawer-leave-from .nav-drawer {
   transform: translateX(0);
+}
+
+/* 导航文字永不折行：宽度不够时横向滚动，而不是把「首页」挤成两行 */
+.single-label, .single-code, .group-label, .group-code { white-space: nowrap; }
+.nav-single, .nav-group { flex-shrink: 0; }
+.nav-center { justify-content: safe center; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+.nav-center::-webkit-scrollbar { display: none; }
+@media (max-width: 1500px) {
+  .nav-single { padding: 0 1rem; }
+  .nav-group { padding: 0 0.8rem; }
+  .nav-left { min-width: 0; flex: 0 0 auto; }
 }
 
 /* 全局自适应断点 */

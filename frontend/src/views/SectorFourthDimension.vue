@@ -208,13 +208,11 @@ function clickCell(r: number, c: number) {
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Share+Tech+Mono&display=swap');
-
 .sector-g {
   min-height: 0;
   background: #050005;
   color: #d0a0ff;
-  font-family: 'Share Tech Mono', monospace;
+  font-family: var(--font-mono);
   display: flex;
   flex-direction: column;
 }
@@ -226,7 +224,7 @@ function clickCell(r: number, c: number) {
 }
 
 .glitch-text {
-  font-family: 'Press Start 2P', cursive;
+  font-family: var(--font-mono);
   font-size: 1.5rem;
   color: #ff00ff;
   text-shadow: 2px 2px #00ffff;
@@ -268,7 +266,7 @@ function clickCell(r: number, c: number) {
   padding: 1rem;
   border: 1px solid #ff00ff;
 }
-.sub-info { font-size: 0.7rem; color: #00ffff; }
+.sub-info { font-size: 0.75rem; color: #00ffff; }
 
 /* The Ring */
 .ring-interface {
@@ -286,7 +284,7 @@ function clickCell(r: number, c: number) {
   padding: 2rem;
   overflow-y: auto;
   position: relative;
-  font-family: monospace;
+  font-family: var(--font-mono);
 }
 .scan-line {
   position: absolute;

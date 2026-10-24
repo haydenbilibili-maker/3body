@@ -5,6 +5,7 @@
  * 风格：手绘插画，忧伤浪漫
  */
 import { ref, reactive, onUnmounted, computed, onMounted } from 'vue'
+import SectorHeader from '@/components/SectorHeader.vue'
 import { NTabs, NTabPane, useMessage, NInput, NButton, NProgress, NTag } from 'naive-ui'
 import { encodeSecretAsFairytale, decodeFairytaleSimilarity } from '@/api/zero_v2'
 import { loadVersionedState, saveVersionedState } from '@/composables/useZeroV2State'
@@ -476,10 +477,13 @@ onUnmounted(() => {
 
 <template>
   <div class="sector-s">
-    <header class="header">
-      <h1 class="title">SECTOR S // THE STAIRCASE</h1>
-      <div class="subtitle">阶梯计划与云天明的童话</div>
-    </header>
+    <SectorHeader
+      code="SECTOR S · THE STAIRCASE"
+      title="阶梯计划"
+      subtitle="只送大脑——以及云天明的童话"
+      goal="飞船经过核弹时按下「引爆」为它加速；冲过终点时速度达到 15.0% c 即成功入轨。"
+      accent="#e0b3ff"
+    />
 
     <NTabs type="segment" v-model:value="activeTab" class="s-tabs">
       
@@ -762,13 +766,11 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Noto+Serif+SC:wght@400;700&display=swap');
-
 .sector-s {
   min-height: 0;
   background: #0f0f1a;
   color: #d8d8ff;
-  font-family: 'Noto Serif SC', serif;
+  font-family: var(--font-serif);
   display: flex;
   flex-direction: column;
 }
@@ -781,7 +783,7 @@ onUnmounted(() => {
 
 .title {
   margin: 0;
-  font-family: 'Dancing Script', cursive;
+  font-family: var(--font-serif);
   letter-spacing: 2px;
   color: #fff;
 }
@@ -940,7 +942,7 @@ onUnmounted(() => {
 }
 
 .speed-hud-title {
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 0.75rem;
   color: #9fc2ff;
   margin-bottom: 0.35rem;
@@ -962,8 +964,8 @@ onUnmounted(() => {
 .speed-hud-scale {
   display: flex;
   justify-content: space-between;
-  font-family: monospace;
-  font-size: 0.7rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
   color: #8f95c9;
   margin-top: 0.25rem;
 }
@@ -975,7 +977,7 @@ onUnmounted(() => {
 }
 .detonate-en {
   display: block;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   letter-spacing: 0.15em;
   opacity: 0.8;
 }
@@ -1026,7 +1028,7 @@ onUnmounted(() => {
   cursor: pointer;
   border-radius: 4px;
   border: 1px solid transparent;
-  font-family: 'Noto Serif SC', serif;
+  font-family: var(--font-serif);
   transition: all 0.2s;
   background: rgba(255,255,255,0.3);
 }
@@ -1063,7 +1065,7 @@ onUnmounted(() => {
 .clue-sidebar h4 {
   margin: 0 0 1rem 0;
   font-size: 0.9rem;
-  color: #666;
+  color: #8a8a8a;
   border-bottom: 1px solid #ddd;
   padding-bottom: 0.5rem;
 }
@@ -1094,7 +1096,7 @@ onUnmounted(() => {
 .story-text-interactive {
   font-size: 1.2rem;
   line-height: 2;
-  font-family: 'Noto Serif SC', serif;
+  font-family: var(--font-serif);
 }
 
 .secret-word {
@@ -1350,11 +1352,11 @@ onUnmounted(() => {
   letter-spacing: 0.2em;
   color: rgba(255, 220, 200, 0.85);
   margin-bottom: 0.5rem;
-  font-family: 'Noto Serif SC', serif;
+  font-family: var(--font-serif);
 }
 
 .star-name {
-  font-family: 'Dancing Script', cursive;
+  font-family: var(--font-serif);
   font-size: 2.5rem;
   color: #fff;
   margin: 0 0 0.25rem;
@@ -1387,7 +1389,7 @@ onUnmounted(() => {
   cursor: pointer;
   font-size: 1rem;
   letter-spacing: 0.15em;
-  font-family: 'Noto Serif SC', serif;
+  font-family: var(--font-serif);
   transition: all 0.4s ease;
   border-radius: 2px;
 }
@@ -1419,7 +1421,7 @@ onUnmounted(() => {
 
 .quote {
   font-style: italic;
-  font-family: 'Dancing Script', cursive;
+  font-family: var(--font-serif);
   font-size: 1.35rem;
   color: rgba(255, 240, 220, 0.95);
   margin: 0.5rem 0;
@@ -1469,7 +1471,7 @@ onUnmounted(() => {
 .tianming-intro p { margin: 0.3rem 0 0; font-size: 0.85rem; color: #a8c0c0; line-height: 1.5; }
 .ml-1 { margin-left: 0.35rem; }
 .tianming-section { margin-top: 0.8rem; }
-.section-label { display: block; font-size: 0.7rem; color: #6a8585; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.4rem; }
+.section-label { display: block; font-size: 0.75rem; color: #6a8585; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.4rem; }
 .tianming-panel .reason { font-size: 0.8rem; color: #7a9a9a; }
 .preset-chip-row { display: flex; flex-wrap: wrap; gap: 0.4rem; }
 .tianming-chip {
@@ -1505,7 +1507,7 @@ onUnmounted(() => {
 .tale-card:hover { border-color: #3a6060; background: rgba(0, 35, 45, 0.45); }
 .tale-card.selected { border-color: #00d4ff; background: rgba(0, 60, 80, 0.25); box-shadow: 0 0 0 1px rgba(0, 212, 255, 0.3); }
 .tale-card-title { font-size: 0.9rem; font-weight: 600; color: #c8e0e0; }
-.tale-card-meta { font-size: 0.7rem; }
+.tale-card-meta { font-size: 0.75rem; }
 .tale-progress { margin-top: 0.25rem; }
 .tale-card-pct { font-size: 0.75rem; color: #8ab3b3; }
 .decode-badge { margin-top: 0.4rem; }
@@ -1513,10 +1515,10 @@ onUnmounted(() => {
 .compare-block { min-width: 0; }
 .compare-pre { margin: 0; padding: 0.5rem; border: 1px solid #222; background: #060606; color: #b7c6c6; white-space: pre-wrap; font-size: 0.85rem; max-height: 200px; overflow: auto; }
 .semantic-box { padding: 0.5rem; border: 1px solid #222; background: #060606; color: #b7c6c6; font-size: 0.85rem; }
-.sem-empty { color: #666; }
+.sem-empty { color: #8a8a8a; }
 .sem-hit-phrase { color: #00ff88; background: rgba(0, 255, 136, 0.15); }
 .sem-hit-char { color: #88ff88; }
-.sem-miss { color: #555; }
+.sem-miss { color: #8a8a8a; }
 .sem-stats { margin-top: 0.5rem; }
 .sem-stat-item { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 0.2rem; }
 

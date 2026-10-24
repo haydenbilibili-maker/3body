@@ -147,6 +147,11 @@ function chronicleEventImageUrl(ev: ChronicleEvent | null): string {
   return chronicleImageUrl(ev.image_url, ev.title)
 }
 
+/** 配图缺失（如后端返回了不存在的地址）时隐藏，不显示破图标 */
+function hideBrokenImage(e: Event) {
+  ;(e.target as HTMLImageElement).style.display = 'none'
+}
+
 onMounted(loadEvents)
 </script>
 
@@ -244,6 +249,16 @@ onMounted(loadEvents)
               <!-- 事件卡片摘要：信息密度提升 -->
               <div class="node-content">
                 <div class="content-box" :style="{ '--era-accent': eraAccent(ev.era) }">
+                  <img
+                    v-if="chronicleEventImageUrl(ev)"
+                    class="ev-thumb"
+                    :src="chronicleEventImageUrl(ev)"
+                    :alt="ev.title"
+                    loading="lazy"
+                    decoding="async"
+                    @error="hideBrokenImage"
+                  />
+                  <div class="ev-text">
                   <div class="ev-meta">
                     <span class="ev-type-badge" :class="ev.event_type === 'ugc' ? 'badge-ugc' : 'badge-pgc'">
                       {{ ev.event_type === 'ugc' ? '变体' : '正典' }}
@@ -251,6 +266,7 @@ onMounted(loadEvents)
                   </div>
                   <h3 class="ev-title">{{ normalizeEraYearInText(ev.era, ev.year, ev.title) }}</h3>
                   <p class="ev-summary line-clamp-3">{{ normalizeEraYearInText(ev.era, ev.year, ev.summary || ev.content) }}</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -470,7 +486,7 @@ onMounted(loadEvents)
 }
 .dot.solid { background: var(--holo-blue); box-shadow: 0 0 5px var(--holo-blue); }
 .dot.dashed { border: 1px solid var(--holo-green); background: transparent; }
-.legend-hint { font-size: 0.65rem; color: var(--text-muted); margin-left: 0.5rem; }
+.legend-hint { font-size: 0.75rem; color: var(--text-muted); margin-left: 0.5rem; }
 
 /* View Container */
 .view-container {
@@ -520,8 +536,8 @@ onMounted(loadEvents)
 .timeline-node { position: relative; min-height: 130px; margin-bottom: 3.5rem; width: 100%; display: flex; justify-content: center; cursor: pointer; transition: all 0.25s ease; }
 .timeline-node:hover { filter: brightness(1.15); }
 .timeline-node.is-selected .content-box { border-color: var(--holo-blue); box-shadow: 0 0 20px rgba(0, 240, 255, 0.25); }
-.node-year { position: absolute; left: 50%; top: 0; transform: translateX(-50%); font-family: var(--font-tech); font-size: 0.7rem; font-weight: 600; letter-spacing: 0.05em; background: rgba(2,6,23,0.9); padding: 0.25rem 0.6rem; border: 1px solid var(--border-tech); border-radius: 2px; white-space: nowrap; z-index: 1; }
-.node-year-ce { position: absolute; left: 50%; top: 1.35rem; transform: translateX(-50%); font-family: var(--font-tech); font-size: 0.65rem; color: var(--text-muted); opacity: 0.9; z-index: 1; }
+.node-year { position: absolute; left: 50%; top: 0; transform: translateX(-50%); font-family: var(--font-tech); font-size: 0.75rem; font-weight: 600; letter-spacing: 0.05em; background: rgba(2,6,23,0.9); padding: 0.25rem 0.6rem; border: 1px solid var(--border-tech); border-radius: 2px; white-space: nowrap; z-index: 1; }
+.node-year-ce { position: absolute; left: 50%; top: 1.35rem; transform: translateX(-50%); font-family: var(--font-tech); font-size: 0.75rem; color: var(--text-muted); opacity: 0.9; z-index: 1; }
 .node-content { width: 42%; min-width: 260px; position: absolute; top: 2rem; bottom: 0; }
 .is-left .node-content { left: 0; text-align: right; }
 .is-right .node-content { right: 0; left: auto; text-align: left; }
@@ -532,9 +548,14 @@ onMounted(loadEvents)
 .timeline-node:hover .content-box::before { opacity: 1; }
 .timeline-node:hover .point-core { transform: scale(1.4); }
 .ev-meta { margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem; }
+/* 事件配图：放在靠近时间轴的一侧，文字向外展开（仓库内 31 张事件图此前从未在时间轴上使用） */
+.content-box { display: flex; gap: 0.9rem; align-items: flex-start; }
+.is-left .content-box { flex-direction: row-reverse; }
+.ev-text { flex: 1; min-width: 0; }
+.ev-thumb { flex: 0 0 72px; width: 72px; height: 72px; object-fit: cover; border-radius: 2px; border: 1px solid rgba(0, 240, 255, 0.18); filter: saturate(0.85) contrast(1.05); }
 .is-right .ev-meta { justify-content: flex-start; }
 .is-left .ev-meta { justify-content: flex-end; }
-.ev-type-badge { font-family: var(--font-tech); font-size: 0.6rem; padding: 0.15rem 0.4rem; border-radius: 2px; letter-spacing: 0.05em; }
+.ev-type-badge { font-family: var(--font-tech); font-size: 0.75rem; padding: 0.15rem 0.4rem; border-radius: 2px; letter-spacing: 0.05em; }
 .ev-type-badge.badge-pgc { background: rgba(0, 240, 255, 0.12); color: var(--holo-blue); border: 1px solid rgba(0, 240, 255, 0.4); }
 .ev-type-badge.badge-ugc { background: rgba(0, 255, 65, 0.1); color: var(--holo-green); border: 1px solid rgba(0, 255, 65, 0.4); }
 .ev-title { font-family: var(--font-tech); color: var(--holo-blue); margin: 0 0 0.5rem; font-size: 0.95rem; font-weight: 600; line-height: 1.3; text-shadow: 0 0 6px rgba(0, 240, 255, 0.25); }
@@ -545,13 +566,13 @@ onMounted(loadEvents)
 .detail-panel { position: fixed; top: 60px; right: 0; bottom: 0; width: 400px; max-width: 90vw; z-index: 50; padding: 1rem; }
 .detail-body { display: flex; flex-direction: column; gap: 1.5rem; height: 100%; }
 .meta-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-.meta-tag { font-family: var(--font-tech); font-size: 0.7rem; padding: 0.2rem 0.5rem; border: 1px solid var(--border-tech); color: var(--holo-blue); }
+.meta-tag { font-family: var(--font-tech); font-size: 0.75rem; padding: 0.2rem 0.5rem; border: 1px solid var(--border-tech); color: var(--holo-blue); }
 .status-tag.tag-warn { color: var(--holo-green); border-color: var(--holo-green); }
 .status-tag.tag-success { color: var(--holo-blue); border-color: var(--holo-blue); }
 .detail-text { font-size: 0.9rem; line-height: 1.6; color: var(--text); flex: 1; overflow-y: auto; }
 .detail-media { position: relative; border: 1px solid var(--border-tech); overflow: hidden; }
 .detail-media img { width: 100%; display: block; }
-.media-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.7); padding: 0.3rem; font-family: var(--font-tech); font-size: 0.7rem; color: var(--holo-blue); text-align: center; }
+.media-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.7); padding: 0.3rem; font-family: var(--font-tech); font-size: 0.75rem; color: var(--holo-blue); text-align: center; }
 .close-btn { width: 100%; padding: 0.8rem; background: transparent; border: 1px solid var(--border-tech); color: var(--text-muted); font-family: var(--font-tech); cursor: pointer; transition: all 0.2s; }
 .close-btn:hover { background: rgba(255,255,255,0.1); color: var(--text); }
 

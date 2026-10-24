@@ -314,15 +314,13 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Space+Mono&display=swap');
-
 .sector-x {
   min-height: 100%;
   width: 100%;
   box-sizing: border-box;
   background: #000;
   color: #fff;
-  font-family: 'Space Mono', monospace;
+  font-family: var(--font-mono);
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -368,7 +366,7 @@ onUnmounted(() => {
 }
 
 .broadcast-headline {
-  font-family: 'Cinzel', serif;
+  font-family: var(--font-title-classic);
   font-size: clamp(1.2rem, 2.6vw, 2.1rem);
   letter-spacing: 0.3em;
   text-transform: uppercase;
@@ -379,7 +377,7 @@ onUnmounted(() => {
 .broadcast-subline {
   margin-top: 0.55rem;
   margin-bottom: 1.1rem;
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   letter-spacing: 0.18em;
   color: rgba(255, 255, 255, 0.34);
 }
@@ -421,7 +419,7 @@ onUnmounted(() => {
 }
 
 .broadcast-line {
-  font-family: 'Cinzel', serif;
+  font-family: var(--font-title-classic);
   font-size: 1.5rem;
   letter-spacing: 0.1em;
   text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
@@ -447,9 +445,9 @@ onUnmounted(() => {
 .lang-tag {
   display: block;
   font-size: 0.8rem;
-  color: #666;
+  color: #8a8a8a;
   margin-bottom: 0.8rem;
-  font-family: 'Space Mono', monospace;
+  font-family: var(--font-mono);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -457,8 +455,8 @@ onUnmounted(() => {
 }
 
 .lang-id {
-  color: #333;
-  font-size: 0.7rem;
+  color: #7a7a7a;
+  font-size: 0.75rem;
 }
 
 .text-body {
@@ -469,7 +467,7 @@ onUnmounted(() => {
 
 .broadcast-static {
   margin-top: 0.9rem;
-  font-size: 0.67rem;
+  font-size: 0.75rem;
   color: rgba(255, 255, 255, 0.38);
   letter-spacing: 0.15em;
   text-transform: uppercase;
@@ -494,7 +492,7 @@ onUnmounted(() => {
   border: none;
   color: #fff;
   padding: 1rem;
-  font-family: 'Space Mono', monospace;
+  font-family: var(--font-mono);
   outline: none;
 }
 
@@ -503,7 +501,7 @@ onUnmounted(() => {
   color: #fff;
   border: none;
   padding: 0 1.5rem;
-  font-family: 'Space Mono', monospace;
+  font-family: var(--font-mono);
   cursor: pointer;
   transition: all 0.3s;
 }
@@ -554,7 +552,7 @@ onUnmounted(() => {
 
 .omega-status {
   font-size: 0.8rem;
-  color: #666;
+  color: #8a8a8a;
   margin-top: 0.5rem;
 }
 
@@ -589,7 +587,7 @@ onUnmounted(() => {
 }
 
 .return-btn {
-  font-family: 'Space Mono', monospace;
+  font-family: var(--font-mono);
   letter-spacing: 0.1em;
   padding: 1.5rem 3rem;
   font-size: 1.1rem;
@@ -618,13 +616,13 @@ onUnmounted(() => {
 
 .reboot-text {
   font-size: 3rem;
-  font-family: 'Cinzel', serif;
+  font-family: var(--font-title-classic);
   letter-spacing: 0.5em;
   margin-bottom: 1rem;
 }
 
 .reboot-sub {
-  color: #666;
+  color: #8a8a8a;
   font-size: 1rem;
   letter-spacing: 0.2em;
 }
@@ -646,7 +644,7 @@ onUnmounted(() => {
   }
 
   .broadcast-subline {
-    font-size: 0.58rem;
+    font-size: 0.75rem;
     letter-spacing: 0.12em;
     margin-bottom: 0.85rem;
   }
@@ -665,14 +663,14 @@ onUnmounted(() => {
 
   .lang-tag {
     margin-bottom: 0.2rem;
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     gap: 0.5rem;
     flex-wrap: wrap;
   }
 
   .broadcast-static {
     margin-top: 0.55rem;
-    font-size: 0.58rem;
+    font-size: 0.75rem;
     letter-spacing: 0.08em;
   }
 
@@ -714,7 +712,7 @@ onUnmounted(() => {
   }
 
   .omega-status {
-    font-size: 0.72rem;
+    font-size: 0.75rem;
   }
 
   .action-desc {

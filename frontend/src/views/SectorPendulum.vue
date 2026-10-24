@@ -4,6 +4,7 @@
  * 环境监测站 + 巨型单摆可视化 + 脱水控制台 + 人列计算机
  */
 import { ref, onMounted, onUnmounted, computed } from 'vue'
+import SectorHeader from '@/components/SectorHeader.vue'
 import { useRouter } from 'vue-router'
 import { useUniverseStore } from '@/stores/universe'
 import { useUserStore } from '@/stores/user'
@@ -252,7 +253,13 @@ const envText = computed(() => {
 <template>
   <div class="sector-pendulum">
     <div class="monitor-overlay">
-      <h1 class="font-mono text-xl tracking-widest text-sophone">SECTOR T // THE PENDULUM</h1>
+      <SectorHeader
+        compact
+        code="SECTOR T · THE PENDULUM"
+        title="三体摆"
+        goal="乱纪元来临时及时脱水、恒纪元时浸泡复苏，别让毁灭进度涨到 100%。"
+        accent="#ff6b9a"
+      />
       <div class="status-panel">
         <div class="metric highlight-civ">
           <span class="label">CIVILIZATION</span>
@@ -396,13 +403,13 @@ const envText = computed(() => {
   flex-direction: column;
 }
 .label {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   color: #888;
-  font-family: monospace;
+  font-family: var(--font-mono);
 }
 .value {
   font-size: 1.2rem;
-  font-family: monospace;
+  font-family: var(--font-mono);
   color: #00ffff;
 }
 .value.stable { color: #00ff41; }
@@ -430,9 +437,9 @@ const envText = computed(() => {
 }
 
 .sub-value {
-  font-size: 0.7rem;
-  font-family: monospace;
-  color: #666;
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  color: #8a8a8a;
 }
 
 .action-panel {
@@ -456,7 +463,7 @@ const envText = computed(() => {
   transition: opacity 0.3s;
 }
 .granary.active { opacity: 1; border-color: #b8860b; }
-.granary-label { font-size: 0.7rem; color: #888; margin-bottom: 0.5rem; font-family: monospace; }
+.granary-label { font-size: 0.75rem; color: #888; margin-bottom: 0.5rem; font-family: var(--font-mono); }
 .granary-slots { display: flex; gap: 0.5rem; justify-content: center; }
 .roll {
   font-size: 1.5rem;

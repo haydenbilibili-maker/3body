@@ -488,13 +488,11 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
-
 .sector-r-console {
   min-height: 0;
   background-color: #050505;
   color: #0f0;
-  font-family: 'Share Tech Mono', monospace;
+  font-family: var(--font-mono);
   padding: 1rem;
   position: relative;
   overflow: hidden;
@@ -573,7 +571,7 @@ onUnmounted(() => {
   min-height: 0;
   background-color: #050505;
   color: #0f0;
-  font-family: 'Share Tech Mono', monospace;
+  font-family: var(--font-mono);
   padding: 1rem;
   position: relative;
   overflow: hidden;
@@ -783,7 +781,7 @@ onUnmounted(() => {
 
 .big-red-button.disabled {
   background: #333;
-  color: #555;
+  color: #8a8a8a;
   box-shadow: none;
   cursor: not-allowed;
 }

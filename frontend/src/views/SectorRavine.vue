@@ -5,6 +5,7 @@
  * 风格：老式终端 / 生存日志
  */
 import { ref, nextTick } from 'vue'
+import SectorHeader from '@/components/SectorHeader.vue'
 import { NScrollbar, NModal, NCard, NButton } from 'naive-ui'
 
 interface PlayerStats {
@@ -202,10 +203,15 @@ const RAVINE_QUOTE = '「大低谷时期，人类曾一度将生存置于文明�
 
 <template>
   <div class="sector-ravine">
-    <header class="ravine-header">
-      <h1 class="ravine-title">大低谷</h1>
-      <p class="ravine-sub">THE GREAT RAVINE · 危机纪元中人类文明最黑暗的时期</p>
-    </header>
+    <SectorHeader
+      code="SECTOR RAVINE · THE GREAT RAVINE"
+      title="大低谷"
+      subtitle="危机纪元中人类文明最黑暗的时期"
+      goal="每天做一个选择，在饥饿、健康与理智之间取舍——活过第 30 天。"
+      accent="#c8a96a"
+      show-restart
+      @restart="resetGame"
+    />
 
     <div class="terminal-screen">
       <div class="terminal-title-bar">SURVIVAL LOG // 地下城 · 第 {{ stats.day }} 天</div>
@@ -275,31 +281,18 @@ const RAVINE_QUOTE = '「大低谷时期，人类曾一度将生存置于文明�
   min-height: 0;
   background: #050508;
   padding: 1.5rem 2rem 2rem;
-  font-family: 'Courier New', 'Consolas', monospace;
+  font-family: var(--font-mono);
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 1.5rem;
 }
 
-.ravine-header {
-  text-align: center;
-}
 
-.ravine-title {
-  margin: 0;
-  font-size: 1.75rem;
-  font-weight: 600;
-  letter-spacing: 0.2em;
-  color: #8b9a6b;
-}
 
-.ravine-sub {
-  margin: 0.35rem 0 0;
-  font-size: 0.8rem;
-  color: rgba(139, 154, 107, 0.85);
-  letter-spacing: 0.08em;
-}
+
+
+
 
 .terminal-screen {
   width: 100%;
@@ -355,7 +348,7 @@ const RAVINE_QUOTE = '「大低谷时期，人类曾一度将生存置于文明�
 
 .stat-label {
   display: block;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   color: rgba(125, 154, 60, 0.8);
   margin-bottom: 0.25rem;
 }

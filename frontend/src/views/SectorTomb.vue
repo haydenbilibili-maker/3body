@@ -225,7 +225,7 @@ function carveStone() {
   min-height: 100%;
   background: #050508;
   color: #b0b0b0;
-  font-family: 'Noto Serif SC', serif;
+  font-family: var(--font-serif);
   display: flex;
   flex-direction: column;
   position: relative;
@@ -257,7 +257,7 @@ function carveStone() {
 }
 
 .title {
-  font-family: 'Russo One', sans-serif;
+  font-family: var(--font-title);
   font-size: 1.6rem;
   letter-spacing: 0.06em;
   color: rgba(255, 255, 255, 0.85);
@@ -265,11 +265,11 @@ function carveStone() {
 }
 
 .subtitle {
-  color: #555;
+  color: #8a8a8a;
   font-size: 0.8rem;
   margin-top: 0.5rem;
   letter-spacing: 0.08em;
-  font-family: monospace;
+  font-family: var(--font-mono);
 }
 
 .header-meta {
@@ -280,8 +280,8 @@ function carveStone() {
 }
 
 .meta-tag {
-  font-family: monospace;
-  font-size: 0.65rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
   padding: 2px 8px;
   border: 1px solid rgba(255, 255, 255, 0.2);
   color: rgba(255, 255, 255, 0.5);
@@ -311,7 +311,7 @@ function carveStone() {
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   padding-bottom: 0.5rem;
   margin-bottom: 1.25rem;
-  font-family: monospace;
+  font-family: var(--font-mono);
   letter-spacing: 0.12em;
   display: flex;
   align-items: center;
@@ -372,7 +372,7 @@ function carveStone() {
   letter-spacing: 0.08em;
   text-align: center;
   line-height: 1.6;
-  font-family: 'Noto Serif SC', serif;
+  font-family: var(--font-serif);
 }
 
 .carving {
@@ -386,7 +386,7 @@ function carveStone() {
 
 .tool-hint {
   text-align: center;
-  color: #444;
+  color: #7a7a7a;
   font-size: 0.75rem;
   margin-bottom: 1rem;
   font-style: italic;
@@ -408,20 +408,20 @@ function carveStone() {
   background: rgba(0, 0, 0, 0.4) !important;
   border: 1px solid rgba(255, 255, 255, 0.1) !important;
   color: #bbb !important;
-  font-family: 'Noto Serif SC', serif !important;
+  font-family: var(--font-serif) !important;
 }
 
 .carve-btn {
   flex-shrink: 0;
-  font-family: monospace;
+  font-family: var(--font-mono);
 }
 
 .carve-meta {
   margin-top: 0.5rem;
-  font-size: 0.65rem;
-  color: #444;
+  font-size: 0.75rem;
+  color: #7a7a7a;
   text-align: center;
-  font-family: monospace;
+  font-family: var(--font-mono);
   letter-spacing: 0.1em;
 }
 
@@ -502,9 +502,9 @@ function carveStone() {
   margin-bottom: 0.15rem;
   min-height: 1.25em;
   display: block;
-  font-size: 0.74rem;
+  font-size: 0.75rem;
   color: #8b97aa;
-  font-family: monospace;
+  font-family: var(--font-mono);
   line-height: 1.45;
   word-break: break-word;
   white-space: normal;
@@ -514,12 +514,12 @@ function carveStone() {
 }
 
 .civ-status {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   padding: 2px 6px;
   border-radius: 2px;
   flex-shrink: 0;
   align-self: flex-start;
-  font-family: monospace;
+  font-family: var(--font-mono);
   white-space: nowrap;
   position: relative;
   z-index: 2;
@@ -574,8 +574,8 @@ function carveStone() {
 }
 
 .danger-label {
-  font-size: 0.65rem;
-  font-family: monospace;
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
   letter-spacing: 0.1em;
 }
 

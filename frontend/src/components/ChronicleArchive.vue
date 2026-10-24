@@ -34,9 +34,9 @@ onMounted(async () => {
 }
 .doc-file {
   background: #fdf6e3;
-  color: #333;
+  color: #7a7a7a;
   padding: 2rem;
-  font-family: 'Courier New', monospace;
+  font-family: var(--font-mono);
   position: relative;
   box-shadow: 2px 2px 10px rgba(0,0,0,0.5);
   transform: rotate(-1deg);

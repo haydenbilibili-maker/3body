@@ -300,11 +300,11 @@ onMounted(loadEncyclopedia)
 .bottom-right { bottom: 0; right: 0; border-left: none; border-top: none; }
 .wiki-card:hover .card-edge { width: 100%; height: 100%; opacity: 1; }
 .wiki-header { margin-bottom: 1rem; }
-.cat-tag { font-family: var(--font-tech); font-size: 0.6rem; color: var(--cat-color); letter-spacing: 0.1em; opacity: 0.8; }
+.cat-tag { font-family: var(--font-tech); font-size: 0.75rem; color: var(--cat-color); letter-spacing: 0.1em; opacity: 0.8; }
 .wiki-term { margin: 0.2rem 0 0 0; font-family: var(--font-display); font-size: 1.2rem; color: #fff; font-weight: 300; }
 .wiki-summary { font-size: 0.8rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 1.5rem; height: 3.2em; overflow: hidden; }
 .wiki-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-.wiki-tag { font-size: 0.7rem; color: var(--cat-color); background: rgba(255, 255, 255, 0.05); padding: 0.2rem 0.5rem; border-radius: 2px; font-family: var(--font-tech); }
+.wiki-tag { font-size: 0.75rem; color: var(--cat-color); background: rgba(255, 255, 255, 0.05); padding: 0.2rem 0.5rem; border-radius: 2px; font-family: var(--font-tech); }
 .card-glow { position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, var(--cat-color) 0%, transparent 60%); opacity: 0; transform: scale(0.5); transition: all 0.5s; pointer-events: none; mix-blend-mode: screen; }
 .wiki-card:hover .card-glow { opacity: 0.1; transform: scale(1); }
 
@@ -313,7 +313,7 @@ onMounted(loadEncyclopedia)
 .seal-container { width: 90%; max-width: 600px; border: 1px solid var(--seal-color); background: rgba(5, 10, 20, 0.95); position: relative; padding: 2rem; box-shadow: 0 0 50px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(255, 255, 255, 0.05); }
 .seal-header { border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 1rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: flex-end; }
 .seal-title { font-family: var(--font-display); font-size: 2rem; color: var(--seal-color); margin: 0; text-shadow: 0 0 15px var(--seal-color); }
-.seal-meta { display: flex; flex-direction: column; text-align: right; font-family: var(--font-tech); font-size: 0.7rem; color: var(--text-muted); gap: 0.3rem; }
+.seal-meta { display: flex; flex-direction: column; text-align: right; font-family: var(--font-tech); font-size: 0.75rem; color: var(--text-muted); gap: 0.3rem; }
 .seal-body { position: relative; margin-bottom: 2rem; }
 .seal-line-deco { position: absolute; left: -2rem; top: 0; bottom: 0; width: 2px; background: linear-gradient(180deg, var(--seal-color), transparent); }
 .seal-text { font-size: 1rem; line-height: 1.8; color: #fff; margin-bottom: 2rem; white-space: pre-wrap; }
@@ -322,7 +322,7 @@ onMounted(loadEncyclopedia)
 .seal-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem; }
 .seal-close { background: transparent; border: 1px solid var(--text-muted); color: var(--text-muted); padding: 0.5rem 1.5rem; cursor: pointer; font-family: var(--font-tech); transition: all 0.2s; }
 .seal-close:hover { border-color: #fff; color: #fff; }
-.seal-status { font-family: var(--font-tech); font-size: 0.7rem; color: var(--seal-color); animation: blink 2s infinite; }
+.seal-status { font-family: var(--font-tech); font-size: 0.75rem; color: var(--seal-color); animation: blink 2s infinite; }
 
 /* Transitions */
 .seal-expand-enter-active, .seal-expand-leave-active { transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); }

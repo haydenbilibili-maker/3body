@@ -345,7 +345,7 @@ onMounted(() => {
   min-height: 0;
   background: #000;
   color: #e0e0e0;
-  font-family: 'Arial', sans-serif;
+  font-family: var(--font-sans);
   display: flex;
   flex-direction: column;
 }
@@ -359,12 +359,12 @@ onMounted(() => {
 .title {
   margin: 0;
   color: #00ffff;
-  font-family: monospace;
+  font-family: var(--font-mono);
   letter-spacing: 2px;
 }
 
 .subtitle {
-  color: #666;
+  color: #8a8a8a;
   font-size: 0.8rem;
 }
 
@@ -393,7 +393,7 @@ onMounted(() => {
   border: 1px solid rgba(0, 255, 255, 0.35);
   color: #e0e0e0;
   padding: 1rem;
-  font-family: monospace;
+  font-family: var(--font-mono);
   z-index: 10;
   border-radius: 6px;
 }
@@ -421,7 +421,7 @@ onMounted(() => {
 }
 
 .journey-label {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   color: #7a9;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -452,7 +452,7 @@ onMounted(() => {
   color: #00ffff;
   padding: 0.25rem 0.6rem;
   font-size: 0.8rem;
-  font-family: monospace;
+  font-family: var(--font-mono);
   cursor: pointer;
   border-radius: 4px;
   transition: background 0.2s;
@@ -485,7 +485,7 @@ onMounted(() => {
   color: #9ab;
   padding: 0.25rem 0.5rem;
   font-size: 0.75rem;
-  font-family: monospace;
+  font-family: var(--font-mono);
   cursor: pointer;
   border-radius: 4px;
   transition: border-color 0.2s, color 0.2s, background 0.2s;
@@ -511,7 +511,7 @@ onMounted(() => {
   padding: 1rem;
   border: 1px solid #00ffff;
   color: #00ffff;
-  font-family: monospace;
+  font-family: var(--font-mono);
 }
 
 .data-row { margin-bottom: 0.5rem; }
@@ -540,7 +540,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   color: #00ffff;
-  font-family: monospace;
+  font-family: var(--font-mono);
   z-index: 10;
 }
 
@@ -638,7 +638,7 @@ onMounted(() => {
 .status {
   font-size: 1.5rem;
   margin: 1rem 0;
-  font-family: monospace;
+  font-family: var(--font-mono);
 }
 .ok { color: #00ff00; }
 .danger { color: #ff0000; }
@@ -673,6 +673,6 @@ onMounted(() => {
     padding: 0.75rem;
   }
   .journey-title { font-size: 0.9rem; }
-  .waypoint-chip { font-size: 0.7rem; padding: 0.2rem 0.4rem; }
+  .waypoint-chip { font-size: 0.75rem; padding: 0.2rem 0.4rem; }
 }
 </style>

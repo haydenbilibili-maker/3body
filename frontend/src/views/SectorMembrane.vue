@@ -106,7 +106,7 @@ onUnmounted(() => {
 }
 
 .header-overlay h1 {
-  font-family: 'Rajdhani', sans-serif;
+  font-family: var(--font-sans);
   letter-spacing: 0.2em;
   font-size: 2rem;
   text-shadow: 0 0 10px #00ffff;
@@ -126,7 +126,7 @@ onUnmounted(() => {
   color: #fff;
   z-index: 10;
   pointer-events: none;
-  font-family: 'Noto Serif SC', serif;
+  font-family: var(--font-serif);
 }
 
 .footer-overlay p {
