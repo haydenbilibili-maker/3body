@@ -321,13 +321,19 @@ async function main() {
   await mkdir(path.join(OUT_DIR, 'states'), { recursive: true })
   const states = []
   for (const state of STATES) {
-    const r = await withTimeout(snapshotState(browser, state), PAGE_TIMEOUT_MS, state.name).catch((e) => ({
-      name: state.name,
-      viewport: state.viewport,
-      slug: state.slug,
-      error: short(e.message),
-      pageErrors: [],
-    }))
+    // 首页的 Three.js 偶尔让首屏挂载变慢，交互态失败时重试一次再判定
+    let r
+    for (let attempt = 1; attempt <= 2; attempt += 1) {
+      r = await withTimeout(snapshotState(browser, state), PAGE_TIMEOUT_MS, state.name).catch((e) => ({
+        name: state.name,
+        viewport: state.viewport,
+        slug: state.slug,
+        error: short(e.message),
+        pageErrors: [],
+      }))
+      if (!r.error) break
+      console.log(`[state] ${state.name} attempt ${attempt} failed: ${r.error}`)
+    }
     states.push(r)
     console.log(`[state] ${r.name} ${r.error ? `ERROR ${r.error}` : 'ok'}`)
     if (r.error) console.log(`::warning title=state-snapshot::${r.name} ${r.error}`.slice(0, 900))
