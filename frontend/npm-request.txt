@@ -1,2 +1,0 @@
-# 字体自托管（替代 Google Fonts：中国大陆无法访问）
-npm install @fontsource/inter@5 @fontsource/jetbrains-mono@5 @fontsource/noto-serif-sc@5 @fontsource/orbitron@5 @fontsource/cinzel@5
