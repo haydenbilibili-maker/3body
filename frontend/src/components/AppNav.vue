@@ -740,6 +740,17 @@ function toggleMobileMenu() {
   transform: translateX(0);
 }
 
+/* 导航文字永不折行：宽度不够时横向滚动，而不是把「首页」挤成两行 */
+.single-label, .single-code, .group-label, .group-code { white-space: nowrap; }
+.nav-single, .nav-group { flex-shrink: 0; }
+.nav-center { justify-content: safe center; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+.nav-center::-webkit-scrollbar { display: none; }
+@media (max-width: 1500px) {
+  .nav-single { padding: 0 1rem; }
+  .nav-group { padding: 0 0.8rem; }
+  .nav-left { min-width: 0; flex: 0 0 auto; }
+}
+
 /* 全局自适应断点 */
 @media (max-width: 1200px) {
   .tactical-nav { padding: 0 1.25rem; }
