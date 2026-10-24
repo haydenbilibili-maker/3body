@@ -273,7 +273,7 @@ function handleNavClick(path: string) {
 }
 
 .status-item .label {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   color: rgba(255, 255, 255, 0.5);
   letter-spacing: 0.05em;
   margin-bottom: 4px;
@@ -358,7 +358,7 @@ function handleNavClick(path: string) {
 }
 
 .module-code {
-  font-size: 0.6rem;
+  font-size: 0.75rem;
   color: rgba(255, 255, 255, 0.4);
   letter-spacing: 0.1em;
   margin-bottom: 0.5rem;

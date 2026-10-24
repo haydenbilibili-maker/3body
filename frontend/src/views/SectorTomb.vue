@@ -265,7 +265,7 @@ function carveStone() {
 }
 
 .subtitle {
-  color: #555;
+  color: #8a8a8a;
   font-size: 0.8rem;
   margin-top: 0.5rem;
   letter-spacing: 0.08em;
@@ -281,7 +281,7 @@ function carveStone() {
 
 .meta-tag {
   font-family: var(--font-mono);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   padding: 2px 8px;
   border: 1px solid rgba(255, 255, 255, 0.2);
   color: rgba(255, 255, 255, 0.5);
@@ -386,7 +386,7 @@ function carveStone() {
 
 .tool-hint {
   text-align: center;
-  color: #444;
+  color: #7a7a7a;
   font-size: 0.75rem;
   margin-bottom: 1rem;
   font-style: italic;
@@ -418,8 +418,8 @@ function carveStone() {
 
 .carve-meta {
   margin-top: 0.5rem;
-  font-size: 0.65rem;
-  color: #444;
+  font-size: 0.75rem;
+  color: #7a7a7a;
   text-align: center;
   font-family: var(--font-mono);
   letter-spacing: 0.1em;
@@ -502,7 +502,7 @@ function carveStone() {
   margin-bottom: 0.15rem;
   min-height: 1.25em;
   display: block;
-  font-size: 0.74rem;
+  font-size: 0.75rem;
   color: #8b97aa;
   font-family: var(--font-mono);
   line-height: 1.45;
@@ -514,7 +514,7 @@ function carveStone() {
 }
 
 .civ-status {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   padding: 2px 6px;
   border-radius: 2px;
   flex-shrink: 0;
@@ -574,7 +574,7 @@ function carveStone() {
 }
 
 .danger-label {
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   font-family: var(--font-mono);
   letter-spacing: 0.1em;
 }

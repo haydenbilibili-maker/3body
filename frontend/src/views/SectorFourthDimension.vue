@@ -266,7 +266,7 @@ function clickCell(r: number, c: number) {
   padding: 1rem;
   border: 1px solid #ff00ff;
 }
-.sub-info { font-size: 0.7rem; color: #00ffff; }
+.sub-info { font-size: 0.75rem; color: #00ffff; }
 
 /* The Ring */
 .ring-interface {

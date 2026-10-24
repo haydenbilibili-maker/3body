@@ -364,7 +364,7 @@ onMounted(() => {
 }
 
 .subtitle {
-  color: #666;
+  color: #8a8a8a;
   font-size: 0.8rem;
 }
 
@@ -421,7 +421,7 @@ onMounted(() => {
 }
 
 .journey-label {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   color: #7a9;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -673,6 +673,6 @@ onMounted(() => {
     padding: 0.75rem;
   }
   .journey-title { font-size: 0.9rem; }
-  .waypoint-chip { font-size: 0.7rem; padding: 0.2rem 0.4rem; }
+  .waypoint-chip { font-size: 0.75rem; padding: 0.2rem 0.4rem; }
 }
 </style>

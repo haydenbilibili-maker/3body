@@ -254,7 +254,7 @@ function go(path: string) {
   margin-top: 12px;
   font-family: var(--font-display);
   font-weight: 300;
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.2em;
   color: rgba(184, 245, 255, 0.9);
   white-space: nowrap;

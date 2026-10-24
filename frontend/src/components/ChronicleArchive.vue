@@ -34,7 +34,7 @@ onMounted(async () => {
 }
 .doc-file {
   background: #fdf6e3;
-  color: #333;
+  color: #7a7a7a;
   padding: 2rem;
   font-family: var(--font-mono);
   position: relative;

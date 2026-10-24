@@ -190,7 +190,7 @@ function selectFaction(id: string) {
 }
 
 .subtitle {
-  color: #666;
+  color: #8a8a8a;
   margin-top: 0.5rem;
   font-size: 0.9rem;
   letter-spacing: 2px;
@@ -264,7 +264,7 @@ function selectFaction(id: string) {
 }
 
 .chat-line { margin-bottom: 0.5rem; line-height: 1.4; }
-.chat-line.info { color: #555; font-style: italic; }
+.chat-line.info { color: #8a8a8a; font-style: italic; }
 .chat-line.msg { color: #ccc; }
 .sender { color: gold; margin-right: 0.5rem; font-weight: bold; }
 

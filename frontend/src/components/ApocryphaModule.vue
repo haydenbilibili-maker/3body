@@ -243,7 +243,7 @@ onMounted(loadItems)
 
 .badge-genre {
   font-family: var(--font-tech);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   padding: 0.2rem 0.5rem;
   background: rgba(0, 255, 65, 0.15);
   color: var(--holo-green, #00ff41);
@@ -252,7 +252,7 @@ onMounted(loadItems)
 
 .badge-author {
   font-family: var(--font-tech);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
 }
 
@@ -273,7 +273,7 @@ onMounted(loadItems)
 }
 
 .card-anchor {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
   margin: 0;
 }
@@ -283,7 +283,7 @@ onMounted(loadItems)
   border: 1px solid var(--holo-green, #00ff41);
   color: var(--holo-green, #00ff41);
   font-family: var(--font-tech);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   padding: 0.3rem 0.6rem;
   cursor: pointer;
   transition: all 0.2s;
@@ -417,7 +417,7 @@ onMounted(loadItems)
   padding: 0.6rem 1.5rem;
   border-top: 1px solid rgba(0, 255, 65, 0.2);
   font-family: var(--font-tech);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
 }
 

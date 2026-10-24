@@ -465,7 +465,7 @@ const fallenWorks = [
 
 .upload-sub {
   font-size: 0.75rem;
-  color: #555;
+  color: #8a8a8a;
 }
 
 .scan-line {
@@ -530,7 +530,7 @@ const fallenWorks = [
 .lore-box {
   margin-top: 1rem;
   text-align: center;
-  color: #666;
+  color: #8a8a8a;
   font-style: italic;
   font-size: 0.9rem;
 }
@@ -594,8 +594,8 @@ const fallenWorks = [
 }
 
 .art-meta {
-  color: #555;
-  font-size: 0.7rem;
+  color: #8a8a8a;
+  font-size: 0.75rem;
   font-family: var(--font-sans);
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -648,7 +648,7 @@ const fallenWorks = [
   margin-top: 2rem;
   padding-top: 1rem;
   border-top: 1px solid rgba(255,255,255,0.1);
-  color: #666;
+  color: #8a8a8a;
   line-height: 1.6;
 }
 </style>

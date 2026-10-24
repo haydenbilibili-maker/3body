@@ -739,7 +739,7 @@ onMounted(() => {
   text-shadow: 0 0 10px rgba(0,255,255,0.3);
 }
 .subtitle {
-  color: #666;
+  color: #8a8a8a;
   font-family: var(--font-mono);
   margin-top: 0.5rem;
   letter-spacing: 1px;
@@ -951,7 +951,7 @@ onMounted(() => {
   background: rgba(0,0,0,0.8);
   color: #00ffff;
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   padding: 4px 8px;
   text-align: right;
   border-top: 1px solid rgba(0,255,255,0.2);
@@ -986,11 +986,11 @@ onMounted(() => {
   margin-bottom: 0.5rem;
 }
 .cn-name { font-weight: bold; color: #fff; font-size: 1.1rem; }
-.en-name { font-size: 0.7rem; font-family: var(--font-mono); opacity: 0.6; }
+.en-name { font-size: 0.75rem; font-family: var(--font-mono); opacity: 0.6; }
 
 .meta-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 .role-tag, .era-tag {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   padding: 2px 6px;
   background: rgba(255,255,255,0.05);
   border: 1px solid rgba(255,255,255,0.1);
@@ -1076,11 +1076,11 @@ onMounted(() => {
 
 .basic-info { margin-bottom: 2rem; }
 .cn-name-lg { font-size: 2rem; color: #fff; margin: 0; line-height: 1.2; }
-.en-name-lg { font-family: var(--font-mono); color: #666; font-size: 0.9rem; margin: 0 0 1rem; }
+.en-name-lg { font-family: var(--font-mono); color: #8a8a8a; font-size: 0.9rem; margin: 0 0 1rem; }
 
 .info-grid { display: flex; flex-direction: column; gap: 0.5rem; }
 .info-item { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 0.8rem; border-bottom: 1px dashed #333; padding-bottom: 4px; }
-.info-item label { color: #666; }
+.info-item label { color: #8a8a8a; }
 .info-item span { color: #ccc; text-align: right; }
 
 .section-title {
@@ -1094,7 +1094,7 @@ onMounted(() => {
 }
 
 .metrics-list { display: flex; flex-direction: column; gap: 0.5rem; }
-.metric-row { display: flex; align-items: center; gap: 0.5rem; font-family: var(--font-mono); font-size: 0.7rem; }
+.metric-row { display: flex; align-items: center; gap: 0.5rem; font-family: var(--font-mono); font-size: 0.75rem; }
 .metric-name { width: 60px; color: #888; }
 .metric-bar-container { flex: 1; height: 4px; background: #222; }
 .metric-bar { height: 100%; }
@@ -1125,7 +1125,7 @@ onMounted(() => {
 }
 .quote-meta {
   font-size: 0.8rem;
-  color: #666;
+  color: #8a8a8a;
   text-align: right;
   font-family: var(--font-mono);
 }
@@ -1289,7 +1289,7 @@ onMounted(() => {
 }
 .dialogue-figure-name {
   display: block;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   color: #00ffff;
   margin-bottom: 0.35rem;
   font-family: var(--font-mono);
@@ -1315,7 +1315,7 @@ onMounted(() => {
 }
 .dialogue-suggested-label {
   font-size: 0.75rem;
-  color: #666;
+  color: #8a8a8a;
   margin-right: 0.5rem;
 }
 .dialogue-suggested-chips {

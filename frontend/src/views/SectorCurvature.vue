@@ -475,7 +475,7 @@ onUnmounted(() => {
 }
 
 .hud-item { display: flex; flex-direction: column; }
-.label { font-size: 0.7rem; color: #557799; letter-spacing: 1px; }
+.label { font-size: 0.75rem; color: #557799; letter-spacing: 1px; }
 .value { font-size: 1.2rem; font-weight: bold; }
 .c-reduced { color: #ff3333; text-shadow: 0 0 10px #ff0000; }
 .hint { opacity: 0.6; font-size: 0.8rem; max-width: 300px; text-align: right; }

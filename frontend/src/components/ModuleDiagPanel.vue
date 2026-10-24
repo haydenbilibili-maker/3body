@@ -50,7 +50,7 @@ defineProps<{
   border: 1px solid #202f2f;
   padding: 0.35rem 0.5rem;
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 12px;
   color: #86a1a1;
 }
 

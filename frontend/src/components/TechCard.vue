@@ -135,7 +135,7 @@ withDefaults(defineProps<{
 
 .tech-subtitle {
   font-family: var(--font-tech);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   color: rgba(255, 255, 255, 0.4);
   margin-left: 0.5rem;
 }

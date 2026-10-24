@@ -403,7 +403,7 @@ const envText = computed(() => {
   flex-direction: column;
 }
 .label {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   color: #888;
   font-family: var(--font-mono);
 }
@@ -437,9 +437,9 @@ const envText = computed(() => {
 }
 
 .sub-value {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-family: var(--font-mono);
-  color: #666;
+  color: #8a8a8a;
 }
 
 .action-panel {
@@ -463,7 +463,7 @@ const envText = computed(() => {
   transition: opacity 0.3s;
 }
 .granary.active { opacity: 1; border-color: #b8860b; }
-.granary-label { font-size: 0.7rem; color: #888; margin-bottom: 0.5rem; font-family: var(--font-mono); }
+.granary-label { font-size: 0.75rem; color: #888; margin-bottom: 0.5rem; font-family: var(--font-mono); }
 .granary-slots { display: flex; gap: 0.5rem; justify-content: center; }
 .roll {
   font-size: 1.5rem;

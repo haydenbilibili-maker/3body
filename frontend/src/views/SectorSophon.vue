@@ -508,7 +508,7 @@ onUnmounted(() => {
 }
 
 .sender {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   color: #888;
   display: block;
   margin-bottom: 0.2rem;

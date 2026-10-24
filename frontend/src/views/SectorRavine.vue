@@ -348,7 +348,7 @@ const RAVINE_QUOTE = '「大低谷时期，人类曾一度将生存置于文明�
 
 .stat-label {
   display: block;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   color: rgba(125, 154, 60, 0.8);
   margin-bottom: 0.25rem;
 }

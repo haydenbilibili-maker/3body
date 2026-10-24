@@ -529,9 +529,9 @@ onUnmounted(() => {
   text-align: center;
 }
 .boundary-header h1 { font-size: 2rem; color: #8af; margin: 0; }
-.subtitle { color: #555; font-size: 0.9rem; margin-top: 0.5rem; }
+.subtitle { color: #8a8a8a; font-size: 0.9rem; margin-top: 0.5rem; }
 .header-actions { margin-top: 1rem; }
-.cmb-btn { color: #444; transition: color 0.3s; }
+.cmb-btn { color: #7a7a7a; transition: color 0.3s; }
 .cmb-btn:hover { color: #d00; }
 .global-controls {
   margin-top: 1rem;
@@ -588,7 +588,7 @@ onUnmounted(() => {
 }
 .boundary-tabs { flex: 1; }
 :deep(.n-tabs-nav) { background: #050508; padding: 0 2rem; }
-:deep(.n-tabs-tab) { color: #666 !important; }
+:deep(.n-tabs-tab) { color: #8a8a8a !important; }
 :deep(.n-tabs-tab--active) { color: #8af !important; font-weight: bold; }
 
 .panel {
@@ -599,7 +599,7 @@ onUnmounted(() => {
   background: rgba(255,255,255,0.02);
 }
 .lore { color: #888; line-height: 1.6; margin-bottom: 1.5rem; font-size: 0.95rem; }
-.hint { color: #555; font-size: 0.85rem; margin-top: 1rem; }
+.hint { color: #8a8a8a; font-size: 0.85rem; margin-top: 1rem; }
 .metrics {
   margin-bottom: 1rem;
   display: flex;

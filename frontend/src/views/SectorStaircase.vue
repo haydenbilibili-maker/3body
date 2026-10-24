@@ -965,7 +965,7 @@ onUnmounted(() => {
   display: flex;
   justify-content: space-between;
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   color: #8f95c9;
   margin-top: 0.25rem;
 }
@@ -977,7 +977,7 @@ onUnmounted(() => {
 }
 .detonate-en {
   display: block;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   letter-spacing: 0.15em;
   opacity: 0.8;
 }
@@ -1065,7 +1065,7 @@ onUnmounted(() => {
 .clue-sidebar h4 {
   margin: 0 0 1rem 0;
   font-size: 0.9rem;
-  color: #666;
+  color: #8a8a8a;
   border-bottom: 1px solid #ddd;
   padding-bottom: 0.5rem;
 }
@@ -1471,7 +1471,7 @@ onUnmounted(() => {
 .tianming-intro p { margin: 0.3rem 0 0; font-size: 0.85rem; color: #a8c0c0; line-height: 1.5; }
 .ml-1 { margin-left: 0.35rem; }
 .tianming-section { margin-top: 0.8rem; }
-.section-label { display: block; font-size: 0.7rem; color: #6a8585; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.4rem; }
+.section-label { display: block; font-size: 0.75rem; color: #6a8585; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.4rem; }
 .tianming-panel .reason { font-size: 0.8rem; color: #7a9a9a; }
 .preset-chip-row { display: flex; flex-wrap: wrap; gap: 0.4rem; }
 .tianming-chip {
@@ -1507,7 +1507,7 @@ onUnmounted(() => {
 .tale-card:hover { border-color: #3a6060; background: rgba(0, 35, 45, 0.45); }
 .tale-card.selected { border-color: #00d4ff; background: rgba(0, 60, 80, 0.25); box-shadow: 0 0 0 1px rgba(0, 212, 255, 0.3); }
 .tale-card-title { font-size: 0.9rem; font-weight: 600; color: #c8e0e0; }
-.tale-card-meta { font-size: 0.7rem; }
+.tale-card-meta { font-size: 0.75rem; }
 .tale-progress { margin-top: 0.25rem; }
 .tale-card-pct { font-size: 0.75rem; color: #8ab3b3; }
 .decode-badge { margin-top: 0.4rem; }
@@ -1515,10 +1515,10 @@ onUnmounted(() => {
 .compare-block { min-width: 0; }
 .compare-pre { margin: 0; padding: 0.5rem; border: 1px solid #222; background: #060606; color: #b7c6c6; white-space: pre-wrap; font-size: 0.85rem; max-height: 200px; overflow: auto; }
 .semantic-box { padding: 0.5rem; border: 1px solid #222; background: #060606; color: #b7c6c6; font-size: 0.85rem; }
-.sem-empty { color: #666; }
+.sem-empty { color: #8a8a8a; }
 .sem-hit-phrase { color: #00ff88; background: rgba(0, 255, 136, 0.15); }
 .sem-hit-char { color: #88ff88; }
-.sem-miss { color: #555; }
+.sem-miss { color: #8a8a8a; }
 .sem-stats { margin-top: 0.5rem; }
 .sem-stat-item { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 0.2rem; }
 

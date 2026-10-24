@@ -377,7 +377,7 @@ onUnmounted(() => {
 .broadcast-subline {
   margin-top: 0.55rem;
   margin-bottom: 1.1rem;
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   letter-spacing: 0.18em;
   color: rgba(255, 255, 255, 0.34);
 }
@@ -445,7 +445,7 @@ onUnmounted(() => {
 .lang-tag {
   display: block;
   font-size: 0.8rem;
-  color: #666;
+  color: #8a8a8a;
   margin-bottom: 0.8rem;
   font-family: var(--font-mono);
   display: flex;
@@ -455,8 +455,8 @@ onUnmounted(() => {
 }
 
 .lang-id {
-  color: #333;
-  font-size: 0.7rem;
+  color: #7a7a7a;
+  font-size: 0.75rem;
 }
 
 .text-body {
@@ -467,7 +467,7 @@ onUnmounted(() => {
 
 .broadcast-static {
   margin-top: 0.9rem;
-  font-size: 0.67rem;
+  font-size: 0.75rem;
   color: rgba(255, 255, 255, 0.38);
   letter-spacing: 0.15em;
   text-transform: uppercase;
@@ -552,7 +552,7 @@ onUnmounted(() => {
 
 .omega-status {
   font-size: 0.8rem;
-  color: #666;
+  color: #8a8a8a;
   margin-top: 0.5rem;
 }
 
@@ -622,7 +622,7 @@ onUnmounted(() => {
 }
 
 .reboot-sub {
-  color: #666;
+  color: #8a8a8a;
   font-size: 1rem;
   letter-spacing: 0.2em;
 }
@@ -644,7 +644,7 @@ onUnmounted(() => {
   }
 
   .broadcast-subline {
-    font-size: 0.58rem;
+    font-size: 0.75rem;
     letter-spacing: 0.12em;
     margin-bottom: 0.85rem;
   }
@@ -663,14 +663,14 @@ onUnmounted(() => {
 
   .lang-tag {
     margin-bottom: 0.2rem;
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     gap: 0.5rem;
     flex-wrap: wrap;
   }
 
   .broadcast-static {
     margin-top: 0.55rem;
-    font-size: 0.58rem;
+    font-size: 0.75rem;
     letter-spacing: 0.08em;
   }
 
@@ -712,7 +712,7 @@ onUnmounted(() => {
   }
 
   .omega-status {
-    font-size: 0.72rem;
+    font-size: 0.75rem;
   }
 
   .action-desc {

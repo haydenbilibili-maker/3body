@@ -327,11 +327,11 @@ onMounted(loadItems)
 }
 .foil-meta {
   display: flex; justify-content: space-between; align-items: center;
-  font-family: var(--font-tech); font-size: 0.65rem; color: var(--text-muted);
+  font-family: var(--font-tech); font-size: 0.75rem; color: var(--text-muted);
 }
 .action-btn {
   background: transparent; border: 1px solid var(--holo-blue);
-  color: var(--holo-blue); font-family: var(--font-tech); font-size: 0.65rem;
+  color: var(--holo-blue); font-family: var(--font-tech); font-size: 0.75rem;
   padding: 0.2rem 0.5rem; cursor: pointer;
   transition: all 0.2s;
 }
@@ -454,7 +454,7 @@ onMounted(loadItems)
   display: flex;
   justify-content: space-between;
   font-family: var(--font-tech);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
 }
 

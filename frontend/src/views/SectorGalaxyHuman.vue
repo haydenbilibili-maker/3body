@@ -216,7 +216,7 @@ const eraColor = (i: number) => {
 }
 
 .subtitle {
-  color: #666;
+  color: #8a8a8a;
   font-size: 0.75rem;
   margin-top: 0.5rem;
   letter-spacing: 0.15em;
@@ -232,7 +232,7 @@ const eraColor = (i: number) => {
 
 .meta-tag {
   font-family: var(--font-mono);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   padding: 2px 8px;
   border: 1px solid rgba(0, 255, 255, 0.3);
   color: rgba(0, 255, 255, 0.8);
@@ -261,7 +261,7 @@ const eraColor = (i: number) => {
 
 .viz-title {
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   letter-spacing: 0.2em;
   color: rgba(0, 255, 255, 0.6);
   margin-bottom: 1.5rem;
@@ -305,20 +305,20 @@ const eraColor = (i: number) => {
 
 .tree-label {
   fill: rgba(255, 255, 255, 0.5);
-  font-size: 10px;
+  font-size: 12px;
   font-family: var(--font-mono);
   text-anchor: middle;
 }
 
 .tree-label.small {
-  font-size: 8px;
+  font-size: 12px;
   text-anchor: start;
 }
 
 .viz-hint {
   margin-top: 1rem;
-  font-size: 0.65rem;
-  color: #555;
+  font-size: 0.75rem;
+  color: #8a8a8a;
   font-family: var(--font-mono);
 }
 
@@ -352,7 +352,7 @@ const eraColor = (i: number) => {
 .card-era {
   display: inline-block;
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   padding: 2px 8px;
   border: 1px solid;
   border-radius: 2px;
@@ -402,7 +402,7 @@ const eraColor = (i: number) => {
 }
 
 .meta-label {
-  color: #555;
+  color: #8a8a8a;
   font-weight: bold;
   min-width: 72px;
 }

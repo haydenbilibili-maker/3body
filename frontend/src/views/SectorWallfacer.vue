@@ -1335,7 +1335,7 @@ onMounted(() => {
 .wallbreaker-tag.danger { border-color: #f44336; }
 .wallbreaker-tag.danger:hover { background: rgba(244, 67, 54, 0.1); }
 
-.wb-label { display: block; font-size: 0.7rem; color: #888; letter-spacing: 1px; }
+.wb-label { display: block; font-size: 0.75rem; color: #888; letter-spacing: 1px; }
 .wb-name { display: block; font-family: var(--font-mono); font-size: 1.1rem; color: #ccc; font-weight: bold; }
 
 .confrontation-scene {
@@ -1408,7 +1408,7 @@ onMounted(() => {
 }
 .subtitle {
   font-family: var(--font-mono);
-  color: #666;
+  color: #8a8a8a;
   font-size: 0.9rem;
 }
 .card-body {
@@ -1590,7 +1590,7 @@ onMounted(() => {
   font-weight: bold;
   margin-bottom: 0.3rem;
 }
-.option-sub { font-size: 0.8rem; color: #666; }
+.option-sub { font-size: 0.8rem; color: #8a8a8a; }
 
 .sealed-view {
   flex: 1;
@@ -1687,7 +1687,7 @@ onMounted(() => {
   color: #ce93d8;
   background: transparent;
   padding: 0.2rem 0.5rem;
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   cursor: pointer;
 }
 
@@ -1721,7 +1721,7 @@ onMounted(() => {
   gap: 0.4rem;
   align-items: center;
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   margin-bottom: 0.2rem;
 }
 
@@ -1788,7 +1788,7 @@ onMounted(() => {
 .zv2-panel .row { display: grid; gap: 0.6rem; }
 .section-label {
   display: block;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   color: #6a8585;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -1864,7 +1864,7 @@ onMounted(() => {
 }
 .directive-card.rejected { border-left-color: #cc4444; }
 .directive-card-meta { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.35rem; }
-.log-time { font-family: var(--font-mono); font-size: 0.7rem; color: #6a8585; }
+.log-time { font-family: var(--font-mono); font-size: 0.75rem; color: #6a8585; }
 .log-delta { font-size: 0.75rem; color: #8ab0b0; margin-left: auto; }
 .directive-text { margin: 0; font-size: 0.9rem; color: #c8e0e0; line-height: 1.45; }
 .directive-reason { margin: 0.25rem 0 0; font-size: 0.8rem; }

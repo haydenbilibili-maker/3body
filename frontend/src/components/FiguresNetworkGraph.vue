@@ -383,7 +383,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 1rem;
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   color: rgba(0, 255, 255, 0.7);
 }
 
@@ -411,7 +411,7 @@ onUnmounted(() => {
 .legend-hint {
   margin-left: 0.5rem;
   color: rgba(255, 255, 255, 0.35);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
 }
 
 .graph-container {

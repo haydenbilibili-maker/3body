@@ -323,7 +323,7 @@ onUnmounted(() => {
 .u-textarea { flex: 1; }
 .u-notes { display: flex; flex-direction: column; gap: 0.8rem; }
 .u-note { background: #fdfbf7; padding: 0.8rem; border-radius: 4px; border: 1px solid #eee; }
-.u-note-time { display: block; font-size: 0.7rem; color: #aaa; margin-bottom: 0.3rem; }
+.u-note-time { display: block; font-size: 0.75rem; color: #aaa; margin-bottom: 0.3rem; }
 .u-note-text { margin: 0; font-size: 0.9rem; line-height: 1.5; }
 
 /* Return */

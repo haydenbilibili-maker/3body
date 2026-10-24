@@ -1233,7 +1233,7 @@ const axioms = [
 .mode-switch button {
   background: #111;
   border: 1px solid #333;
-  color: #666;
+  color: #8a8a8a;
   padding: 0.2rem 0.5rem;
   font-family: var(--font-mono);
   cursor: pointer;
@@ -1258,7 +1258,7 @@ const axioms = [
   flex-direction: column;
 }
 
-.label { font-size: 0.6rem; color: #666; font-family: var(--font-mono); }
+.label { font-size: 0.75rem; color: #8a8a8a; font-family: var(--font-mono); }
 .value { font-size: 1.2rem; font-family: var(--font-mono); color: #fff; }
 .text-green { color: #00ff41; }
 .text-red { color: #ff3333; }
@@ -1328,7 +1328,7 @@ const axioms = [
 
 .tt-log {
   margin-top: 0.5rem;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   color: #ffcc00;
   border-top: 1px dashed #333;
   padding-top: 0.3rem;
@@ -1351,8 +1351,8 @@ const axioms = [
 .ticker-label {
   flex-shrink: 0;
   font-family: var(--font-mono);
-  font-size: 0.7rem;
-  color: #666;
+  font-size: 0.75rem;
+  color: #8a8a8a;
   letter-spacing: 0.1em;
 }
 
@@ -1462,7 +1462,7 @@ const axioms = [
 .civ-a { border-color: #00ffff; color: #00ffff; }
 .civ-b { border-color: #ff3333; color: #ff3333; }
 
-.arrow { font-size: 2rem; color: #666; }
+.arrow { font-size: 2rem; color: #8a8a8a; }
 
 .conclusion {
   margin-top: 2rem;
@@ -1553,7 +1553,7 @@ const axioms = [
 .monitor-label {
   font-family: var(--font-mono);
   font-size: 0.8rem;
-  color: #666;
+  color: #8a8a8a;
   text-align: right;
 }
 
@@ -1573,7 +1573,7 @@ const axioms = [
   justify-content: space-between;
   border-bottom: 1px solid #222;
   padding-bottom: 0.5rem;
-  color: #666;
+  color: #8a8a8a;
   font-size: 0.8rem;
 }
 
@@ -1669,10 +1669,10 @@ const axioms = [
 }
 
 .nuc-icon { font-size: 2rem; }
-.btn-label { font-size: 0.7rem; font-weight: bold; }
+.btn-label { font-size: 0.75rem; font-weight: bold; }
 
 .console-hint {
-  color: #666;
+  color: #8a8a8a;
   text-align: center;
   font-size: 0.8rem;
 }
@@ -1736,7 +1736,7 @@ const axioms = [
 }
 .player .avatar { background: #003333; border-color: #00ffff; }
 .opponent .avatar { background: #330000; border-color: #ff3333; }
-.unknown .avatar { background: #222; border-color: #666; color: #666; }
+.unknown .avatar { background: #222; border-color: #666; color: #8a8a8a; }
 
 .info h3 { margin: 0 0 0.5rem 0; font-size: 1rem; color: #ccc; }
 .info p { margin: 0; font-size: 0.8rem; color: #888; }
@@ -1760,7 +1760,7 @@ const axioms = [
 .distance-label {
   margin-top: 0.5rem;
   font-size: 0.8rem;
-  color: #666;
+  color: #8a8a8a;
 }
 
 .action-icon {
@@ -1812,12 +1812,12 @@ const axioms = [
 
 .icon { font-size: 1.5rem; margin-bottom: 0.5rem; }
 .label { font-weight: bold; margin-bottom: 0.2rem; }
-.desc { font-size: 0.7rem; color: #666; }
+.desc { font-size: 0.75rem; color: #8a8a8a; }
 
 .axiom-ref {
   text-align: center;
   font-size: 0.8rem;
-  color: #444;
+  color: #7a7a7a;
   margin-top: 1rem;
 }
 
@@ -1844,8 +1844,8 @@ const axioms = [
 .summary-card { border: 1px solid #1e2e2e; padding: 0.6rem; background: rgba(0, 10, 15, 0.3); border-radius: 4px; }
 .summary-pre { margin: 0; font-size: 0.8rem; white-space: pre-wrap; color: #b8d0d0; max-height: 120px; overflow: auto; }
 .worldline-map { position: relative; height: 180px; background: #080808; border: 1px solid #222; border-radius: 4px; }
-.agent-dot { position: absolute; transform: translate(-50%, -50%); padding: 2px 6px; font-size: 0.7rem; background: rgba(0, 200, 100, 0.3); border: 1px solid #00cc88; border-radius: 2px; color: #00ff88; }
-.agent-dot.dead { background: rgba(80, 80, 80, 0.5); border-color: #444; color: #666; }
+.agent-dot { position: absolute; transform: translate(-50%, -50%); padding: 2px 6px; font-size: 0.75rem; background: rgba(0, 200, 100, 0.3); border: 1px solid #00cc88; border-radius: 2px; color: #00ff88; }
+.agent-dot.dead { background: rgba(80, 80, 80, 0.5); border-color: #444; color: #8a8a8a; }
 .worldline-panel .logs { border: 1px solid #1e2e2e; padding: 0.6rem; background: rgba(0, 10, 15, 0.2); border-radius: 4px; max-height: 200px; overflow-y: auto; }
 .log-item { margin-bottom: 0.5rem; font-size: 0.85rem; }
 .log-item p { margin: 0.2rem 0; }

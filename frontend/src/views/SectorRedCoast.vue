@@ -781,7 +781,7 @@ onUnmounted(() => {
 
 .big-red-button.disabled {
   background: #333;
-  color: #555;
+  color: #8a8a8a;
   box-shadow: none;
   cursor: not-allowed;
 }
