@@ -1,0 +1,74 @@
+# 持续集成：PR 与非 main 分支推送时运行前端构建 + 后端测试
+# （main 分支的部署由 deploy-pages.yml 负责，构建步骤与此一致）
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches-ignore: [main, 'ci/**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    name: Frontend build (vue-tsc + vite)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      # 类型检查单独一步：把 vue-tsc 的错误写成 Actions 注释（文件 + 行号），无需翻日志
+      - name: Type-check (vue-tsc)
+        run: |
+          set +e
+          npx vue-tsc -b > tsc.log 2>&1
+          status=$?
+          cat tsc.log
+          errors=$(grep -cE '^src/.+\([0-9]+,[0-9]+\): error' tsc.log)
+          grep -E '^src/.+\([0-9]+,[0-9]+\): error' tsc.log | head -n 50 \
+            | sed -E 's#^(src/[^(]+)\(([0-9]+),([0-9]+)\): error (TS[0-9]+): (.*)$#::error file=frontend/\1,line=\2,col=\3,title=\4::\5#'
+          echo "::notice title=vue-tsc::exit=${status}, errors=${errors}"
+          exit $status
+
+      - name: Bundle
+        run: npx vite build --base=/3body/
+
+  backend:
+    name: Backend tests (pytest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: |
+            backend/requirements-core.txt
+            requirements-test.txt
+
+      - name: Install (core + test, no RAG/torch)
+        run: pip install -r requirements-test.txt
+
+      - name: Pytest
+        run: |
+          set -o pipefail
+          pytest -q -rs | tee pytest.log
+          echo "::notice title=pytest::$(tail -n 1 pytest.log)"

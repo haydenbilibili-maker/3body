@@ -1,75 +1,41 @@
 """
-RAG 知识注入：扫描 data 目录下的 .txt，切片后写入 ChromaDB.
-可离线执行：python -m backend.rag.ingest（需在项目根目录 3body 下运行）
+RAG 知识注入：扫描 data/ 目录下的 UTF-8 .txt，切片后写入 ChromaDB。
+
+    python -m backend.rag.ingest            # 未入库时入库
+    python -m backend.rag.ingest --force    # 删除旧向量库并重建
+
+与智子对话共用同一套切片参数和向量库目录（3BODY_CHROMA_PERSIST_DIR，默认 backend/chroma_db）。
+首次运行会下载中文 embedding 模型（shibing624/text2vec-base-chinese），需要 RAG 依赖：
+    pip install -r backend/requirements-rag.txt
 """
-import os
-from pathlib import Path
+import argparse
+import logging
+import sys
 
-from langchain_community.document_loaders import TextLoader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain_community.vectorstores import Chroma
-
-# 路径：backend/rag/ingest.py -> 项目根 = rag 的 parent.parent
-RAG_DIR = Path(__file__).resolve().parent
-PROJECT_ROOT = RAG_DIR.parent.parent
-DATA_DIR = PROJECT_ROOT / "data"
-CHROMA_DIR = RAG_DIR / "db"
-
-CHUNK_SIZE = 800
-CHUNK_OVERLAP = 200
-EMBEDDING_MODEL = "shibing624/text2vec-base-chinese"
-COLLECTION_NAME = "three_body"
+from backend.services.rag_service import find_corpus_files, get_sophon_brain, rag_dependencies_installed
 
 
-def main() -> None:
-    if not DATA_DIR.is_dir():
-        print(f"数据目录不存在: {DATA_DIR}，请先创建并放入 .txt 文件")
-        return
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="三体原著入库 ChromaDB")
+    parser.add_argument("--force", action="store_true", help="删除已有向量库并重新入库")
+    args = parser.parse_args(argv)
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
 
-    txt_files = sorted(DATA_DIR.glob("**/*.txt"))
-    if not txt_files:
-        print(f"在 {DATA_DIR} 下未找到任何 .txt 文件")
-        return
+    if not rag_dependencies_installed():
+        print("RAG 依赖未安装：pip install -r backend/requirements-rag.txt")
+        return 1
 
-    text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=CHUNK_SIZE,
-        chunk_overlap=CHUNK_OVERLAP,
-        length_function=len,
-        separators=["\n\n", "\n", "。", "！", "？", "；", " ", ""],
-    )
-    embeddings = HuggingFaceEmbeddings(
-        model_name=EMBEDDING_MODEL,
-        model_kwargs={"device": "cpu"},
-    )
-
-    all_docs = []
-    for fp in txt_files:
-        name = fp.stem
-        print(f"正在加载: {fp.name} ...")
-        loader = TextLoader(str(fp), encoding="utf-8", autodetect_encoding=True)
-        docs = loader.load()
-        for d in docs:
-            d.metadata["source_file"] = fp.name
-            d.metadata["source_title"] = name
-        splits = text_splitter.split_documents(docs)
-        all_docs.extend(splits)
-        print(f"  已处理《{name}》，本文件生成 {len(splits)} 个向量切片")
-
-    if not all_docs:
-        print("没有可入库的文档")
-        return
-
-    CHROMA_DIR.mkdir(parents=True, exist_ok=True)
-    print(f"正在写入向量库: {CHROMA_DIR} (共 {len(all_docs)} 个切片) ...")
-    Chroma.from_documents(
-        documents=all_docs,
-        embedding=embeddings,
-        persist_directory=str(CHROMA_DIR),
-        collection_name=COLLECTION_NAME,
-    )
-    print(f"完成。已处理 {len(txt_files)} 个文件，共生成 {len(all_docs)} 个向量切片。")
+    brain = get_sophon_brain()
+    files = find_corpus_files(brain.data_dir)
+    print(f"数据目录: {brain.data_dir}（{len(files)} 个文本文件）")
+    print(f"向量库目录: {brain.chroma_dir}")
+    if brain.is_ingested() and not args.force:
+        print("已入库，跳过。如需重建请加 --force")
+        return 0
+    count = brain.ingest(force=args.force)
+    print(f"完成，共写入 {count} 个向量切片。")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

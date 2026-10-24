@@ -1,0 +1,6 @@
+# 可选：三体原著 RAG（智子对话检索）与智子审计引擎。
+# sentence-transformers 会拉取 torch（约 1 GB）；未安装时智子对话自动降级为无检索模式。
+langchain-community>=0.0.20
+langchain-text-splitters>=0.0.1
+chromadb>=0.4.22
+sentence-transformers>=2.2.0

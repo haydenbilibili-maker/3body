@@ -1,7 +1,8 @@
 /**
  * 人物志 AI 对话：调用 POST /api/chat/figure，流式返回
  */
-import { apiUrl } from '@/constants'
+import { API, apiUrl } from '@/constants'
+import { postSse, StreamHttpError } from '@/utils/sse'
 
 export interface FigureChatMessage {
   role: 'user' | 'assistant'
@@ -14,6 +15,7 @@ export interface FigureChatPayload {
   figure_description?: string
   message: string
   history?: FigureChatMessage[]
+  /** 以下三项仅在后端开启 3BODY_LLM_ALLOW_CLIENT_OVERRIDE 时生效 */
   api_key?: string
   base_url?: string
   model?: string
@@ -28,46 +30,19 @@ export async function streamFigureChat(
   onChunk: (chunk: string) => void,
   onError?: (err: string) => void
 ): Promise<void> {
-  const url = apiUrl('/api/chat/figure')
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  })
-  if (!res.ok) {
-    const msg = res.status === 502 || res.status === 503
-      ? '无法连接 LLM，请确认 Ollama 已启动或已配置正确的 API 地址与 Key。'
-      : `请求失败: ${res.status} ${res.statusText}`
-    onError?.(msg)
-    return
-  }
-  const reader = res.body?.getReader()
-  if (!reader) {
-    onError?.('无法读取响应流')
-    return
-  }
-  const decoder = new TextDecoder()
-  let buffer = ''
   try {
-    while (true) {
-      const { done, value } = await reader.read()
-      if (done) break
-      buffer += decoder.decode(value, { stream: true })
-      const events = buffer.split('\n\n')
-      buffer = events.pop() ?? ''
-      for (const event of events) {
-        if (event.startsWith('data: ')) {
-          const data = event.slice(6)
-          if (data.trim() === '[DONE]') continue
-          onChunk(data)
-        }
-      }
-    }
-    if (buffer.startsWith('data: ')) {
-      const data = buffer.slice(6)
-      if (data.trim() !== '[DONE]') onChunk(data)
-    }
+    await postSse(apiUrl(API.CHAT_FIGURE), payload, onChunk)
   } catch (e) {
-    onError?.(e instanceof Error ? e.message : String(e))
+    if (e instanceof StreamHttpError) {
+      onError?.(
+        e.status === 502 || e.status === 503
+          ? '无法连接 LLM，请确认 Ollama 已启动或后端已配置正确的 API 地址与 Key。'
+          : e.status === 422
+            ? '请求内容不合法（消息为空或过长）。'
+            : `请求失败：${e.message}`
+      )
+    } else {
+      onError?.('无法连接后端（智子信道中断），请确认后端已启动。')
+    }
   }
 }

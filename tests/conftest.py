@@ -1,49 +1,51 @@
 """
-零点计划 · 商业化支付与权限系统 — 测试夹具.
-提供 FastAPI TestClient、DB 覆盖、Stripe/Auth  mock 钩子.
+测试夹具：隔离的临时 SQLite、不可达的 LLM 地址、无 RAG 依赖。
+
+环境变量必须在导入 backend 之前设置（settings 在导入时读取）。
 """
 import os
+import shutil
 import sys
+import tempfile
 
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-# 确保 backend 在 path 中（从 repo 根运行 pytest）
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# 测试环境：不依赖真实 Stripe/LLM
-os.environ.setdefault("SILICONFLOW_API_KEY", "test-key-no-op")
+_TMP = tempfile.mkdtemp(prefix="3body-test-")
+os.environ["3BODY_DATABASE_URL"] = f"sqlite+aiosqlite:///{_TMP}/test.db"
+os.environ["3BODY_CHROMA_PERSIST_DIR"] = os.path.join(_TMP, "chroma")
+# 端口 9 (discard) 在 CI 上没有监听：连接会立即被拒绝，用于验证「LLM 不可达」分支
+os.environ["3BODY_LLM_BASE_URL"] = "http://127.0.0.1:9"
+os.environ["3BODY_LLM_TIMEOUT"] = "3"
+os.environ["3BODY_LLM_ALLOW_CLIENT_OVERRIDE"] = "false"
+os.environ["3BODY_SILICONFLOW_API_KEY"] = ""
+
+
+def pytest_sessionfinish(session, exitstatus):
+    shutil.rmtree(_TMP, ignore_errors=True)
 
 
 @pytest.fixture
 def app():
-    """FastAPI 应用实例（与 main 一致）."""
     from backend.main import app as _app
+
     return _app
 
 
 @pytest.fixture
 async def client(app):
-    """异步 HTTP 客户端，用于调用 API."""
+    """
+    ASGITransport 不会触发 lifespan，这里手动建表；
+    每个测试结束后释放连接池，避免 aiosqlite 连接跨事件循环复用。
+    """
+    from backend.cache import _CACHE
+    from backend.database import engine, init_db
+
+    _CACHE.clear()
+    await init_db()
     transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+    async with AsyncClient(transport=transport, base_url="http://test", timeout=30) as ac:
         yield ac
-
-
-@pytest.fixture
-def stripe_webhook_secret():
-    """Stripe Webhook 签名密钥（测试用固定值，真实环境从 env 读取）."""
-    return os.environ.get("STRIPE_WEBHOOK_SECRET", "whsec_test_skeleton")
-
-
-@pytest.fixture
-def mock_stripe_signature(stripe_webhook_secret):
-    """生成合法 Stripe-Signature 的占位；实际实现需 stripe.Webhook.build_signature."""
-    def _build(payload: bytes, secret: str = None) -> str:
-        secret = secret or stripe_webhook_secret
-        try:
-            import stripe
-            return stripe.WebhookSignature.build_header(payload, secret, "v1")
-        except Exception:
-            return "v1,0,t=0"
-    return _build
+    await engine.dispose()

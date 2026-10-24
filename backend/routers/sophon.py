@@ -5,13 +5,14 @@ POST /api/sophon/audit：提交文明碎片，返回 PASS/WARN/REJECT + 理由�
 from pydantic import BaseModel, Field
 
 from fastapi import APIRouter, HTTPException
+from starlette.concurrency import run_in_threadpool
 
 router = APIRouter()
 
 
 class AuditRequest(BaseModel):
     """文明碎片审计请求."""
-    fragment: str = Field(..., min_length=1, description="待审计的 UGC 文本（文明碎片、设定等）")
+    fragment: str = Field(..., min_length=1, max_length=4000, description="待审计的 UGC 文本（文明碎片、设定等）")
 
 
 class AuditDetail(BaseModel):
@@ -33,10 +34,17 @@ async def audit_fragment_api(body: AuditRequest):
     反馈风格：冷酷、客观，使用 [警告]/[拒绝]/因果律不匹配/技术越级（见 Project-Zero-Axioms）。
     """
     try:
+        import chromadb  # noqa: F401 — 审计引擎需要 RAG 依赖（嵌入走 SiliconFlow API，不需要 torch）
+        import langchain_community  # noqa: F401
+
         from backend.sophon_engine import audit_fragment as do_audit
-        result = do_audit(body.fragment.strip())
+
+        # 审计引擎为同步 IO（嵌入 + 两次大模型调用，最长约 90 秒），放进线程池避免阻塞整个服务
+        result = await run_in_threadpool(do_audit, body.fragment.strip())
+    except ImportError:
+        raise HTTPException(status_code=503, detail="智子审计引擎依赖未安装（pip install -r backend/requirements-rag.txt）。")
     except ValueError as e:
-        if "API key" in str(e).lower() or "siliconflow" in str(e).lower():
+        if "api key" in str(e).lower() or "siliconflow" in str(e).lower():
             raise HTTPException(status_code=503, detail="智子审计引擎未配置（SiliconFlow API Key 缺失）。")
         raise HTTPException(status_code=400, detail=str(e))
     except FileNotFoundError as e:

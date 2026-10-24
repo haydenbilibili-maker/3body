@@ -8,8 +8,22 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.gzip import GZipMiddleware
 
-from backend.routers import chat, chronicle, gallery, universe, sophon, figures, mini_universe, mental_seal, red_coast, dark_forest
+from backend.config import settings
 from backend.database import init_db
+from backend.routers import (
+    chat,
+    chronicle,
+    dark_forest,
+    figures,
+    gallery,
+    llm_gateway,
+    mental_seal,
+    mini_universe,
+    red_coast,
+    sophon,
+    universe,
+)
+from backend.services.rag_service import rag_status
 
 
 @asynccontextmanager
@@ -27,10 +41,12 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# 本项目不使用 Cookie 鉴权，因此不允许携带凭证；"*" 与 allow_credentials=True 同时使用会被浏览器拒绝。
+# 公网部署时用 3BODY_CORS_ORIGINS 限定前端域名（逗号分隔）。
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=settings.cors_origin_list,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -47,6 +63,7 @@ app.include_router(mini_universe.router, prefix="/api/sector-u", tags=["Mini Uni
 app.include_router(mental_seal.router, prefix="/api/sector-f", tags=["Mental Seal"])
 app.include_router(red_coast.router, prefix="/api/sector-r", tags=["Red Coast"])
 app.include_router(dark_forest.router, prefix="/api/sector-e", tags=["Dark Forest"])
+app.include_router(llm_gateway.router, prefix="/api/llm", tags=["LLM Gateway"])
 
 
 @app.get("/")
@@ -56,4 +73,14 @@ async def root():
 
 @app.get("/health")
 async def health():
-    return {"status": "healthy"}
+    """健康检查；附带 LLM 与 RAG 配置状态，便于排查「智子没有回答」."""
+    return {
+        "status": "healthy",
+        "llm": {
+            "base_url": settings.llm_base_url,
+            "model": settings.llm_model,
+            "api_key_configured": bool(settings.llm_api_key),
+            "client_override_allowed": settings.llm_allow_client_override,
+        },
+        "rag": rag_status(),
+    }

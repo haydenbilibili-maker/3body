@@ -106,22 +106,20 @@ export interface DarkForestTickResult {
   epitaphs: CosmicEpitaph[]
 }
 
+/**
+ * 黑暗森林回合演化。基于规则的多智能体模拟（含随机扰动），不需要大模型，直接在浏览器内计算
+ * （后端网关不提供 dark-forest.tick；保留 async 签名以便将来接入服务端世界线）。
+ */
 export async function tickDarkForestWorld(
   agents: CivilizationAgent[],
   currentEpoch: number,
   epochStep = 100,
 ): Promise<DarkForestTickResult> {
-  return invokeLlmGateway<DarkForestTickResult>({
-    task: 'dark-forest.tick',
-    payload: { agents, currentEpoch, epochStep },
-    mock: () => {
-      const nextEpoch = currentEpoch + epochStep
-      const ret = tickUniverse(agents, nextEpoch)
-      return {
-        nextEpoch,
-        agents: ret.agents,
-        epitaphs: ret.epitaphs,
-      }
-    },
-  })
+  const nextEpoch = currentEpoch + epochStep
+  const ret = tickUniverse(agents, nextEpoch)
+  return {
+    nextEpoch,
+    agents: ret.agents,
+    epitaphs: ret.epitaphs,
+  }
 }

@@ -1,10 +1,11 @@
 {
   "name": "三体宇宙 · 智子审计",
-  "desc": "三体宇宙智子逻辑审计终端与档案馆",
+  "desc": "三体宇宙智子逻辑审计终端与档案馆（Streamlit）",
   "tags": [
-    "Python"
+    "Python",
+    "Streamlit"
   ],
-  "startCmd": "python app.py",
-  "port": "8000",
+  "startCmd": "streamlit run app.py",
+  "port": "8501",
   "status": "开发中"
 }

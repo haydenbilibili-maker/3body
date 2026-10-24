@@ -17,10 +17,13 @@ build/
 .env.local
 backend/chroma_db/
 backend/chroma_data/
+backend/rag/db/
+chroma_project_zero/
 *.sqlite3
 
 # Node / Frontend
 node_modules/
+*.tsbuildinfo
 frontend/dist/
 frontend/node_modules/
 npm-debug.log*
@@ -41,3 +44,7 @@ htmlcov/
 # Optional: keep data/ but ignore large binaries if any
 # data/*.pdf
 # data/*.epub
+
+# vue-tsc -b 产物（已改为输出到 node_modules/.tmp）
+frontend/vite.config.js
+frontend/vite.config.d.ts

@@ -56,8 +56,9 @@ async def get_current_session(db: AsyncSession = Depends(get_db)):
         .where(MentalSealSessionORM.user_id == CURRENT_USER)
         .where(MentalSealSessionORM.status == "active")
         .order_by(MentalSealSessionORM.id.desc())
+        .limit(1)
     )
-    row = result.scalar_one_or_none()
+    row = result.scalars().first()
     if not row:
         # Return empty/null or 404? 
         # Better: create a dummy empty session response or 404

@@ -661,7 +661,8 @@ onMounted(() => {
 
           <NCollapse class="dialogue-llm-config" :default-expanded-names="[]">
             <NCollapseItem title="⚙️ API / Ollama 连接设置" name="llm">
-              <p class="dialogue-llm-hint">不填则使用本地 Ollama（http://localhost:11434）；填写 Key 或自定义地址则走云端/自定义端点。</p>
+              <p class="dialogue-llm-hint">默认使用后端配置的模型（3BODY_LLM_*，未配置时为本地 Ollama）。</p>
+              <p class="dialogue-llm-hint">在此填写的 Key / 地址仅在后端设置 3BODY_LLM_ALLOW_CLIENT_OVERRIDE=true 时生效（仅建议本机使用）。</p>
               <NCheckbox :checked="llmConfig.useLocalOllama" @update:checked="(v: boolean) => llmConfig.setUseLocalOllama(v)">
                 使用本地 Ollama
               </NCheckbox>

@@ -1,0 +1,94 @@
+# 全站视觉快照：启动后端（含种子数据）与前端预览，用 Playwright 逐页截图（桌面 + 手机），
+# 并记录控制台报错、失败请求、横向溢出与加载耗时。
+#
+# 结果以单个提交强制推送到 ci/screenshots/<分支名>（孤立分支，不进入任何代码分支的历史），
+# 便于在 PR 评审或改版前后对比时直接查看：
+#   git fetch origin ci/screenshots/<分支名> && git worktree add /tmp/shots FETCH_HEAD
+name: Visual snapshots
+
+on:
+  push:
+    branches-ignore: [main, 'ci/**']
+    paths:
+      - 'frontend/**'
+      - 'backend/**'
+      - 'scripts/**'
+      - '.github/scripts/visual-snapshots.mjs'
+      - '.github/workflows/visual-snapshots.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: snapshots-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  snapshots:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: backend/requirements-core.txt
+
+      - name: Start backend with seed data
+        run: |
+          pip install -r backend/requirements-core.txt
+          python scripts/seed_db.py
+          nohup python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 > backend.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:8000/health && break; sleep 1; done
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Build and preview frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npx vite build
+          nohup npx vite preview --host 127.0.0.1 --port 4173 --strictPort > ../preview.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:4173/ > /dev/null && break; sleep 1; done
+          {
+            echo "### Bundle（最大的 10 个文件）"
+            echo '```'
+            ls -S -l dist/assets | head -n 11 | awk '{printf "%8.1f KB  %s\n", $5/1024, $9}'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          ls -S -l dist/assets | awk 'NR>1 && NR<=6 {printf "%s %.0fKB; ", $9, $5/1024}' | sed 's/^/::notice title=bundle::/'
+
+      - name: Install Playwright
+        run: |
+          mkdir -p /tmp/pw && cd /tmp/pw
+          npm init -y > /dev/null
+          npm install --no-audit --no-fund playwright@1.48.2
+          npx playwright install --with-deps chromium
+
+      - name: Capture snapshots
+        run: |
+          cp .github/scripts/visual-snapshots.mjs /tmp/pw/
+          cd /tmp/pw
+          BASE_URL=http://127.0.0.1:4173/ OUT_DIR="$GITHUB_WORKSPACE/snapshots" node visual-snapshots.mjs
+          cp "$GITHUB_WORKSPACE/backend.log" "$GITHUB_WORKSPACE/preview.log" "$GITHUB_WORKSPACE/snapshots/" || true
+
+      - name: Publish to ci/screenshots branch
+        env:
+          SOURCE_REF: ${{ github.ref_name }}
+        run: |
+          target="ci/screenshots/$(echo "$SOURCE_REF" | tr '/' '-')"
+          cd snapshots
+          git init -q -b snapshots
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "snapshots for ${GITHUB_SHA::7} (${SOURCE_REF})"
+          git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" "snapshots:refs/heads/$target"
+          echo "::notice title=snapshots::已推送到 $target（${GITHUB_SHA::7}）"
