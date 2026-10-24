@@ -208,7 +208,20 @@ const STATES = [
     viewport: 'desktop',
     slug: 'sector-c',
     act: async (page) => {
-      await page.hover('.nav-group >> nth=1')
+      const group = page.locator('.nav-group').nth(1)
+      try {
+        await group.hover({ timeout: 5000 })
+      } catch (e) {
+        // 悬停失败通常是有元素盖在导航上（用户同样点不到）：记下盖住它的元素，再用事件兜底截图
+        const cover = await group.evaluate((el) => {
+          const r = el.getBoundingClientRect()
+          const top = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2)
+          const d = (n) => (n ? n.tagName.toLowerCase() + [...n.classList].slice(0, 3).map((c) => '.' + c).join('') : 'null')
+          return { rect: [r.left, r.top, r.width, r.height].map(Math.round), top: d(top), contained: el.contains(top) }
+        })
+        console.log(`::warning title=nav-hover::${JSON.stringify(cover)} ${String(e.message).split('\n').slice(0, 6).join(' | ')}`.slice(0, 900))
+        await group.dispatchEvent('mouseenter')
+      }
       await page.waitForTimeout(600)
     },
   },
