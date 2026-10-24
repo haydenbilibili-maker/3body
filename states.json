@@ -1,0 +1,30 @@
+[
+  {
+    "name": "desktop-nav-dropdown",
+    "viewport": "desktop",
+    "slug": "sector-c",
+    "error": null,
+    "pageErrors": []
+  },
+  {
+    "name": "tablet-1024-nav-drawer",
+    "viewport": "desktop",
+    "slug": "sector-b",
+    "error": null,
+    "pageErrors": []
+  },
+  {
+    "name": "mobile-nav-drawer",
+    "viewport": "mobile",
+    "slug": "sector-c",
+    "error": null,
+    "pageErrors": []
+  },
+  {
+    "name": "mobile-nav-drawer-scrolled",
+    "viewport": "mobile",
+    "slug": "sector-c",
+    "error": null,
+    "pageErrors": []
+  }
+]
