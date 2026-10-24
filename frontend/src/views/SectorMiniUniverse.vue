@@ -316,7 +316,7 @@ onUnmounted(() => {
   margin-bottom: 0.8rem;
 }
 .eco-controls label { width: 140px; font-size: 0.85rem; color: #6d4c41; }
-.hint { font-size: 0.75rem; color: #8d6e63; font-style: italic; margin-top: 1rem; }
+.hint { font-size: 0.875rem; line-height: 1.6; color: #a1887f; font-style: italic; margin-top: 1rem; }
 
 /* Capsule */
 .u-input-row { display: flex; gap: 1rem; margin-bottom: 1.5rem; }

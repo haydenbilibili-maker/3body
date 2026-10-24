@@ -407,7 +407,7 @@ onMounted(() => {
 
 .journey-desc {
   margin: 0 0 0.75rem;
-  font-size: 0.8rem;
+  font-size: 0.875rem;
   color: #9ab;
   line-height: 1.45;
 }

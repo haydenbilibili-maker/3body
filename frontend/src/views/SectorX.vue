@@ -717,7 +717,7 @@ onUnmounted(() => {
 
   .action-desc {
     max-width: 100%;
-    font-size: 0.78rem;
+    font-size: 0.875rem;
     line-height: 1.55;
     margin-bottom: 1.1rem;
     padding: 0 0.1rem;
