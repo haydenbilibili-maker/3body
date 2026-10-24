@@ -81,8 +81,12 @@ const navGroups = [
 const activeGroupIndex = ref<number | null>(null)
 const mobileMenuOpen = ref(false)
 
+/**
+ * 精确匹配路径（允许子路径 /sector-x/...）。
+ * 不能用 startsWith：/sector-tomb 会命中 /sector-t（三体摆），导致两个分组同时高亮。
+ */
 function isActive(path: string) {
-  return route.path.startsWith(path)
+  return route.path === path || route.path.startsWith(`${path}/`)
 }
 
 function isGroupActive(groupItems: { path: string }[]) {

@@ -126,9 +126,14 @@ function toggleLang() {
 }
 
 // --- State Management ---
-const systemTime = ref(new Date().toISOString())
+/** 控制台时钟：本地时间 YYYY-MM-DD HH:MM:SS（此前直接显示 ISO 字符串 2026-10-22T01:54:42.290Z） */
+function formatConsoleTime(d: Date): string {
+  const p = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`
+}
+const systemTime = ref(formatConsoleTime(new Date()))
 const timeInterval = setInterval(() => {
-  systemTime.value = new Date().toISOString()
+  systemTime.value = formatConsoleTime(new Date())
 }, 1000)
 
 interface LogEntry {
@@ -840,4 +845,14 @@ onUnmounted(() => {
   box-shadow: 0 0 5px #0f0;
 }
 
+
+/* 小屏：顶栏换行，状态与时钟不再被挤成逐字竖排 */
+@media (max-width: 768px) {
+  .top-bar { flex-wrap: wrap; gap: 0.5rem; }
+  .sys-controls { flex-wrap: wrap; gap: 0.5rem; }
+  .sys-info { flex-wrap: wrap; gap: 0.25rem 0.75rem; }
+  .sys-info span { white-space: nowrap; }
+  /* 三栏（300px / 自适应 / 300px）在手机上改为单栏堆叠，中间日志栏不再被挤成一条 */
+  .console-grid { grid-template-columns: 1fr; }
+}
 </style>

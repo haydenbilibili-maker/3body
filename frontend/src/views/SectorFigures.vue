@@ -1373,6 +1373,15 @@ onMounted(() => {
 .dialogue-llm-item :deep(.n-form-item-label) { font-size: 0.8rem; }
 
 @media (max-width: 800px) {
+  /* 页头纵向排列：标题 → 档案/星图切换 → 搜索与筛选（切换按钮不再绝对定位压在标题上） */
+  .header { flex-direction: column; align-items: stretch; gap: 1rem; }
+  .header-left { flex-shrink: 1; min-width: 0; }
+  .title { font-size: clamp(1.25rem, 6vw, 2rem); letter-spacing: 1px; overflow-wrap: anywhere; }
+  .sub-module-tabs { position: static; transform: none; align-self: flex-start; }
+  .sub-tab { white-space: nowrap; }
+  .header-right { align-items: stretch; }
+  .search-box { width: 100%; }
+  .filters { flex-wrap: wrap; justify-content: flex-start; }
   .dossier-layout { grid-template-columns: 1fr; }
   .col-left { border-right: none; border-bottom: 1px solid #333; padding-right: 0; padding-bottom: 2rem; margin-bottom: 2rem; }
   .portrait-wrapper { max-width: 300px; margin: 0 auto 1.5rem; }

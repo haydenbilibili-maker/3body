@@ -299,8 +299,10 @@ onUnmounted(() => {
   font-family: 'Rajdhani', 'Segoe UI', sans-serif;
   padding: 2rem;
   display: flex;
-  justify-content: center;
-  align-items: flex-start;
+  /* 布局层把扇区根节点强制为纵向 flex：这里用 align-items 做水平居中。
+     原来的 justify-content: center 在纵向上居中，内容高于视口时顶部被裁掉且无法滚动到。 */
+  justify-content: flex-start;
+  align-items: center;
 }
 
 .pdc-container {

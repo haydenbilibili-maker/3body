@@ -538,10 +538,11 @@ onUnmounted(() => {
             </div>
             <button 
               class="detonate-btn" 
-              @mousedown="detonate"
+              @pointerdown="detonate"
               :disabled="!gameState.playing || gameState.status !== 'FLYING'"
             >
-              DETONATE (引爆)
+              <span class="detonate-zh">引爆</span>
+              <span class="detonate-en">DETONATE</span>
             </button>
             <button class="start-btn" @click="startGame" v-if="!gameState.playing">
               {{ gameState.status === 'READY' ? 'LAUNCH' : 'RETRY' }}
@@ -967,6 +968,17 @@ onUnmounted(() => {
   margin-top: 0.25rem;
 }
 
+.detonate-zh {
+  display: block;
+  font-size: 1.4rem;
+  letter-spacing: 0.2em;
+}
+.detonate-en {
+  display: block;
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  opacity: 0.8;
+}
 .detonate-btn {
   width: 120px;
   height: 120px;
