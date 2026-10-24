@@ -194,6 +194,8 @@ function toggleMobileMenu() {
     </div>
 
     <!-- 小屏抽屉菜单 -->
+    <!-- 抽屉挂到 body：导航条有 backdrop-filter，会成为 fixed 子元素的包含块，抽屉被压成导航条那么高 -->
+    <Teleport to="body">
     <transition name="drawer">
       <div v-show="mobileMenuOpen" class="nav-drawer-backdrop" @click="mobileMenuOpen = false">
         <aside class="nav-drawer" @click.stop>
@@ -227,6 +229,7 @@ function toggleMobileMenu() {
         </aside>
       </div>
     </transition>
+    </Teleport>
 
     <div class="nav-right">
       <div class="identity-badge" @click="userStore.login('bug')">
@@ -743,8 +746,7 @@ function toggleMobileMenu() {
 /* 导航文字永不折行：宽度不够时横向滚动，而不是把「首页」挤成两行 */
 .single-label, .single-code, .group-label, .group-code { white-space: nowrap; }
 .nav-single, .nav-group { flex-shrink: 0; }
-.nav-center { justify-content: safe center; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
-.nav-center::-webkit-scrollbar { display: none; }
+.nav-center { justify-content: safe center; }
 @media (max-width: 1500px) {
   .nav-single { padding: 0 1rem; }
   .nav-group { padding: 0 0.8rem; }
@@ -756,18 +758,12 @@ function toggleMobileMenu() {
   .tactical-nav { padding: 0 1.25rem; }
   .brand-logo { font-size: 1.2rem; }
   .nav-left { min-width: 140px; gap: 1rem; flex: 0 0 auto; }
+  /* 不能用 overflow 横向滚动：overflow 会把下拉菜单一并裁掉。放不下时改用汉堡菜单（≤1100px） */
   .nav-center {
     gap: 0.35rem;
     flex-wrap: nowrap;
-    overflow-x: auto;
-    overflow-y: hidden;
-    justify-content: flex-start;
     padding: 0 0.25rem;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
   }
-  .nav-center::-webkit-scrollbar { height: 4px; }
-  .nav-center::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 2px; }
   .nav-single { padding: 0 0.9rem; flex-shrink: 0; }
   .single-label { font-size: 0.9rem; }
   .group-label { font-size: 0.82rem; }
@@ -778,7 +774,7 @@ function toggleMobileMenu() {
   .user-name { font-size: 0.55rem; }
 }
 
-@media (max-width: 992px) {
+@media (max-width: 1100px) {
   .tactical-nav { height: 56px; padding: 0 1rem; }
   .brand-logo { font-size: 1.05rem; }
   .brand-logo .brand-x { margin: 0 2px; }

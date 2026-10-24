@@ -117,6 +117,20 @@ async function snapshotRoute(browser, viewport, [slug, title]) {
         if (style.visibility === 'hidden' || style.display === 'none' || rect.width === 0) continue
         if (parseFloat(style.fontSize) < 12) tinyText += 1
       }
+      // 正文偏小：40 字以上的段落 / 列表项字号小于 14px（审计目标：正文 ≥ 14px）
+      let smallBody = 0
+      const smallBodySamples = []
+      for (const el of document.querySelectorAll('p, li, dd, blockquote')) {
+        const text = el.textContent?.trim() ?? ''
+        if (text.length < 40) continue
+        const style = getComputedStyle(el)
+        const rect = el.getBoundingClientRect()
+        if (style.visibility === 'hidden' || style.display === 'none' || rect.width === 0) continue
+        if (parseFloat(style.fontSize) < 14) {
+          smallBody += 1
+          if (smallBodySamples.length < 3) smallBodySamples.push(`${style.fontSize} ${text.slice(0, 24)}`)
+        }
+      }
       // 溢出元凶：右边缘超出视口、而父元素没有超出的元素（即「第一个撑出屏幕」的元素）
       const vw = window.innerWidth
       const describe = (el) =>
@@ -142,6 +156,8 @@ async function snapshotRoute(browser, viewport, [slug, title]) {
         scrollHeight: main ? main.scrollHeight : doc.scrollHeight,
         viewportHeight: main ? main.clientHeight : window.innerHeight,
         tinyText,
+        smallBody,
+        smallBodySamples,
         title: document.title,
         h1: document.querySelector('h1')?.textContent?.trim() ?? null,
         interactive: document.querySelectorAll('button, a[href], input, select, textarea, [role="button"]').length,
@@ -197,6 +213,17 @@ const STATES = [
     },
   },
   {
+    // 平板横屏：导航应切换为汉堡菜单，且不出现横向滚动条
+    name: 'tablet-1024-nav-drawer',
+    viewport: 'desktop',
+    size: { width: 1024, height: 768 },
+    slug: 'sector-b',
+    act: async (page) => {
+      await page.click('.nav-hamburger')
+      await page.waitForTimeout(600)
+    },
+  },
+  {
     name: 'mobile-nav-drawer',
     viewport: 'mobile',
     slug: 'sector-c',
@@ -223,8 +250,9 @@ const STATES = [
 
 async function snapshotState(browser, state) {
   const viewport = VIEWPORTS.find((v) => v.name === state.viewport)
+  const size = state.size ?? { width: viewport.width, height: viewport.height }
   const context = await browser.newContext({
-    viewport: { width: viewport.width, height: viewport.height },
+    viewport: size,
     isMobile: viewport.isMobile,
     hasTouch: viewport.isMobile,
     deviceScaleFactor: 1,
@@ -300,7 +328,7 @@ async function main() {
     (r) =>
       `| ${r.viewport} | [${r.slug}](${r.viewport}/${r.slug}.jpg) ${r.title} | ${r.scrollHeight ?? '?'} / ${
         r.viewportHeight ? (r.scrollHeight / r.viewportHeight).toFixed(1) : '?'
-      } | ${r.overflowX ?? '?'} | ${r.tinyText ?? '?'} | ${
+      } | ${r.overflowX ?? '?'} | ${r.tinyText ?? '?'} | ${r.smallBody ?? '?'} | ${
         r.consoleErrors.length + r.pageErrors.length
       } | ${r.failedRequests.length} | ${r.loadMs} |`,
   )
@@ -309,8 +337,8 @@ async function main() {
     '',
     `生成时间：${new Date().toISOString()}　来源：${process.env.GITHUB_SHA ?? 'local'}`,
     '',
-    '| 视口 | 页面 | 内容高度/屏数 | 横向溢出(px) | <12px 文字 | 报错 | 失败请求 | 耗时(ms) |',
-    '| --- | --- | --- | --- | --- | --- | --- | --- |',
+    '| 视口 | 页面 | 内容高度/屏数 | 横向溢出(px) | <12px 文字 | <14px 正文段落 | 报错 | 失败请求 | 耗时(ms) |',
+    '| --- | --- | --- | --- | --- | --- | --- | --- | --- |',
     ...rows,
     '',
     '## 交互态',
