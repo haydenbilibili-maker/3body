@@ -4,6 +4,7 @@
  * 宇宙社会学公理 + 猜疑链可视化 + 星际猎人模拟器 + 广播坐标
  */
 import { ref, onMounted, onUnmounted, reactive, watch, computed } from 'vue'
+import SectorHeader from '@/components/SectorHeader.vue'
 import { useRouter } from 'vue-router'
 import { NInput, NButton, NModal, useMessage, NTabs, NTabPane, NProgress } from 'naive-ui'
 import { soundManager } from '@/utils/sound'
@@ -878,10 +879,12 @@ const axioms = [
 
 <template>
   <div class="df-page">
-    <header class="df-header">
-      <h1 class="df-title">SECTOR E // DARK FOREST</h1>
-      <p class="df-subtitle">黑暗森林广场</p>
-    </header>
+    <SectorHeader
+      code="SECTOR E · DARK FOREST"
+      title="黑暗森林广场"
+      subtitle="宇宙是一座黑暗森林，每个文明都是带枪的猎人"
+      goal="在暴露与沉默之间做选择：沙盒里观察文明如何互相清除，博弈中让你的文明活到最后。"
+    />
 
     <NTabs v-model:value="activeTab" type="segment" class="df-tabs">
       <!-- Tab 1: Hunter Simulator -->
@@ -1196,24 +1199,11 @@ const axioms = [
   flex-direction: column;
 }
 
-.df-header {
-  padding: 1rem 2rem;
-  background: #0a0a0f;
-  border-bottom: 1px solid #222;
-}
 
-.df-title {
-  font-family: var(--font-mono);
-  color: #00ffff;
-  margin: 0;
-  font-size: 1.5rem;
-}
 
-.df-subtitle {
-  margin: 0;
-  font-size: 0.8rem;
-  color: #666;
-}
+
+
+
 
 
 .df-tabs {

@@ -4,6 +4,7 @@
  * 包含四位面壁者的战略计划与思想钢印
  */
 import { ref, reactive, onMounted, watch, nextTick, computed } from 'vue'
+import SectorHeader from '@/components/SectorHeader.vue'
 import { useRoute, useRouter } from 'vue-router'
 import { NButton, NTabs, NTabPane, NSlider, NProgress, NInput, useMessage, NModal, NTag } from 'naive-ui'
 import { useUniverseStore } from '@/stores/universe'
@@ -836,14 +837,22 @@ onMounted(() => {
       </div>
     </div>
     <div class="bg-noise"></div>
-    <header class="header">
-      <h1 class="title">SECTOR F // WALLFACER PROJECT</h1>
-      <div class="status-bar">
+    <SectorHeader
+      code="SECTOR F · WALLFACER PROJECT"
+      title="面壁计划"
+      subtitle="你的真实战略只存在于你的脑海中"
+      goal="以面壁者身份下达资源指令，在破壁人的疑心值达到 90 之前，让尽量多的指令获批。"
+      accent="#8bc34a"
+      show-restart
+      restart-label="再玩一局"
+      @restart="resetWallfacerGame"
+    >
+      <template #meta>
         <span class="status-item">UN: ACTIVE</span>
         <span class="status-item">PDC: MONITORING</span>
         <span class="status-item">ETO: LURKING</span>
-      </div>
-    </header>
+      </template>
+    </SectorHeader>
 
     <main class="main-content">
       <!-- Confrontation Modal -->
@@ -1287,13 +1296,7 @@ onMounted(() => {
   color: #fff;
   letter-spacing: 2px;
 }
-.status-bar {
-  display: flex;
-  gap: 1rem;
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
-  color: #666;
-}
+
 .status-item {
   border: 1px solid #333;
   padding: 2px 6px;
@@ -1884,7 +1887,7 @@ onMounted(() => {
 /* 小屏：页头纵向排列、状态标签换行；雷达信息栏收窄 */
 @media (max-width: 768px) {
   .header { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
-  .status-bar { flex-wrap: wrap; gap: 0.5rem; }
+
   .radar-info { width: 110px; padding: 0.75rem; }
   .header-main { flex-wrap: wrap; gap: 0.75rem; }
   /* 操作按钮换行：「DEPLOY MACRO-ATOMS (部署宏原子)」与「ATTACK」并排时卡片被撑宽约 440px */

@@ -5,6 +5,7 @@
  * 风格：手绘插画，忧伤浪漫
  */
 import { ref, reactive, onUnmounted, computed, onMounted } from 'vue'
+import SectorHeader from '@/components/SectorHeader.vue'
 import { NTabs, NTabPane, useMessage, NInput, NButton, NProgress, NTag } from 'naive-ui'
 import { encodeSecretAsFairytale, decodeFairytaleSimilarity } from '@/api/zero_v2'
 import { loadVersionedState, saveVersionedState } from '@/composables/useZeroV2State'
@@ -476,10 +477,13 @@ onUnmounted(() => {
 
 <template>
   <div class="sector-s">
-    <header class="header">
-      <h1 class="title">SECTOR S // THE STAIRCASE</h1>
-      <div class="subtitle">阶梯计划与云天明的童话</div>
-    </header>
+    <SectorHeader
+      code="SECTOR S · THE STAIRCASE"
+      title="阶梯计划"
+      subtitle="只送大脑——以及云天明的童话"
+      goal="飞船经过核弹时按下「引爆」为它加速；冲过终点时速度达到 15.0% c 即成功入轨。"
+      accent="#e0b3ff"
+    />
 
     <NTabs type="segment" v-model:value="activeTab" class="s-tabs">
       

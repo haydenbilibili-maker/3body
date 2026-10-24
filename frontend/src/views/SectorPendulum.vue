@@ -4,6 +4,7 @@
  * 环境监测站 + 巨型单摆可视化 + 脱水控制台 + 人列计算机
  */
 import { ref, onMounted, onUnmounted, computed } from 'vue'
+import SectorHeader from '@/components/SectorHeader.vue'
 import { useRouter } from 'vue-router'
 import { useUniverseStore } from '@/stores/universe'
 import { useUserStore } from '@/stores/user'
@@ -252,7 +253,13 @@ const envText = computed(() => {
 <template>
   <div class="sector-pendulum">
     <div class="monitor-overlay">
-      <h1 class="font-mono text-xl tracking-widest text-sophone">SECTOR T // THE PENDULUM</h1>
+      <SectorHeader
+        compact
+        code="SECTOR T · THE PENDULUM"
+        title="三体摆"
+        goal="乱纪元来临时及时脱水、恒纪元时浸泡复苏，别让毁灭进度涨到 100%。"
+        accent="#ff6b9a"
+      />
       <div class="status-panel">
         <div class="metric highlight-civ">
           <span class="label">CIVILIZATION</span>
