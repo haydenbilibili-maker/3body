@@ -186,8 +186,8 @@ const eraColor = (i: number) => {
   position: fixed;
   inset: 0;
   background-image:
-    linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px);
+    linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
   background-size: 24px 24px;
   pointer-events: none;
   z-index: 0;
@@ -196,7 +196,7 @@ const eraColor = (i: number) => {
 /* Header */
 .header {
   padding: 1.5rem 2rem;
-  border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+  border-bottom: 1px solid rgba(0, 240, 255, 0.2);
   position: relative;
   z-index: 1;
 }
@@ -210,13 +210,13 @@ const eraColor = (i: number) => {
   font-family: var(--font-title);
   font-size: 1.75rem;
   letter-spacing: 0.08em;
-  color: #00ffff;
+  color: var(--c-cyan);
   margin: 0;
-  text-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+  text-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
 }
 
 .subtitle {
-  color: #8a8a8a;
+  color: var(--gray-400);
   font-size: 0.75rem;
   margin-top: 0.5rem;
   letter-spacing: 0.15em;
@@ -234,8 +234,8 @@ const eraColor = (i: number) => {
   font-family: var(--font-mono);
   font-size: 0.75rem;
   padding: 2px 8px;
-  border: 1px solid rgba(0, 255, 255, 0.3);
-  color: rgba(0, 255, 255, 0.8);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  color: rgba(0, 240, 255, 0.8);
 }
 
 /* Content */
@@ -263,7 +263,7 @@ const eraColor = (i: number) => {
   font-family: var(--font-mono);
   font-size: 0.75rem;
   letter-spacing: 0.2em;
-  color: rgba(0, 255, 255, 0.6);
+  color: rgba(0, 240, 255, 0.6);
   margin-bottom: 1.5rem;
 }
 
@@ -279,7 +279,7 @@ const eraColor = (i: number) => {
 }
 
 .tree-edge.active {
-  stroke: rgba(0, 255, 255, 0.6);
+  stroke: rgba(0, 240, 255, 0.6);
   stroke-width: 2;
 }
 
@@ -292,15 +292,15 @@ const eraColor = (i: number) => {
 }
 
 .tree-node.root {
-  fill: rgba(0, 255, 255, 0.15);
-  stroke: rgba(0, 255, 255, 0.4);
+  fill: rgba(0, 240, 255, 0.15);
+  stroke: rgba(0, 240, 255, 0.4);
 }
 
 .tree-node:hover,
 .tree-node.active {
-  fill: var(--era-color, rgba(0, 255, 255, 0.3));
-  stroke: var(--era-color, #00ffff);
-  filter: drop-shadow(0 0 8px var(--era-color, rgba(0, 255, 255, 0.5)));
+  fill: var(--era-color, rgba(0, 240, 255, 0.3));
+  stroke: var(--era-color, var(--c-cyan));
+  filter: drop-shadow(0 0 8px var(--era-color, rgba(0, 240, 255, 0.5)));
 }
 
 .tree-label {
@@ -318,7 +318,7 @@ const eraColor = (i: number) => {
 .viz-hint {
   margin-top: 1rem;
   font-size: 0.75rem;
-  color: #8a8a8a;
+  color: var(--gray-400);
   font-family: var(--font-mono);
 }
 
@@ -339,12 +339,12 @@ const eraColor = (i: number) => {
 }
 
 .galaxy-timeline :deep(.n-timeline-item-content__title) {
-  color: #e0e0e0;
+  color: var(--gray-100);
   font-size: 1.05rem;
 }
 
 .galaxy-timeline :deep(.n-timeline-item-content__time) {
-  color: rgba(0, 255, 255, 0.6);
+  color: rgba(0, 240, 255, 0.6);
   font-family: var(--font-mono);
   font-size: 0.75rem;
 }
@@ -367,21 +367,21 @@ const eraColor = (i: number) => {
 }
 
 .evo-card:hover {
-  border-color: rgba(0, 255, 255, 0.2);
-  box-shadow: 0 0 20px rgba(0, 255, 255, 0.06);
+  border-color: rgba(0, 240, 255, 0.2);
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.06);
 }
 
 .card-content {
   font-size: 0.95rem;
   line-height: 1.7;
-  color: #bbb;
+  color: var(--gray-250);
   margin-bottom: 0.75rem;
 }
 
 .card-quote {
   font-size: 0.85rem;
-  color: rgba(0, 255, 255, 0.7);
-  border-left: 3px solid rgba(0, 255, 255, 0.4);
+  color: rgba(0, 240, 255, 0.7);
+  border-left: 3px solid rgba(0, 240, 255, 0.4);
   padding-left: 1rem;
   margin: 0 0 1rem;
   font-style: italic;
@@ -392,7 +392,7 @@ const eraColor = (i: number) => {
   padding-top: 0.75rem;
   font-family: var(--font-mono);
   font-size: 0.78rem;
-  color: #777;
+  color: var(--gray-450);
 }
 
 .meta-row {
@@ -402,7 +402,7 @@ const eraColor = (i: number) => {
 }
 
 .meta-label {
-  color: #8a8a8a;
+  color: var(--gray-400);
   font-weight: bold;
   min-width: 72px;
 }

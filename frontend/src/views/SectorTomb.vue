@@ -235,8 +235,8 @@ function carveStone() {
   position: fixed;
   inset: 0;
   background-image:
-    linear-gradient(rgba(0, 255, 255, 0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 255, 255, 0.02) 1px, transparent 1px);
+    linear-gradient(rgba(0, 240, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 240, 255, 0.02) 1px, transparent 1px);
   background-size: 24px 24px;
   pointer-events: none;
   z-index: 0;
@@ -245,7 +245,7 @@ function carveStone() {
 /* Header */
 .header {
   padding: 1.5rem 2rem;
-  border-bottom: 1px solid rgba(0, 255, 255, 0.15);
+  border-bottom: 1px solid rgba(0, 240, 255, 0.15);
   position: relative;
   z-index: 1;
 }
@@ -265,7 +265,7 @@ function carveStone() {
 }
 
 .subtitle {
-  color: #8a8a8a;
+  color: var(--gray-400);
   font-size: 0.8rem;
   margin-top: 0.5rem;
   letter-spacing: 0.08em;
@@ -307,7 +307,7 @@ function carveStone() {
 
 .section-title {
   font-size: 1rem;
-  color: rgba(0, 255, 255, 0.7);
+  color: rgba(0, 240, 255, 0.7);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   padding-bottom: 0.5rem;
   margin-bottom: 1.25rem;
@@ -319,7 +319,7 @@ function carveStone() {
 }
 
 .title-icon {
-  color: rgba(0, 255, 255, 0.5);
+  color: rgba(0, 240, 255, 0.5);
   font-size: 0.75rem;
 }
 
@@ -335,7 +335,7 @@ function carveStone() {
 }
 
 .stone-tablet {
-  background: linear-gradient(145deg, #1a1a1a 0%, #0d0d0d 100%);
+  background: linear-gradient(145deg, var(--gray-850) 0%, #0d0d0d 100%);
   padding: 2rem;
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow:
@@ -386,7 +386,7 @@ function carveStone() {
 
 .tool-hint {
   text-align: center;
-  color: #7a7a7a;
+  color: var(--gray-450);
   font-size: 0.75rem;
   margin-bottom: 1rem;
   font-style: italic;
@@ -407,7 +407,7 @@ function carveStone() {
 .stone-input :deep(textarea) {
   background: rgba(0, 0, 0, 0.4) !important;
   border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  color: #bbb !important;
+  color: var(--gray-250) !important;
   font-family: var(--font-serif) !important;
 }
 
@@ -419,7 +419,7 @@ function carveStone() {
 .carve-meta {
   margin-top: 0.5rem;
   font-size: 0.75rem;
-  color: #7a7a7a;
+  color: var(--gray-450);
   text-align: center;
   font-family: var(--font-mono);
   letter-spacing: 0.1em;
@@ -490,7 +490,7 @@ function carveStone() {
 
 .civ-name {
   font-size: 1.05rem;
-  color: #ddd;
+  color: var(--gray-150);
   font-weight: 600;
   line-height: 1.42;
   word-break: break-word;
@@ -537,8 +537,8 @@ function carveStone() {
 
 .civ-epitaph {
   font-size: 0.85rem;
-  color: rgba(0, 255, 255, 0.6);
-  border-left: 2px solid rgba(0, 255, 255, 0.3);
+  color: rgba(0, 240, 255, 0.6);
+  border-left: 2px solid rgba(0, 240, 255, 0.3);
   padding-left: 0.75rem;
   margin: 0 0 0.75rem;
   font-style: italic;
@@ -549,7 +549,7 @@ function carveStone() {
   flex-wrap: wrap;
   gap: 1rem;
   font-size: 0.75rem;
-  color: #8a8a8a;
+  color: var(--gray-400);
   margin-bottom: 0.2rem;
   font-family: var(--font-tech);
 }
@@ -562,7 +562,7 @@ function carveStone() {
 
 .civ-desc {
   font-size: 0.88rem;
-  color: #888;
+  color: var(--gray-400);
   line-height: 1.6;
   margin: 0;
 }

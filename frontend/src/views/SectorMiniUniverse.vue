@@ -252,7 +252,7 @@ onUnmounted(() => {
 .u-mass-value { font-weight: bold; color: #d84315; }
 
 .u-card {
-  background: #fff;
+  background: var(--white);
   border-radius: 8px;
   padding: 1.5rem;
   margin-bottom: 1.5rem;
@@ -285,7 +285,7 @@ onUnmounted(() => {
 
 .sky {
   position: absolute; top: 0; left: 0; right: 0; height: 100px;
-  background: linear-gradient(to bottom, #fff9c4, #fff);
+  background: linear-gradient(to bottom, #fff9c4, var(--white));
   transition: opacity 0.5s;
 }
 
@@ -316,14 +316,14 @@ onUnmounted(() => {
   margin-bottom: 0.8rem;
 }
 .eco-controls label { width: 140px; font-size: 0.85rem; color: #6d4c41; }
-.hint { font-size: 0.75rem; color: #8d6e63; font-style: italic; margin-top: 1rem; }
+.hint { font-size: 0.875rem; line-height: 1.6; color: #a1887f; font-style: italic; margin-top: 1rem; }
 
 /* Capsule */
 .u-input-row { display: flex; gap: 1rem; margin-bottom: 1.5rem; }
 .u-textarea { flex: 1; }
 .u-notes { display: flex; flex-direction: column; gap: 0.8rem; }
-.u-note { background: #fdfbf7; padding: 0.8rem; border-radius: 4px; border: 1px solid #eee; }
-.u-note-time { display: block; font-size: 0.75rem; color: #aaa; margin-bottom: 0.3rem; }
+.u-note { background: #fdfbf7; padding: 0.8rem; border-radius: 4px; border: 1px solid var(--gray-100); }
+.u-note-time { display: block; font-size: 0.75rem; color: var(--gray-300); margin-bottom: 0.3rem; }
 .u-note-text { margin: 0; font-size: 0.9rem; line-height: 1.5; }
 
 /* Return */

@@ -301,8 +301,8 @@ onUnmounted(() => {
   height: 100%;
   flex: 1;
   min-height: 0;
-  background: #000;
-  color: #fff;
+  background: var(--black);
+  color: var(--white);
   font-family: var(--font-sans);
   overflow: hidden;
   position: relative;
@@ -332,7 +332,7 @@ onUnmounted(() => {
 .quantum-field {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 50% 50%, #0a0a1a 0%, #000 100%);
+  background: radial-gradient(circle at 50% 50%, #0a0a1a 0%, var(--black) 100%);
   z-index: 0;
 }
 
@@ -385,25 +385,25 @@ onUnmounted(() => {
 .countdown-box .label {
   font-family: var(--font-title);
   font-size: 0.8rem;
-  color: #00f0ff;
+  color: var(--c-cyan);
   letter-spacing: 2px;
 }
 
 .countdown-box .timer {
   font-family: var(--font-title);
   font-size: 2rem;
-  color: #fff;
-  text-shadow: 0 0 10px #00f0ff;
+  color: var(--white);
+  text-shadow: 0 0 10px var(--c-cyan);
 }
 
 .status-box {
   text-align: right;
   font-size: 0.9rem;
-  color: #888;
+  color: var(--gray-400);
 }
 
-.ok { color: #0f0; }
-.err { color: #f00; animation: blink 0.5s infinite; }
+.ok { color: var(--holo-green); }
+.err { color: var(--c-red); animation: blink 0.5s infinite; }
 
 /* Core Visual */
 .core-container {
@@ -416,7 +416,7 @@ onUnmounted(() => {
 }
 
 .sophon-core {
-  background: radial-gradient(circle at 30% 30%, #fff, #888, #000);
+  background: radial-gradient(circle at 30% 30%, var(--white), var(--gray-400), var(--black));
   box-shadow: 0 0 50px rgba(255, 255, 255, 0.2);
   position: relative;
   transition: all 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -452,11 +452,11 @@ onUnmounted(() => {
 .bug-text {
   position: absolute;
   font-family: var(--font-title);
-  color: #f00;
+  color: var(--c-red);
   font-size: 2rem;
   font-weight: bold;
   opacity: 0.8;
-  text-shadow: 0 0 5px #f00;
+  text-shadow: 0 0 5px var(--c-red);
   animation: shake 0.5s infinite;
 }
 
@@ -498,18 +498,18 @@ onUnmounted(() => {
   max-width: 90%;
   padding: 0.5rem 1rem;
   background: rgba(255, 255, 255, 0.05);
-  border-left: 2px solid #00f0ff;
+  border-left: 2px solid var(--c-cyan);
 }
 
 .user .msg-bubble {
   border-left: none;
-  border-right: 2px solid #0f0;
+  border-right: 2px solid var(--holo-green);
   text-align: right;
 }
 
 .sender {
   font-size: 0.75rem;
-  color: #888;
+  color: var(--gray-400);
   display: block;
   margin-bottom: 0.2rem;
   letter-spacing: 1px;
@@ -524,7 +524,7 @@ onUnmounted(() => {
 .cursor {
   display: inline-block;
   width: 8px;
-  background: #00f0ff;
+  background: var(--c-cyan);
   animation: blink 1s infinite;
 }
 
@@ -537,8 +537,8 @@ onUnmounted(() => {
   width: 100%;
   background: transparent;
   border: none;
-  border-bottom: 1px solid #444;
-  color: #fff;
+  border-bottom: 1px solid var(--gray-600);
+  color: var(--white);
   font-family: var(--font-sans);
   font-size: 1.2rem;
   padding: 0.5rem;
@@ -547,7 +547,7 @@ onUnmounted(() => {
 }
 
 .input-area input:focus {
-  border-color: #00f0ff;
+  border-color: var(--c-cyan);
 }
 
 /* Bottom Control */
@@ -565,7 +565,7 @@ onUnmounted(() => {
 .dim-label {
   display: block;
   font-family: var(--font-title);
-  color: #00f0ff;
+  color: var(--c-cyan);
   margin-bottom: 0.5rem;
 }
 
@@ -573,7 +573,7 @@ onUnmounted(() => {
   display: block;
   margin-top: 0.5rem;
   font-size: 0.8rem;
-  color: #888;
+  color: var(--gray-400);
   letter-spacing: 2px;
 }
 
@@ -586,11 +586,11 @@ onUnmounted(() => {
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 5px; }
-::-webkit-scrollbar-thumb { background: #333; }
+::-webkit-scrollbar-thumb { background: var(--gray-700); }
 
 /* Naive UI Overrides */
-:deep(.n-slider .n-slider-rail) { background-color: #333; }
-:deep(.n-slider .n-slider-rail .n-slider-rail__fill) { background-color: #00f0ff; box-shadow: 0 0 10px #00f0ff; }
-:deep(.n-slider .n-slider-handle) { background-color: #000; border: 2px solid #00f0ff; box-shadow: 0 0 10px #00f0ff; }
+:deep(.n-slider .n-slider-rail) { background-color: var(--gray-700); }
+:deep(.n-slider .n-slider-rail .n-slider-rail__fill) { background-color: var(--c-cyan); box-shadow: 0 0 10px var(--c-cyan); }
+:deep(.n-slider .n-slider-handle) { background-color: var(--black); border: 2px solid var(--c-cyan); box-shadow: 0 0 10px var(--c-cyan); }
 
 </style>

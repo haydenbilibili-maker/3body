@@ -301,7 +301,7 @@ onMounted(loadEncyclopedia)
 .wiki-card:hover .card-edge { width: 100%; height: 100%; opacity: 1; }
 .wiki-header { margin-bottom: 1rem; }
 .cat-tag { font-family: var(--font-tech); font-size: 0.75rem; color: var(--cat-color); letter-spacing: 0.1em; opacity: 0.8; }
-.wiki-term { margin: 0.2rem 0 0 0; font-family: var(--font-display); font-size: 1.2rem; color: #fff; font-weight: 300; }
+.wiki-term { margin: 0.2rem 0 0 0; font-family: var(--font-display); font-size: 1.2rem; color: var(--white); font-weight: 300; }
 .wiki-summary { font-size: 0.8rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 1.5rem; height: 3.2em; overflow: hidden; }
 .wiki-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 .wiki-tag { font-size: 0.75rem; color: var(--cat-color); background: rgba(255, 255, 255, 0.05); padding: 0.2rem 0.5rem; border-radius: 2px; font-family: var(--font-tech); }
@@ -316,12 +316,12 @@ onMounted(loadEncyclopedia)
 .seal-meta { display: flex; flex-direction: column; text-align: right; font-family: var(--font-tech); font-size: 0.75rem; color: var(--text-muted); gap: 0.3rem; }
 .seal-body { position: relative; margin-bottom: 2rem; }
 .seal-line-deco { position: absolute; left: -2rem; top: 0; bottom: 0; width: 2px; background: linear-gradient(180deg, var(--seal-color), transparent); }
-.seal-text { font-size: 1rem; line-height: 1.8; color: #fff; margin-bottom: 2rem; white-space: pre-wrap; }
+.seal-text { font-size: 1rem; line-height: 1.8; color: var(--white); margin-bottom: 2rem; white-space: pre-wrap; }
 .seal-tags-large { display: flex; gap: 0.8rem; }
 .tag-large { font-family: var(--font-tech); font-size: 0.8rem; border: 1px solid var(--seal-color); color: var(--seal-color); padding: 0.3rem 0.8rem; background: rgba(255,255,255,0.05); }
 .seal-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem; }
 .seal-close { background: transparent; border: 1px solid var(--text-muted); color: var(--text-muted); padding: 0.5rem 1.5rem; cursor: pointer; font-family: var(--font-tech); transition: all 0.2s; }
-.seal-close:hover { border-color: #fff; color: #fff; }
+.seal-close:hover { border-color: var(--white); color: var(--white); }
 .seal-status { font-family: var(--font-tech); font-size: 0.75rem; color: var(--seal-color); animation: blink 2s infinite; }
 
 /* Transitions */

@@ -289,7 +289,7 @@ onMounted(loadItems)
 .foil-media {
   position: relative;
   aspect-ratio: 4/3;
-  background: #000;
+  background: var(--black);
   overflow: hidden;
   border-bottom: 1px solid var(--border-tech);
 }
@@ -335,9 +335,9 @@ onMounted(loadItems)
   padding: 0.2rem 0.5rem; cursor: pointer;
   transition: all 0.2s;
 }
-.foil-card:hover .action-btn { background: var(--holo-blue); color: #000; }
+.foil-card:hover .action-btn { background: var(--holo-blue); color: var(--black); }
 
-.item-cleansed { border-color: #ff0000 !important; transform: scale(0.98); filter: grayscale(1); }
+.item-cleansed { border-color: var(--c-red) !important; transform: scale(0.98); filter: grayscale(1); }
 .cleansed-overlay {
   position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7);
   display: flex; align-items: center; justify-content: center; z-index: 10; pointer-events: none;
@@ -399,7 +399,7 @@ onMounted(loadItems)
   color: var(--holo-red); font-family: var(--font-tech);
   padding: 0.5rem 1rem; cursor: pointer; transition: all 0.2s;
 }
-.retina-close:hover { background: var(--holo-red); color: #000; }
+.retina-close:hover { background: var(--holo-red); color: var(--black); }
 
 .retina-content {
   flex: 1;
@@ -432,7 +432,7 @@ onMounted(loadItems)
 }
 
 .retina-text {
-  color: #fff;
+  color: var(--white);
   font-size: 1rem;
   line-height: 1.8;
   white-space: pre-wrap;

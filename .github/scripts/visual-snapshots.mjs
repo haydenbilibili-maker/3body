@@ -117,6 +117,20 @@ async function snapshotRoute(browser, viewport, [slug, title]) {
         if (style.visibility === 'hidden' || style.display === 'none' || rect.width === 0) continue
         if (parseFloat(style.fontSize) < 12) tinyText += 1
       }
+      // 正文偏小：40 字以上的段落 / 列表项字号小于 14px（审计目标：正文 ≥ 14px）
+      let smallBody = 0
+      const smallBodySamples = []
+      for (const el of document.querySelectorAll('p, li, dd, blockquote')) {
+        const text = el.textContent?.trim() ?? ''
+        if (text.length < 40) continue
+        const style = getComputedStyle(el)
+        const rect = el.getBoundingClientRect()
+        if (style.visibility === 'hidden' || style.display === 'none' || rect.width === 0) continue
+        if (parseFloat(style.fontSize) < 14) {
+          smallBody += 1
+          if (smallBodySamples.length < 3) smallBodySamples.push(`${style.fontSize} ${text.slice(0, 24)}`)
+        }
+      }
       // 溢出元凶：右边缘超出视口、而父元素没有超出的元素（即「第一个撑出屏幕」的元素）
       const vw = window.innerWidth
       const describe = (el) =>
@@ -142,6 +156,8 @@ async function snapshotRoute(browser, viewport, [slug, title]) {
         scrollHeight: main ? main.scrollHeight : doc.scrollHeight,
         viewportHeight: main ? main.clientHeight : window.innerHeight,
         tinyText,
+        smallBody,
+        smallBodySamples,
         title: document.title,
         h1: document.querySelector('h1')?.textContent?.trim() ?? null,
         interactive: document.querySelectorAll('button, a[href], input, select, textarea, [role="button"]').length,
@@ -185,6 +201,91 @@ async function snapshotRoute(browser, viewport, [slug, title]) {
   }
 }
 
+// 交互态快照：只靠逐页截图看不到的界面（下拉菜单、手机抽屉）。每项：视口、页面、操作、截图名
+const STATES = [
+  {
+    name: 'desktop-nav-dropdown',
+    viewport: 'desktop',
+    slug: 'sector-c',
+    act: async (page) => {
+      const group = page.locator('.nav-group').nth(1)
+      try {
+        await group.hover({ timeout: 5000 })
+      } catch (e) {
+        // 悬停失败通常是有元素盖在导航上（用户同样点不到）：记下盖住它的元素，再用事件兜底截图
+        const cover = await group.evaluate((el) => {
+          const r = el.getBoundingClientRect()
+          const top = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2)
+          const d = (n) => (n ? n.tagName.toLowerCase() + [...n.classList].slice(0, 3).map((c) => '.' + c).join('') : 'null')
+          return { rect: [r.left, r.top, r.width, r.height].map(Math.round), top: d(top), contained: el.contains(top) }
+        })
+        console.log(`::warning title=nav-hover::${JSON.stringify(cover)} ${String(e.message).split('\n').slice(0, 6).join(' | ')}`.slice(0, 900))
+        await group.dispatchEvent('mouseenter')
+      }
+      await page.waitForTimeout(600)
+    },
+  },
+  {
+    // 平板横屏：导航应切换为汉堡菜单，且不出现横向滚动条
+    name: 'tablet-1024-nav-drawer',
+    viewport: 'desktop',
+    size: { width: 1024, height: 768 },
+    slug: 'sector-b',
+    act: async (page) => {
+      await page.click('.nav-hamburger')
+      await page.waitForTimeout(600)
+    },
+  },
+  {
+    name: 'mobile-nav-drawer',
+    viewport: 'mobile',
+    slug: 'sector-c',
+    act: async (page) => {
+      await page.click('.nav-hamburger')
+      await page.waitForTimeout(600)
+    },
+  },
+  {
+    name: 'mobile-nav-drawer-scrolled',
+    viewport: 'mobile',
+    slug: 'sector-c',
+    act: async (page) => {
+      await page.click('.nav-hamburger')
+      await page.waitForTimeout(400)
+      await page.evaluate(() => {
+        const el = document.querySelector('.drawer-body') ?? document.querySelector('.nav-drawer')
+        if (el) el.scrollTop = el.scrollHeight
+      })
+      await page.waitForTimeout(300)
+    },
+  },
+]
+
+async function snapshotState(browser, state) {
+  const viewport = VIEWPORTS.find((v) => v.name === state.viewport)
+  const size = state.size ?? { width: viewport.width, height: viewport.height }
+  const context = await browser.newContext({
+    viewport: size,
+    isMobile: viewport.isMobile,
+    hasTouch: viewport.isMobile,
+    deviceScaleFactor: 1,
+  })
+  const page = await context.newPage()
+  const pageErrors = []
+  page.on('pageerror', (err) => pageErrors.push(short(err.message)))
+  let error = null
+  try {
+    await page.goto(new URL(state.slug, BASE_URL).toString(), { waitUntil: 'domcontentloaded', timeout: 30_000 })
+    await page.waitForTimeout(1500)
+    await state.act(page)
+    await page.screenshot({ path: path.join(OUT_DIR, 'states', `${state.name}.jpg`), type: 'jpeg', quality: 70 })
+  } catch (e) {
+    error = short(e.message)
+  }
+  await context.close()
+  return { name: state.name, viewport: state.viewport, slug: state.slug, error, pageErrors }
+}
+
 async function main() {
   for (const v of VIEWPORTS) await mkdir(path.join(OUT_DIR, v.name), { recursive: true })
   let browser = await chromium.launch()
@@ -217,15 +318,36 @@ async function main() {
       )
     }
   }
+  await mkdir(path.join(OUT_DIR, 'states'), { recursive: true })
+  const states = []
+  for (const state of STATES) {
+    // 首页的 Three.js 偶尔让首屏挂载变慢，交互态失败时重试一次再判定
+    let r
+    for (let attempt = 1; attempt <= 2; attempt += 1) {
+      r = await withTimeout(snapshotState(browser, state), PAGE_TIMEOUT_MS, state.name).catch((e) => ({
+        name: state.name,
+        viewport: state.viewport,
+        slug: state.slug,
+        error: short(e.message),
+        pageErrors: [],
+      }))
+      if (!r.error) break
+      console.log(`[state] ${state.name} attempt ${attempt} failed: ${r.error}`)
+    }
+    states.push(r)
+    console.log(`[state] ${r.name} ${r.error ? `ERROR ${r.error}` : 'ok'}`)
+    if (r.error) console.log(`::warning title=state-snapshot::${r.name} ${r.error}`.slice(0, 900))
+  }
   await browser.close()
 
   await writeFile(path.join(OUT_DIR, 'report.json'), JSON.stringify(results, null, 2))
+  await writeFile(path.join(OUT_DIR, 'states.json'), JSON.stringify(states, null, 2))
 
   const rows = results.map(
     (r) =>
       `| ${r.viewport} | [${r.slug}](${r.viewport}/${r.slug}.jpg) ${r.title} | ${r.scrollHeight ?? '?'} / ${
         r.viewportHeight ? (r.scrollHeight / r.viewportHeight).toFixed(1) : '?'
-      } | ${r.overflowX ?? '?'} | ${r.tinyText ?? '?'} | ${
+      } | ${r.overflowX ?? '?'} | ${r.tinyText ?? '?'} | ${r.smallBody ?? '?'} | ${
         r.consoleErrors.length + r.pageErrors.length
       } | ${r.failedRequests.length} | ${r.loadMs} |`,
   )
@@ -234,9 +356,13 @@ async function main() {
     '',
     `生成时间：${new Date().toISOString()}　来源：${process.env.GITHUB_SHA ?? 'local'}`,
     '',
-    '| 视口 | 页面 | 内容高度/屏数 | 横向溢出(px) | <12px 文字 | 报错 | 失败请求 | 耗时(ms) |',
-    '| --- | --- | --- | --- | --- | --- | --- | --- |',
+    '| 视口 | 页面 | 内容高度/屏数 | 横向溢出(px) | <12px 文字 | <14px 正文段落 | 报错 | 失败请求 | 耗时(ms) |',
+    '| --- | --- | --- | --- | --- | --- | --- | --- | --- |',
     ...rows,
+    '',
+    '## 交互态',
+    '',
+    ...states.map((r) => `- [${r.name}](states/${r.name}.jpg)${r.error ? ` — 失败：${r.error}` : ''}`),
     '',
   ].join('\n')
   await writeFile(path.join(OUT_DIR, 'README.md'), md)

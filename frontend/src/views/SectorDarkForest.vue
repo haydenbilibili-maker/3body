@@ -1193,8 +1193,8 @@ const axioms = [
 <style scoped>
 .df-page {
   min-height: 0;
-  background: #050505;
-  color: #ccc;
+  background: var(--gray-950);
+  color: var(--gray-200);
   display: flex;
   flex-direction: column;
 }
@@ -1214,7 +1214,7 @@ const axioms = [
 
 :deep(.n-tabs-nav) {
   background: #0a0a0f;
-  border-bottom: 1px solid #222;
+  border-bottom: 1px solid var(--gray-800);
 }
 
 /* Simulator */
@@ -1231,9 +1231,9 @@ const axioms = [
 }
 
 .mode-switch button {
-  background: #111;
-  border: 1px solid #333;
-  color: #8a8a8a;
+  background: var(--gray-900);
+  border: 1px solid var(--gray-700);
+  color: var(--gray-400);
   padding: 0.2rem 0.5rem;
   font-family: var(--font-mono);
   cursor: pointer;
@@ -1241,8 +1241,8 @@ const axioms = [
 
 .mode-switch button.active {
   background: #003333;
-  color: #00ffff;
-  border-color: #00ffff;
+  color: var(--c-cyan);
+  border-color: var(--c-cyan);
 }
 
 .hud-top {
@@ -1250,7 +1250,7 @@ const axioms = [
   gap: 2rem;
   padding: 1rem;
   background: rgba(0,0,0,0.8);
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid var(--gray-700);
 }
 
 .hud-item {
@@ -1258,15 +1258,15 @@ const axioms = [
   flex-direction: column;
 }
 
-.label { font-size: 0.75rem; color: #8a8a8a; font-family: var(--font-mono); }
-.value { font-size: 1.2rem; font-family: var(--font-mono); color: #fff; }
-.text-green { color: #00ff41; }
-.text-red { color: #ff3333; }
+.label { font-size: 0.75rem; color: var(--gray-400); font-family: var(--font-mono); }
+.value { font-size: 1.2rem; font-family: var(--font-mono); color: var(--white); }
+.text-green { color: var(--holo-green); }
+.text-red { color: var(--c-red); }
 
 .canvas-wrapper {
   position: relative;
   flex: 1;
-  background: #000;
+  background: var(--black);
   overflow: hidden;
   cursor: none; /* Hide default cursor for crosshair */
 }
@@ -1284,7 +1284,7 @@ const axioms = [
     0deg,
     transparent 0,
     transparent 2px,
-    rgba(0, 255, 255, 0.03) 3px
+    rgba(0, 240, 255, 0.03) 3px
   );
   pointer-events: none;
 }
@@ -1300,7 +1300,7 @@ const axioms = [
   position: absolute;
   transform: translate(15px, 15px);
   background: rgba(0, 0, 0, 0.9);
-  border: 1px solid #333;
+  border: 1px solid var(--gray-700);
   padding: 0.8rem;
   pointer-events: none;
   z-index: 10;
@@ -1310,9 +1310,9 @@ const axioms = [
 }
 
 .tt-header {
-  color: #00ffff;
+  color: var(--c-cyan);
   font-weight: bold;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid var(--gray-700);
   padding-bottom: 0.3rem;
   margin-bottom: 0.5rem;
   font-size: 0.9rem;
@@ -1323,14 +1323,14 @@ const axioms = [
   justify-content: space-between;
   margin-bottom: 0.2rem;
   font-size: 0.75rem;
-  color: #ccc;
+  color: var(--gray-200);
 }
 
 .tt-log {
   margin-top: 0.5rem;
   font-size: 0.75rem;
-  color: #ffcc00;
-  border-top: 1px dashed #333;
+  color: var(--c-yellow);
+  border-top: 1px dashed var(--gray-700);
   padding-top: 0.3rem;
   line-height: 1.2;
 }
@@ -1343,7 +1343,7 @@ const axioms = [
   height: 36px;
   padding: 0 1rem;
   background: rgba(0, 0, 0, 0.85);
-  border-top: 1px solid #333;
+  border-top: 1px solid var(--gray-700);
   flex-shrink: 0;
   overflow: hidden;
 }
@@ -1352,7 +1352,7 @@ const axioms = [
   flex-shrink: 0;
   font-family: var(--font-mono);
   font-size: 0.75rem;
-  color: #8a8a8a;
+  color: var(--gray-400);
   letter-spacing: 0.1em;
 }
 
@@ -1387,7 +1387,7 @@ const axioms = [
 }
 
 .ticker-chip.destroy {
-  color: #ff6666;
+  color: var(--c-red);
   background: rgba(255, 50, 50, 0.15);
   border: 1px solid rgba(255, 80, 80, 0.4);
 }
@@ -1399,7 +1399,7 @@ const axioms = [
 }
 
 .ticker-chip.warn {
-  color: #ffaa00;
+  color: var(--c-amber);
   background: rgba(255, 170, 0, 0.1);
   border: 1px solid rgba(255, 170, 0, 0.35);
 }
@@ -1419,13 +1419,13 @@ const axioms = [
 
 .axiom-box {
   margin-bottom: 3rem;
-  border: 1px solid #444;
+  border: 1px solid var(--gray-600);
   padding: 2rem;
   background: rgba(255, 255, 255, 0.05);
 }
 
 .axiom-box h2, .chain-box h2 {
-  color: #00ffff;
+  color: var(--c-cyan);
   font-family: var(--font-mono);
   margin-bottom: 1.5rem;
 }
@@ -1450,7 +1450,7 @@ const axioms = [
 .civ-node {
   width: 150px;
   height: 150px;
-  border: 2px solid #666;
+  border: 2px solid var(--gray-500);
   border-radius: 50%;
   display: flex;
   flex-direction: column;
@@ -1459,15 +1459,15 @@ const axioms = [
   text-align: center;
   padding: 1rem;
 }
-.civ-a { border-color: #00ffff; color: #00ffff; }
-.civ-b { border-color: #ff3333; color: #ff3333; }
+.civ-a { border-color: var(--c-cyan); color: var(--c-cyan); }
+.civ-b { border-color: var(--c-red); color: var(--c-red); }
 
-.arrow { font-size: 2rem; color: #8a8a8a; }
+.arrow { font-size: 2rem; color: var(--gray-400); }
 
 .conclusion {
   margin-top: 2rem;
   font-style: italic;
-  color: #aaa;
+  color: var(--gray-300);
   line-height: 1.6;
 }
 
@@ -1477,7 +1477,7 @@ const axioms = [
   flex-direction: column;
   gap: 2rem;
   padding: 2rem;
-  background: radial-gradient(circle at 50% 30%, #111, #000);
+  background: radial-gradient(circle at 50% 30%, var(--gray-900), var(--black));
   height: 100%;
 }
 
@@ -1513,7 +1513,7 @@ const axioms = [
   font-size: 2.5rem;
   font-family: var(--font-mono);
   font-weight: bold;
-  color: #fff;
+  color: var(--white);
 }
 
 .psych-monitor {
@@ -1524,8 +1524,8 @@ const axioms = [
 }
 
 .monitor-screen {
-  background: #000;
-  border: 1px solid #333;
+  background: var(--black);
+  border: 1px solid var(--gray-700);
   height: 100px;
   position: relative;
   overflow: hidden;
@@ -1543,8 +1543,8 @@ const axioms = [
 .scan-line {
   position: absolute;
   top: 0; bottom: 0; width: 2px;
-  background: rgba(0, 255, 255, 0.5);
-  box-shadow: 0 0 10px #00ffff;
+  background: rgba(0, 240, 255, 0.5);
+  box-shadow: 0 0 10px var(--c-cyan);
   animation: scan 2s linear infinite;
 }
 
@@ -1553,13 +1553,13 @@ const axioms = [
 .monitor-label {
   font-family: var(--font-mono);
   font-size: 0.8rem;
-  color: #8a8a8a;
+  color: var(--gray-400);
   text-align: right;
 }
 
 .trisolaris-feed {
   background: #0a0a0f;
-  border: 1px solid #333;
+  border: 1px solid var(--gray-700);
   padding: 1rem;
   font-family: var(--font-mono);
   min-height: 100px;
@@ -1571,19 +1571,19 @@ const axioms = [
 .feed-header {
   display: flex;
   justify-content: space-between;
-  border-bottom: 1px solid #222;
+  border-bottom: 1px solid var(--gray-800);
   padding-bottom: 0.5rem;
-  color: #8a8a8a;
+  color: var(--gray-400);
   font-size: 0.8rem;
 }
 
 .feed-content {
   font-size: 1.1rem;
-  color: #00ffff;
+  color: var(--c-cyan);
 }
 
-.trisolaris-feed.strike { border-color: #ff3333; animation: shake 0.5s infinite; }
-.trisolaris-feed.strike .msg-text { color: #ff3333; }
+.trisolaris-feed.strike { border-color: var(--c-red); animation: shake 0.5s infinite; }
+.trisolaris-feed.strike .msg-text { color: var(--c-red); }
 
 .doomsday-console {
   display: flex;
@@ -1597,7 +1597,7 @@ const axioms = [
   position: relative;
   width: 200px;
   height: 200px;
-  background: #222;
+  background: var(--gray-800);
   border-radius: 10px;
   display: flex;
   justify-content: center;
@@ -1609,7 +1609,7 @@ const axioms = [
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(255, 200, 0, 0.1);
-  border: 2px solid #ffcc00;
+  border: 2px solid var(--c-yellow);
   border-radius: 10px;
   z-index: 10;
   cursor: pointer;
@@ -1627,20 +1627,20 @@ const axioms = [
 }
 
 .danger-text {
-  color: #ffcc00;
+  color: var(--c-yellow);
   font-weight: bold;
   font-family: var(--font-mono);
   letter-spacing: 2px;
   background: rgba(0,0,0,0.8);
   padding: 0.2rem 0.5rem;
-  border: 1px solid #ffcc00;
+  border: 1px solid var(--c-yellow);
 }
 
 .red-button {
   width: 120px;
   height: 120px;
   border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, #ff6666, #cc0000);
+  background: radial-gradient(circle at 30% 30%, var(--c-red), #cc0000);
   border: none;
   box-shadow: 0 10px 0 #990000, 0 10px 20px rgba(0,0,0,0.5);
   cursor: pointer;
@@ -1664,7 +1664,7 @@ const axioms = [
   display: flex;
   flex-direction: column;
   align-items: center;
-  color: #fff;
+  color: var(--white);
   text-shadow: 0 2px 2px rgba(0,0,0,0.5);
 }
 
@@ -1672,7 +1672,7 @@ const axioms = [
 .btn-label { font-size: 0.75rem; font-weight: bold; }
 
 .console-hint {
-  color: #8a8a8a;
+  color: var(--gray-400);
   text-align: center;
   font-size: 0.8rem;
 }
@@ -1684,12 +1684,12 @@ const axioms = [
   gap: 2rem;
   padding: 1rem;
   background: rgba(0,0,0,0.5);
-  border: 1px solid #333;
+  border: 1px solid var(--gray-700);
 }
 
 .lab-header {
   text-align: center;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid var(--gray-700);
   padding-bottom: 1rem;
 }
 
@@ -1698,16 +1698,16 @@ const axioms = [
   justify-content: space-between;
   align-items: center;
   padding: 2rem;
-  background: #080808;
-  border: 1px dashed #333;
+  background: var(--gray-950);
+  border: 1px dashed var(--gray-700);
   position: relative;
 }
 
 .civ-card {
   width: 150px;
   height: 180px;
-  background: #111;
-  border: 2px solid #555;
+  background: var(--gray-900);
+  border: 2px solid var(--gray-550);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1717,29 +1717,29 @@ const axioms = [
   transition: all 0.3s;
 }
 
-.civ-card.player { border-color: #00ffff; }
-.civ-card.opponent { border-color: #ff3333; }
-.civ-card.opponent.unknown { border-color: #666; border-style: dashed; }
-.civ-card.destroyed { opacity: 0.3; filter: grayscale(1); border-color: #333; transform: scale(0.9); }
+.civ-card.player { border-color: var(--c-cyan); }
+.civ-card.opponent { border-color: var(--c-red); }
+.civ-card.opponent.unknown { border-color: var(--gray-500); border-style: dashed; }
+.civ-card.destroyed { opacity: 0.3; filter: grayscale(1); border-color: var(--gray-700); transform: scale(0.9); }
 
 .avatar {
   width: 50px; height: 50px;
   border-radius: 50%;
-  background: #222;
-  color: #fff;
+  background: var(--gray-800);
+  color: var(--white);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.5rem;
   margin-bottom: 1rem;
-  border: 1px solid #fff;
+  border: 1px solid var(--white);
 }
-.player .avatar { background: #003333; border-color: #00ffff; }
-.opponent .avatar { background: #330000; border-color: #ff3333; }
-.unknown .avatar { background: #222; border-color: #666; color: #8a8a8a; }
+.player .avatar { background: #003333; border-color: var(--c-cyan); }
+.opponent .avatar { background: #330000; border-color: var(--c-red); }
+.unknown .avatar { background: var(--gray-800); border-color: var(--gray-500); color: var(--gray-400); }
 
-.info h3 { margin: 0 0 0.5rem 0; font-size: 1rem; color: #ccc; }
-.info p { margin: 0; font-size: 0.8rem; color: #888; }
+.info h3 { margin: 0 0 0.5rem 0; font-size: 1rem; color: var(--gray-200); }
+.info p { margin: 0; font-size: 0.8rem; color: var(--gray-400); }
 
 .connection {
   flex: 1;
@@ -1752,15 +1752,15 @@ const axioms = [
 .line {
   width: 100%;
   height: 2px;
-  background: #333;
+  background: var(--gray-700);
   position: relative;
 }
-.line.active { background: #00ffff; box-shadow: 0 0 10px #00ffff; }
+.line.active { background: var(--c-cyan); box-shadow: 0 0 10px var(--c-cyan); }
 
 .distance-label {
   margin-top: 0.5rem;
   font-size: 0.8rem;
-  color: #8a8a8a;
+  color: var(--gray-400);
 }
 
 .action-icon {
@@ -1774,18 +1774,18 @@ const axioms = [
 
 .game-log {
   height: 150px;
-  background: #000;
-  border: 1px solid #333;
+  background: var(--black);
+  border: 1px solid var(--gray-700);
   padding: 1rem;
   overflow-y: auto;
   font-family: var(--font-mono);
   font-size: 0.9rem;
 }
 .game-log p { margin: 0.2rem 0; }
-.game-log .info { color: #888; }
-.game-log .success { color: #00ff41; }
-.game-log .warn { color: #ff9900; }
-.game-log .error { color: #ff3333; }
+.game-log .info { color: var(--gray-400); }
+.game-log .success { color: var(--holo-green); }
+.game-log .warn { color: var(--c-amber); }
+.game-log .error { color: var(--c-red); }
 
 .lab-actions {
   display: flex;
@@ -1795,9 +1795,9 @@ const axioms = [
 
 .action-btn {
   flex: 1;
-  background: #111;
-  border: 1px solid #333;
-  color: #ccc;
+  background: var(--gray-900);
+  border: 1px solid var(--gray-700);
+  color: var(--gray-200);
   padding: 1rem;
   cursor: pointer;
   display: flex;
@@ -1806,24 +1806,24 @@ const axioms = [
   transition: all 0.2s;
 }
 
-.action-btn:hover { background: #222; border-color: #666; }
-.action-btn.strike:hover { border-color: #ff3333; background: #330000; }
-.action-btn.communicate:hover { border-color: #00ffff; background: #003333; }
+.action-btn:hover { background: var(--gray-800); border-color: var(--gray-500); }
+.action-btn.strike:hover { border-color: var(--c-red); background: #330000; }
+.action-btn.communicate:hover { border-color: var(--c-cyan); background: #003333; }
 
 .icon { font-size: 1.5rem; margin-bottom: 0.5rem; }
 .label { font-weight: bold; margin-bottom: 0.2rem; }
-.desc { font-size: 0.75rem; color: #8a8a8a; }
+.desc { font-size: 0.75rem; color: var(--gray-400); }
 
 .axiom-ref {
   text-align: center;
   font-size: 0.8rem;
-  color: #7a7a7a;
+  color: var(--gray-450);
   margin-top: 1rem;
 }
 
 /* B. 世界线沙盒（合并自三体体验沙盒） */
 .worldline-panel {
-  border: 1px solid #252525;
+  border: 1px solid var(--gray-800);
   background: rgba(0, 0, 0, 0.4);
   padding: 1rem;
   display: flex;
@@ -1839,13 +1839,13 @@ const axioms = [
 .diag-line { font-family: var(--font-mono); font-size: 12px; color: #8ba5a5; border: 1px dashed #294040; padding: 0.3rem 0.45rem; }
 .curve-panel { border: 1px solid #1f1f1f; padding: 0.4rem; border-radius: 4px; }
 .curve-svg { width: 100%; height: 90px; display: block; }
-.curve-axis { stroke: #333; stroke-width: 1; fill: none; }
-.curve-line { fill: none; stroke: #00ff41; stroke-width: 1.5; }
+.curve-axis { stroke: var(--gray-700); stroke-width: 1; fill: none; }
+.curve-line { fill: none; stroke: var(--holo-green); stroke-width: 1.5; }
 .summary-card { border: 1px solid #1e2e2e; padding: 0.6rem; background: rgba(0, 10, 15, 0.3); border-radius: 4px; }
 .summary-pre { margin: 0; font-size: 0.8rem; white-space: pre-wrap; color: #b8d0d0; max-height: 120px; overflow: auto; }
-.worldline-map { position: relative; height: 180px; background: #080808; border: 1px solid #222; border-radius: 4px; }
+.worldline-map { position: relative; height: 180px; background: var(--gray-950); border: 1px solid var(--gray-800); border-radius: 4px; }
 .agent-dot { position: absolute; transform: translate(-50%, -50%); padding: 2px 6px; font-size: 0.75rem; background: rgba(0, 200, 100, 0.3); border: 1px solid #00cc88; border-radius: 2px; color: #00ff88; }
-.agent-dot.dead { background: rgba(80, 80, 80, 0.5); border-color: #444; color: #8a8a8a; }
+.agent-dot.dead { background: rgba(80, 80, 80, 0.5); border-color: var(--gray-600); color: var(--gray-400); }
 .worldline-panel .logs { border: 1px solid #1e2e2e; padding: 0.6rem; background: rgba(0, 10, 15, 0.2); border-radius: 4px; max-height: 200px; overflow-y: auto; }
 .log-item { margin-bottom: 0.5rem; font-size: 0.85rem; }
 .log-item p { margin: 0.2rem 0; }

@@ -226,8 +226,8 @@ function clickCell(r: number, c: number) {
 .glitch-text {
   font-family: var(--font-mono);
   font-size: 1.5rem;
-  color: #ff00ff;
-  text-shadow: 2px 2px #00ffff;
+  color: var(--c-magenta);
+  text-shadow: 2px 2px var(--c-cyan);
   position: relative;
 }
 
@@ -248,7 +248,7 @@ function clickCell(r: number, c: number) {
   border-bottom: 1px solid #330033;
 }
 :deep(.n-tabs-tab) { color: #8855aa !important; }
-:deep(.n-tabs-tab--active) { color: #ff00ff !important; font-weight: bold; }
+:deep(.n-tabs-tab--active) { color: var(--c-magenta) !important; font-weight: bold; }
 
 /* Tesseract */
 .canvas-container {
@@ -264,23 +264,23 @@ function clickCell(r: number, c: number) {
   pointer-events: none;
   background: rgba(0,0,0,0.5);
   padding: 1rem;
-  border: 1px solid #ff00ff;
+  border: 1px solid var(--c-magenta);
 }
-.sub-info { font-size: 0.75rem; color: #00ffff; }
+.sub-info { font-size: 0.75rem; color: var(--c-cyan); }
 
 /* The Ring */
 .ring-interface {
   max-width: 800px;
   margin: 2rem auto;
-  border: 4px solid #333;
-  background: #000;
+  border: 4px solid var(--gray-700);
+  background: var(--black);
   display: flex;
   flex-direction: column;
   height: 60vh;
 }
 .ring-monitor {
   flex: 1;
-  background: radial-gradient(circle, #1a001a 0%, #000 100%);
+  background: radial-gradient(circle, #1a001a 0%, var(--black) 100%);
   padding: 2rem;
   overflow-y: auto;
   position: relative;
@@ -297,26 +297,26 @@ function clickCell(r: number, c: number) {
 
 .msg-row { margin-bottom: 1rem; line-height: 1.4; }
 .role-label { margin-right: 1rem; opacity: 0.5; }
-.msg-row.ring { color: #ff00ff; text-shadow: 0 0 5px #ff00ff; }
-.msg-row.human { color: #00ffff; }
+.msg-row.ring { color: var(--c-magenta); text-shadow: 0 0 5px var(--c-magenta); }
+.msg-row.human { color: var(--c-cyan); }
 .blink { animation: blink 1s infinite; }
 @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
 .ring-input {
   display: flex;
-  border-top: 2px solid #333;
+  border-top: 2px solid var(--gray-700);
 }
 .ring-input input {
   flex: 1;
-  background: #111;
+  background: var(--gray-900);
   border: none;
-  color: #fff;
+  color: var(--white);
   padding: 1rem;
   font-family: inherit;
 }
 .ring-input button {
   background: #330033;
-  color: #ff00ff;
+  color: var(--c-magenta);
   border: none;
   padding: 0 2rem;
   cursor: pointer;
@@ -333,15 +333,15 @@ function clickCell(r: number, c: number) {
   padding: 2rem;
 }
 .surgery-board {
-  background: #111;
+  background: var(--gray-900);
   padding: 2rem;
-  border: 2px solid #444;
+  border: 2px solid var(--gray-600);
   width: 400px;
   transition: all 0.5s;
 }
 .surgery-board.high-dim {
-  border-color: #00ffff;
-  box-shadow: 0 0 20px rgba(0,255,255,0.2);
+  border-color: var(--c-cyan);
+  box-shadow: 0 0 20px rgba(0, 240, 255,0.2);
   transform: scale(1.05) rotateX(10deg);
 }
 
@@ -353,8 +353,8 @@ function clickCell(r: number, c: number) {
 }
 .dim-switch {
   background: #004444;
-  color: #00ffff;
-  border: 1px solid #00ffff;
+  color: var(--c-cyan);
+  border: 1px solid var(--c-cyan);
   padding: 0.5rem 1rem;
   cursor: pointer;
 }
@@ -368,7 +368,7 @@ function clickCell(r: number, c: number) {
 }
 .cell {
   aspect-ratio: 1;
-  background: #222;
+  background: var(--gray-800);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -376,21 +376,21 @@ function clickCell(r: number, c: number) {
   cursor: pointer;
   transition: all 0.3s;
 }
-.cell.wall { background: #fff; }
-.cell.wall-faded { background: rgba(255,255,255,0.1); border: 1px dashed #fff; }
+.cell.wall { background: var(--white); }
+.cell.wall-faded { background: rgba(255,255,255,0.1); border: 1px dashed var(--white); }
 .cell.target { background: #220000; }
 .cell:hover { opacity: 0.8; }
 
 .status-log {
   padding: 1rem;
-  background: #000;
-  border: 1px solid #333;
-  color: #aaa;
+  background: var(--black);
+  border: 1px solid var(--gray-700);
+  color: var(--gray-300);
   font-size: 0.9rem;
 }
 .inventory {
   margin-top: 1rem;
-  color: #ff3333;
+  color: var(--c-red);
   font-weight: bold;
 }
 </style>

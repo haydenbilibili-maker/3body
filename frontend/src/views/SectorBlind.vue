@@ -325,13 +325,13 @@ onUnmounted(() => {
   align-self: flex-end;
   background: #003300;
   border: 1px solid #33ff33;
-  color: #fff;
+  color: var(--white);
 }
 
 .chat-bubble.encrypted {
   font-family: var(--font-mono);
-  color: #ff3333;
-  border-color: #ff3333;
+  color: var(--c-red);
+  border-color: var(--c-red);
   background: #220000;
 }
 

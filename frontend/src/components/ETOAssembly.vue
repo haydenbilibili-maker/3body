@@ -159,8 +159,8 @@ function selectFaction(id: string) {
 <style scoped>
 .eto-terminal {
   height: 100%;
-  background: #111;
-  color: #eee;
+  background: var(--gray-900);
+  color: var(--gray-100);
   font-family: var(--font-sans);
   display: flex;
   flex-direction: column;
@@ -171,7 +171,7 @@ function selectFaction(id: string) {
 .eto-header {
   text-align: center;
   margin-bottom: 2rem;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid var(--gray-700);
   padding-bottom: 1rem;
 }
 
@@ -190,7 +190,7 @@ function selectFaction(id: string) {
 }
 
 .subtitle {
-  color: #8a8a8a;
+  color: var(--gray-400);
   margin-top: 0.5rem;
   font-size: 0.9rem;
   letter-spacing: 2px;
@@ -212,49 +212,49 @@ function selectFaction(id: string) {
 }
 
 .faction-card {
-  background: #1a1a1a;
-  border: 1px solid #333;
+  background: var(--gray-850);
+  border: 1px solid var(--gray-700);
   padding: 1.5rem;
   cursor: pointer;
   transition: all 0.3s;
-  border-left: 4px solid #555;
+  border-left: 4px solid var(--gray-550);
 }
 
 .faction-card:hover {
-  background: #222;
+  background: var(--gray-800);
   transform: translateX(5px);
 }
 
 .faction-card.active {
-  background: #252525;
+  background: var(--gray-800);
   border-color: var(--theme-color);
   border-left-color: var(--theme-color);
   box-shadow: 0 0 15px rgba(0,0,0,0.5);
 }
 
-.faction-card h3 { margin: 0 0 0.5rem 0; color: #fff; }
-.leader { font-size: 0.8rem; color: #888; margin-bottom: 0.5rem; }
+.faction-card h3 { margin: 0 0 0.5rem 0; color: var(--white); }
+.leader { font-size: 0.8rem; color: var(--gray-400); margin-bottom: 0.5rem; }
 .slogan { font-style: italic; color: var(--theme-color); margin-bottom: 0.5rem; }
-.desc { font-size: 0.9rem; color: #aaa; line-height: 1.4; margin: 0; }
+.desc { font-size: 0.9rem; color: var(--gray-300); line-height: 1.4; margin: 0; }
 
 .comm-panel {
   display: flex;
   flex-direction: column;
-  border: 1px solid #333;
-  background: #000;
+  border: 1px solid var(--gray-700);
+  background: var(--black);
 }
 
 .panel-header {
   padding: 0.5rem 1rem;
-  background: #222;
-  border-bottom: 1px solid #333;
+  background: var(--gray-800);
+  border-bottom: 1px solid var(--gray-700);
   display: flex;
   justify-content: space-between;
   font-size: 0.8rem;
-  color: #888;
+  color: var(--gray-400);
 }
 
-.status.online { color: #0f0; }
+.status.online { color: var(--holo-green); }
 
 .chat-window {
   flex: 1;
@@ -264,33 +264,33 @@ function selectFaction(id: string) {
 }
 
 .chat-line { margin-bottom: 0.5rem; line-height: 1.4; }
-.chat-line.info { color: #8a8a8a; font-style: italic; }
-.chat-line.msg { color: #ccc; }
+.chat-line.info { color: var(--gray-400); font-style: italic; }
+.chat-line.msg { color: var(--gray-200); }
 .sender { color: gold; margin-right: 0.5rem; font-weight: bold; }
 
 .input-area {
   display: flex;
-  border-top: 1px solid #333;
+  border-top: 1px solid var(--gray-700);
 }
 
 .input-area input {
   flex: 1;
-  background: #000;
+  background: var(--black);
   border: none;
-  color: #fff;
+  color: var(--white);
   padding: 1rem;
   font-family: var(--font-mono);
   outline: none;
 }
 
 .input-area button {
-  background: #333;
-  color: #fff;
+  background: var(--gray-700);
+  color: var(--white);
   border: none;
   padding: 0 1.5rem;
   cursor: pointer;
 }
 
-.input-area button:hover:not(:disabled) { background: #444; }
+.input-area button:hover:not(:disabled) { background: var(--gray-600); }
 .input-area button:disabled { opacity: 0.5; cursor: not-allowed; }
 </style>

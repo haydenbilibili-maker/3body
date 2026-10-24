@@ -22,6 +22,38 @@
   --font-tech: var(--font-mono);
   --font-display: var(--font-sans);
   
+  /*
+   * 颜色令牌：页面样式只写 var(--…)，不直接写色值。
+   * 中性灰阶（数字越大越暗）+ 少量语义强调色；每个扇区的主题色通过 --sector-accent 传入（见 SectorHeader）。
+   * 扇区特有的场景色（掩体的棕、面壁的绿等）暂留在各自页面里。
+   */
+  --black: #000;
+  --gray-950: #050505;
+  --gray-900: #111;
+  --gray-850: #1a1a1a;
+  --gray-800: #222;
+  --gray-750: #2a2a2a;
+  --gray-700: #333;
+  --gray-600: #444;
+  --gray-550: #555;
+  --gray-500: #666;
+  --gray-450: #7a7a7a;  /* 暗底上可读的最暗正文色 */
+  --gray-400: #8a8a8a;
+  --gray-350: #999;
+  --gray-300: #aaa;
+  --gray-250: #bbb;
+  --gray-200: #ccc;
+  --gray-150: #ddd;
+  --gray-100: #eee;
+  --white: #fff;
+  --c-cyan: #00f0ff;     /* 信号 / 链接 / 选中 */
+  --c-sky: #00ccff;
+  --c-red: #ff3333;      /* 警报、失败 */
+  --c-amber: #ffaa00;    /* 警告 */
+  --c-yellow: #ffcc00;
+  --c-gold: #d4af37;     /* 古典 / 荣誉 */
+  --c-magenta: #ff00ff;
+
   /* Palette Mappings */
   --bg-deep: #000510;
   --holo-blue: #00FFC8; /* Sophon Green/Cyan */
@@ -157,7 +189,7 @@ button, a, input, .card {
 /* Selection State */
 ::selection {
   background: rgba(0, 255, 200, 0.2);
-  color: #fff;
+  color: var(--white);
 }
 
 /* Scrollbar (The Machine) */
@@ -183,7 +215,7 @@ button, a, input, .card {
 /* Selection */
 ::selection {
   background: rgba(0, 255, 200, 0.2);
-  color: #fff;
+  color: var(--white);
   text-shadow: 0 0 5px var(--holo-blue);
 }
 

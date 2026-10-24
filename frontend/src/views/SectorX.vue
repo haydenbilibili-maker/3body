@@ -318,8 +318,8 @@ onUnmounted(() => {
   min-height: 100%;
   width: 100%;
   box-sizing: border-box;
-  background: #000;
-  color: #fff;
+  background: var(--black);
+  color: var(--white);
   font-family: var(--font-mono);
   display: flex;
   align-items: flex-start;
@@ -330,15 +330,15 @@ onUnmounted(() => {
 }
 
 .reboot-flash {
-  background: #fff;
-  color: #000;
+  background: var(--white);
+  color: var(--black);
 }
 
 .reboot-flash .broadcast-line,
 .reboot-flash .omega-val,
 .reboot-flash .scale-svg circle {
-  color: #000;
-  stroke: #000;
+  color: var(--black);
+  stroke: var(--black);
 }
 
 .void-container {
@@ -445,7 +445,7 @@ onUnmounted(() => {
 .lang-tag {
   display: block;
   font-size: 0.8rem;
-  color: #8a8a8a;
+  color: var(--gray-400);
   margin-bottom: 0.8rem;
   font-family: var(--font-mono);
   display: flex;
@@ -455,7 +455,7 @@ onUnmounted(() => {
 }
 
 .lang-id {
-  color: #7a7a7a;
+  color: var(--gray-450);
   font-size: 0.75rem;
 }
 
@@ -482,7 +482,7 @@ onUnmounted(() => {
 
 .input-wrapper {
   display: flex;
-  border: 1px solid #333;
+  border: 1px solid var(--gray-700);
   background: rgba(255,255,255,0.05);
 }
 
@@ -490,15 +490,15 @@ onUnmounted(() => {
   flex: 1;
   background: transparent;
   border: none;
-  color: #fff;
+  color: var(--white);
   padding: 1rem;
   font-family: var(--font-mono);
   outline: none;
 }
 
 .broadcast-btn {
-  background: #333;
-  color: #fff;
+  background: var(--gray-700);
+  color: var(--white);
   border: none;
   padding: 0 1.5rem;
   font-family: var(--font-mono);
@@ -507,8 +507,8 @@ onUnmounted(() => {
 }
 
 .broadcast-btn:hover {
-  background: #fff;
-  color: #000;
+  background: var(--white);
+  color: var(--black);
 }
 
 /* Scale */
@@ -552,7 +552,7 @@ onUnmounted(() => {
 
 .omega-status {
   font-size: 0.8rem;
-  color: #8a8a8a;
+  color: var(--gray-400);
   margin-top: 0.5rem;
 }
 
@@ -566,20 +566,20 @@ onUnmounted(() => {
 }
 
 .pulse-critical .omega-val {
-  color: #fff;
-  text-shadow: 0 0 20px #fff;
+  color: var(--white);
+  text-shadow: 0 0 20px var(--white);
   animation: pulse 1s infinite;
 }
 
 @keyframes pulse {
   0% { opacity: 0.8; }
-  50% { opacity: 1; text-shadow: 0 0 30px #fff; }
+  50% { opacity: 1; text-shadow: 0 0 30px var(--white); }
   100% { opacity: 0.8; }
 }
 
 /* Actions */
 .action-desc {
-  color: #888;
+  color: var(--gray-400);
   font-size: 0.9rem;
   line-height: 1.6;
   max-width: 600px;
@@ -596,8 +596,8 @@ onUnmounted(() => {
 }
 
 .return-btn:hover {
-  background: #fff;
-  color: #000;
+  background: var(--white);
+  color: var(--black);
   box-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
 }
 
@@ -609,8 +609,8 @@ onUnmounted(() => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: #000;
-  color: #fff;
+  background: var(--black);
+  color: var(--white);
   animation: fadeIn 2s ease-in;
 }
 
@@ -622,7 +622,7 @@ onUnmounted(() => {
 }
 
 .reboot-sub {
-  color: #8a8a8a;
+  color: var(--gray-400);
   font-size: 1rem;
   letter-spacing: 0.2em;
 }
@@ -717,7 +717,7 @@ onUnmounted(() => {
 
   .action-desc {
     max-width: 100%;
-    font-size: 0.78rem;
+    font-size: 0.875rem;
     line-height: 1.55;
     margin-bottom: 1.1rem;
     padding: 0 0.1rem;

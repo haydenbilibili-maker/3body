@@ -187,7 +187,7 @@ onUnmounted(() => {
   position: absolute;
   inset: 0;
   z-index: 0;
-  background: #050505;
+  background: var(--gray-950);
   overflow: hidden;
   pointer-events: none;
 }
@@ -206,15 +206,15 @@ onUnmounted(() => {
   width: 200%;
   height: 200%;
   background-image: 
-    radial-gradient(1px 1px at 10% 10%, #fff 100%, transparent),
-    radial-gradient(1px 1px at 20% 20%, #fff 100%, transparent),
-    radial-gradient(2px 2px at 30% 30%, #fff 100%, transparent),
-    radial-gradient(1px 1px at 40% 40%, #fff 100%, transparent),
-    radial-gradient(1px 1px at 50% 50%, #fff 100%, transparent),
-    radial-gradient(2px 2px at 60% 60%, #fff 100%, transparent),
-    radial-gradient(1px 1px at 70% 70%, #fff 100%, transparent),
-    radial-gradient(1px 1px at 80% 80%, #fff 100%, transparent),
-    radial-gradient(2px 2px at 90% 90%, #fff 100%, transparent);
+    radial-gradient(1px 1px at 10% 10%, var(--white) 100%, transparent),
+    radial-gradient(1px 1px at 20% 20%, var(--white) 100%, transparent),
+    radial-gradient(2px 2px at 30% 30%, var(--white) 100%, transparent),
+    radial-gradient(1px 1px at 40% 40%, var(--white) 100%, transparent),
+    radial-gradient(1px 1px at 50% 50%, var(--white) 100%, transparent),
+    radial-gradient(2px 2px at 60% 60%, var(--white) 100%, transparent),
+    radial-gradient(1px 1px at 70% 70%, var(--white) 100%, transparent),
+    radial-gradient(1px 1px at 80% 80%, var(--white) 100%, transparent),
+    radial-gradient(2px 2px at 90% 90%, var(--white) 100%, transparent);
   background-size: 500px 500px;
   opacity: 0.3;
   animation: cosmic-drift 200s linear infinite;
@@ -225,15 +225,15 @@ onUnmounted(() => {
   position: absolute;
   inset: 0;
   background-image: 
-    radial-gradient(1px 1px at 15% 15%, #fff 100%, transparent),
-    radial-gradient(1px 1px at 25% 25%, #fff 100%, transparent),
-    radial-gradient(2px 2px at 35% 35%, #fff 100%, transparent),
-    radial-gradient(1px 1px at 45% 45%, #fff 100%, transparent),
-    radial-gradient(1px 1px at 55% 55%, #fff 100%, transparent),
-    radial-gradient(2px 2px at 65% 65%, #fff 100%, transparent),
-    radial-gradient(1px 1px at 75% 75%, #fff 100%, transparent),
-    radial-gradient(1px 1px at 85% 85%, #fff 100%, transparent),
-    radial-gradient(2px 2px at 95% 95%, #fff 100%, transparent);
+    radial-gradient(1px 1px at 15% 15%, var(--white) 100%, transparent),
+    radial-gradient(1px 1px at 25% 25%, var(--white) 100%, transparent),
+    radial-gradient(2px 2px at 35% 35%, var(--white) 100%, transparent),
+    radial-gradient(1px 1px at 45% 45%, var(--white) 100%, transparent),
+    radial-gradient(1px 1px at 55% 55%, var(--white) 100%, transparent),
+    radial-gradient(2px 2px at 65% 65%, var(--white) 100%, transparent),
+    radial-gradient(1px 1px at 75% 75%, var(--white) 100%, transparent),
+    radial-gradient(1px 1px at 85% 85%, var(--white) 100%, transparent),
+    radial-gradient(2px 2px at 95% 95%, var(--white) 100%, transparent);
   background-size: 700px 700px;
   opacity: 0.2;
   animation: cosmic-drift 300s linear infinite reverse;
@@ -243,7 +243,7 @@ onUnmounted(() => {
   position: absolute;
   inset: 0;
   z-index: 2;
-  background: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.6) 80%, #000 100%);
+  background: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.6) 80%, var(--black) 100%);
   mix-blend-mode: multiply;
 }
 
@@ -268,7 +268,7 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   gap: 1rem;
-  color: #00ffff;
+  color: var(--c-cyan);
   font-family: var(--font-mono);
   letter-spacing: 2px;
 }
@@ -276,8 +276,8 @@ onUnmounted(() => {
 .loading-spinner {
   width: 40px;
   height: 40px;
-  border: 2px solid rgba(0, 255, 255, 0.3);
-  border-top-color: #00ffff;
+  border: 2px solid rgba(0, 240, 255, 0.3);
+  border-top-color: var(--c-cyan);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }

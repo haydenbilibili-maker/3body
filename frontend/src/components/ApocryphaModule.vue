@@ -198,7 +198,7 @@ onMounted(loadItems)
 
 .module-title {
   font-family: var(--font-tech);
-  color: var(--holo-green, #00ff41);
+  color: var(--holo-green, var(--holo-green));
   font-size: 1.2rem;
   letter-spacing: 0.1em;
   margin: 0;
@@ -231,7 +231,7 @@ onMounted(loadItems)
 }
 
 .apocrypha-card:hover .card-frame {
-  border-color: var(--holo-green, #00ff41);
+  border-color: var(--holo-green, var(--holo-green));
   box-shadow: 0 0 20px rgba(0, 255, 65, 0.15);
 }
 
@@ -246,7 +246,7 @@ onMounted(loadItems)
   font-size: 0.75rem;
   padding: 0.2rem 0.5rem;
   background: rgba(0, 255, 65, 0.15);
-  color: var(--holo-green, #00ff41);
+  color: var(--holo-green, var(--holo-green));
   border: 1px solid rgba(0, 255, 65, 0.4);
 }
 
@@ -280,8 +280,8 @@ onMounted(loadItems)
 
 .card-action {
   background: transparent;
-  border: 1px solid var(--holo-green, #00ff41);
-  color: var(--holo-green, #00ff41);
+  border: 1px solid var(--holo-green, var(--holo-green));
+  color: var(--holo-green, var(--holo-green));
   font-family: var(--font-tech);
   font-size: 0.75rem;
   padding: 0.3rem 0.6rem;
@@ -311,7 +311,7 @@ onMounted(loadItems)
   width: 90%;
   max-width: 800px;
   height: 80vh;
-  border: 1px solid var(--holo-green, #00ff41);
+  border: 1px solid var(--holo-green, var(--holo-green));
   background: rgba(0, 20, 15, 0.85);
   position: relative;
   overflow: hidden;
@@ -344,7 +344,7 @@ onMounted(loadItems)
 .retina-title {
   font-family: var(--font-tech);
   font-size: 1.25rem;
-  color: var(--holo-green, #00ff41);
+  color: var(--holo-green, var(--holo-green));
   margin: 0 0 0.35rem;
   letter-spacing: 0.05em;
 }
@@ -361,7 +361,7 @@ onMounted(loadItems)
 }
 
 .meta-genre {
-  color: var(--holo-green, #00ff41);
+  color: var(--holo-green, var(--holo-green));
 }
 
 .meta-author {
@@ -380,8 +380,8 @@ onMounted(loadItems)
 }
 
 .retina-close:hover {
-  border-color: var(--holo-green, #00ff41);
-  color: var(--holo-green, #00ff41);
+  border-color: var(--holo-green, var(--holo-green));
+  color: var(--holo-green, var(--holo-green));
 }
 
 .retina-content {
@@ -407,7 +407,7 @@ onMounted(loadItems)
   display: inline-block;
   width: 0.5em;
   height: 1.1em;
-  background: var(--holo-green, #00ff41);
+  background: var(--holo-green, var(--holo-green));
   animation: blink 0.8s step-end infinite;
   vertical-align: text-bottom;
   margin-left: 2px;

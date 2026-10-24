@@ -194,6 +194,8 @@ function toggleMobileMenu() {
     </div>
 
     <!-- 小屏抽屉菜单 -->
+    <!-- 抽屉挂到 body：导航条有 backdrop-filter，会成为 fixed 子元素的包含块，抽屉被压成导航条那么高 -->
+    <Teleport to="body">
     <transition name="drawer">
       <div v-show="mobileMenuOpen" class="nav-drawer-backdrop" @click="mobileMenuOpen = false">
         <aside class="nav-drawer" @click.stop>
@@ -227,6 +229,7 @@ function toggleMobileMenu() {
         </aside>
       </div>
     </transition>
+    </Teleport>
 
     <div class="nav-right">
       <div class="identity-badge" @click="userStore.login('bug')">
@@ -306,7 +309,7 @@ function toggleMobileMenu() {
   background: rgba(255, 255, 255, 0.05);
   border-radius: 4px;
   cursor: pointer;
-  color: #fff;
+  color: var(--white);
   transition: background 0.2s, border-color 0.2s;
 }
 .nav-hamburger:hover {
@@ -353,8 +356,8 @@ function toggleMobileMenu() {
 .sun-1 {
   width: 8px;
   height: 8px;
-  background: #ff4400;
-  color: #ff4400;
+  background: var(--holo-red);
+  color: var(--holo-red);
   top: 0;
   left: 50%;
   animation: orbit-1 4s linear infinite;
@@ -363,8 +366,8 @@ function toggleMobileMenu() {
 .sun-2 {
   width: 6px;
   height: 6px;
-  background: #00ccff;
-  color: #00ccff;
+  background: var(--c-sky);
+  color: var(--c-sky);
   bottom: 0;
   left: 0;
   animation: orbit-2 5s linear infinite;
@@ -373,8 +376,8 @@ function toggleMobileMenu() {
 .sun-3 {
   width: 5px;
   height: 5px;
-  background: #fff;
-  color: #fff;
+  background: var(--white);
+  color: var(--white);
   bottom: 4px;
   right: 0;
   animation: orbit-3 3s linear infinite;
@@ -398,10 +401,10 @@ function toggleMobileMenu() {
 .brand-logo {
   font-family: var(--font-title);
   font-size: 1.4rem;
-  color: #fff;
+  color: var(--white);
   margin: 0;
   letter-spacing: 0.1em;
-  text-shadow: 0 0 10px rgba(0,255,255,0.3);
+  text-shadow: 0 0 10px rgba(0, 240, 255,0.3);
   display: flex;
   align-items: center;
 }
@@ -465,7 +468,7 @@ function toggleMobileMenu() {
   transition: transform 0.3s;
 }
 .nav-single.active .single-indicator { transform: scaleX(1); }
-.nav-single.active .single-label { color: #fff; text-shadow: 0 0 8px rgba(255,255,255,0.5); }
+.nav-single.active .single-label { color: var(--white); text-shadow: 0 0 8px rgba(255,255,255,0.5); }
 .nav-single.active .single-code { color: var(--holo-blue); }
 
 .divider {
@@ -521,7 +524,7 @@ function toggleMobileMenu() {
 
 .nav-group:hover .group-label,
 .nav-group.group-active .group-label {
-  color: #fff;
+  color: var(--white);
   text-shadow: 0 0 8px rgba(255,255,255,0.5);
 }
 
@@ -569,7 +572,7 @@ function toggleMobileMenu() {
 
 .dropdown-item:hover {
   background: rgba(0, 255, 200, 0.05);
-  color: #fff;
+  color: var(--white);
   padding-left: 1.5rem;
 }
 
@@ -665,7 +668,7 @@ function toggleMobileMenu() {
 .drawer-title {
   font-size: 1rem;
   font-weight: 600;
-  color: #fff;
+  color: var(--white);
   letter-spacing: 0.05em;
 }
 .drawer-close {
@@ -683,7 +686,7 @@ function toggleMobileMenu() {
 }
 .drawer-close:hover {
   background: rgba(255, 255, 255, 0.1);
-  color: #fff;
+  color: var(--white);
 }
 .drawer-body {
   flex: 1;
@@ -709,7 +712,7 @@ function toggleMobileMenu() {
 }
 .drawer-item:hover {
   background: rgba(0, 255, 200, 0.06);
-  color: #fff;
+  color: var(--white);
 }
 .drawer-item.active {
   background: rgba(0, 255, 200, 0.1);
@@ -743,8 +746,7 @@ function toggleMobileMenu() {
 /* 导航文字永不折行：宽度不够时横向滚动，而不是把「首页」挤成两行 */
 .single-label, .single-code, .group-label, .group-code { white-space: nowrap; }
 .nav-single, .nav-group { flex-shrink: 0; }
-.nav-center { justify-content: safe center; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
-.nav-center::-webkit-scrollbar { display: none; }
+.nav-center { justify-content: safe center; }
 @media (max-width: 1500px) {
   .nav-single { padding: 0 1rem; }
   .nav-group { padding: 0 0.8rem; }
@@ -756,18 +758,12 @@ function toggleMobileMenu() {
   .tactical-nav { padding: 0 1.25rem; }
   .brand-logo { font-size: 1.2rem; }
   .nav-left { min-width: 140px; gap: 1rem; flex: 0 0 auto; }
+  /* 不能用 overflow 横向滚动：overflow 会把下拉菜单一并裁掉。放不下时改用汉堡菜单（≤1100px） */
   .nav-center {
     gap: 0.35rem;
     flex-wrap: nowrap;
-    overflow-x: auto;
-    overflow-y: hidden;
-    justify-content: flex-start;
     padding: 0 0.25rem;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
   }
-  .nav-center::-webkit-scrollbar { height: 4px; }
-  .nav-center::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 2px; }
   .nav-single { padding: 0 0.9rem; flex-shrink: 0; }
   .single-label { font-size: 0.9rem; }
   .group-label { font-size: 0.82rem; }
@@ -778,7 +774,7 @@ function toggleMobileMenu() {
   .user-name { font-size: 0.55rem; }
 }
 
-@media (max-width: 992px) {
+@media (max-width: 1100px) {
   .tactical-nav { height: 56px; padding: 0 1rem; }
   .brand-logo { font-size: 1.05rem; }
   .brand-logo .brand-x { margin: 0 2px; }

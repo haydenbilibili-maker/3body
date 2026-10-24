@@ -517,7 +517,7 @@ onUnmounted(() => {
 .sector-boundary {
   min-height: 0;
   background: #0a0a12;
-  color: #ccc;
+  color: var(--gray-200);
   font-family: var(--font-serif);
   display: flex;
   flex-direction: column;
@@ -525,13 +525,13 @@ onUnmounted(() => {
 .boundary-header {
   padding: 1.5rem 2rem;
   background: #050508;
-  border-bottom: 1px solid #222;
+  border-bottom: 1px solid var(--gray-800);
   text-align: center;
 }
 .boundary-header h1 { font-size: 2rem; color: #8af; margin: 0; }
-.subtitle { color: #8a8a8a; font-size: 0.9rem; margin-top: 0.5rem; }
+.subtitle { color: var(--gray-400); font-size: 0.9rem; margin-top: 0.5rem; }
 .header-actions { margin-top: 1rem; }
-.cmb-btn { color: #7a7a7a; transition: color 0.3s; }
+.cmb-btn { color: var(--gray-450); transition: color 0.3s; }
 .cmb-btn:hover { color: #d00; }
 .global-controls {
   margin-top: 1rem;
@@ -588,18 +588,18 @@ onUnmounted(() => {
 }
 .boundary-tabs { flex: 1; }
 :deep(.n-tabs-nav) { background: #050508; padding: 0 2rem; }
-:deep(.n-tabs-tab) { color: #8a8a8a !important; }
+:deep(.n-tabs-tab) { color: var(--gray-400) !important; }
 :deep(.n-tabs-tab--active) { color: #8af !important; font-weight: bold; }
 
 .panel {
   max-width: 860px;
   margin: 2rem auto;
   padding: 2rem;
-  border: 1px solid #222;
+  border: 1px solid var(--gray-800);
   background: rgba(255,255,255,0.02);
 }
-.lore { color: #888; line-height: 1.6; margin-bottom: 1.5rem; font-size: 0.95rem; }
-.hint { color: #8a8a8a; font-size: 0.85rem; margin-top: 1rem; }
+.lore { color: var(--gray-400); line-height: 1.6; margin-bottom: 1.5rem; font-size: 0.95rem; }
+.hint { color: var(--gray-400); font-size: 0.85rem; margin-top: 1rem; }
 .metrics {
   margin-bottom: 1rem;
   display: flex;
@@ -624,7 +624,7 @@ onUnmounted(() => {
   position: relative;
   height: 180px;
   background: linear-gradient(180deg, #1a2a1a 0%, #0d150d 100%);
-  border: 1px solid #333;
+  border: 1px solid var(--gray-700);
   margin-bottom: 1.5rem;
 }
 .turkey {
@@ -664,8 +664,8 @@ onUnmounted(() => {
 
 .shooter-viz, .billiard-viz { display: flex; justify-content: center; margin: 1rem 0; }
 .shooter-canvas {
-  border: 1px solid #333;
-  background: #000;
+  border: 1px solid var(--gray-700);
+  background: var(--black);
   width: 100%;
   max-width: 420px;
 }
