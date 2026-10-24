@@ -1,5 +1,4 @@
 <script setup lang="ts">
-// @ts-nocheck
 /**
  * Sector E: 黑暗森林广场 (Dark Forest Square)
  * 宇宙社会学公理 + 猜疑链可视化 + 星际猎人模拟器 + 广播坐标
@@ -14,6 +13,7 @@ import ModuleDiagPanel from '@/components/ModuleDiagPanel.vue'
 import { getGatewayRuntimeStatus } from '@/api/llm_gateway'
 import { seedCivilizations } from '@/sim/zeroDarkForest'
 import type { CivilizationAgent, CosmicEpitaph, WorldlineSnapshot } from '@/types/zero_v2'
+import type { Zippable } from 'fflate'
 
 const message = useMessage()
 const router = useRouter()
@@ -699,7 +699,7 @@ async function exportFullPackage() {
       null,
       2,
     )
-    const zippable: fflate.Zippable = {
+    const zippable: Zippable = {
       'event-stream.json': enc.encode(eventJson),
       'event-stream.csv': enc.encode(eventCsv),
       'session-summary.txt': enc.encode(sessionSummaryText.value),
@@ -741,6 +741,8 @@ const opponentRevealed = ref(false)
 const distance = ref(100)
 const gameLogs = ref<{ text: string; type: string }[]>([])
 const actionIcon = ref('')
+/** 发送问候信号期间，两文明之间的连线点亮（模板此前引用了未定义的变量，连线从不亮起） */
+const communicationActive = computed(() => actionIcon.value === '📡')
 
 function resetGame() {
   gameStatus.value = 'ACTIVE'

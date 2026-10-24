@@ -12,6 +12,19 @@ import path from 'node:path'
 const BASE_URL = process.env.BASE_URL ?? 'http://127.0.0.1:4173/'
 const OUT_DIR = process.env.OUT_DIR ?? 'snapshots'
 const SETTLE_MS = Number(process.env.SETTLE_MS ?? 3000)
+// 页面在 .app-main 内部滚动（外层固定 100vh），整页截图拍不到下方内容，改为分段滚动截图
+const SCROLL_CONTAINER = '.app-main'
+const MAX_SEGMENTS = Number(process.env.MAX_SEGMENTS ?? 4)
+// 单页总时限：某页卡死（如主线程死循环）时跳过它，并以 Actions 注释报告，而不是拖垮整个任务
+const PAGE_TIMEOUT_MS = Number(process.env.PAGE_TIMEOUT_MS ?? 45_000)
+
+function withTimeout(promise, ms, label) {
+  let timer
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`timeout after ${ms}ms: ${label}`)), ms)
+  })
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer))
+}
 
 // 与 frontend/src/router/index.ts 保持一致
 const ROUTES = [
@@ -88,7 +101,11 @@ async function snapshotRoute(browser, viewport, [slug, title]) {
   const metrics = await page
     .evaluate(() => {
       const doc = document.documentElement
-      const overflowX = Math.max(doc.scrollWidth, document.body?.scrollWidth ?? 0) - window.innerWidth
+      const main = document.querySelector('.app-main')
+      const overflowX = Math.max(
+        Math.max(doc.scrollWidth, document.body?.scrollWidth ?? 0) - window.innerWidth,
+        main ? main.scrollWidth - main.clientWidth : 0,
+      )
       // 可见文字中字号小于 12px 的元素数量（可读性）
       let tinyText = 0
       for (const el of document.querySelectorAll('body *')) {
@@ -100,9 +117,30 @@ async function snapshotRoute(browser, viewport, [slug, title]) {
         if (style.visibility === 'hidden' || style.display === 'none' || rect.width === 0) continue
         if (parseFloat(style.fontSize) < 12) tinyText += 1
       }
+      // 溢出元凶：右边缘超出视口、而父元素没有超出的元素（即「第一个撑出屏幕」的元素）
+      const vw = window.innerWidth
+      const describe = (el) =>
+        el.tagName.toLowerCase() +
+        (el.id ? `#${el.id}` : '') +
+        [...el.classList].slice(0, 3).map((c) => `.${c}`).join('')
+      const offenders = []
+      if (overflowX > 0) {
+        for (const el of document.querySelectorAll('.app-main *')) {
+          const r = el.getBoundingClientRect()
+          if (r.width === 0 || r.right <= vw + 1) continue
+          const pr = el.parentElement?.getBoundingClientRect()
+          if (pr && pr.right > vw + 1) continue
+          offenders.push({ right: r.right, text: `${describe(el)} w=${Math.round(r.width)} right=${Math.round(r.right)} (in ${describe(el.parentElement)})` })
+        }
+        // 按右边缘从远到近排序：真正把页面撑宽的元素排在最前（被 overflow:hidden 裁掉的小元素排在后面）
+        offenders.sort((a, b) => b.right - a.right)
+        offenders.splice(5)
+      }
       return {
+        offenders: offenders.map((o) => o.text),
         overflowX: Math.round(overflowX),
-        scrollHeight: doc.scrollHeight,
+        scrollHeight: main ? main.scrollHeight : doc.scrollHeight,
+        viewportHeight: main ? main.clientHeight : window.innerHeight,
         tinyText,
         title: document.title,
         h1: document.querySelector('h1')?.textContent?.trim() ?? null,
@@ -113,9 +151,25 @@ async function snapshotRoute(browser, viewport, [slug, title]) {
 
   const dir = path.join(OUT_DIR, viewport.name)
   await page.screenshot({ path: path.join(dir, `${slug}.jpg`), type: 'jpeg', quality: 70 })
-  await page
-    .screenshot({ path: path.join(dir, `${slug}.full.jpg`), type: 'jpeg', quality: 60, fullPage: true })
-    .catch(() => {})
+  // 分段：把滚动容器依次滚到第 2、3… 屏并截图
+  const segments = Math.min(
+    MAX_SEGMENTS,
+    Math.ceil((metrics.scrollHeight ?? 0) / Math.max(1, metrics.viewportHeight ?? 1)),
+  )
+  for (let i = 1; i < segments; i += 1) {
+    await page
+      .evaluate(
+        ([sel, idx]) => {
+          const el = document.querySelector(sel)
+          if (el) el.scrollTop = idx * el.clientHeight
+          else window.scrollTo(0, idx * window.innerHeight)
+        },
+        [SCROLL_CONTAINER, i],
+      )
+      .catch(() => {})
+    await page.waitForTimeout(500)
+    await page.screenshot({ path: path.join(dir, `${slug}.p${i + 1}.jpg`), type: 'jpeg', quality: 65 }).catch(() => {})
+  }
   await context.close()
 
   return {
@@ -133,11 +187,30 @@ async function snapshotRoute(browser, viewport, [slug, title]) {
 
 async function main() {
   for (const v of VIEWPORTS) await mkdir(path.join(OUT_DIR, v.name), { recursive: true })
-  const browser = await chromium.launch()
+  let browser = await chromium.launch()
   const results = []
   for (const viewport of VIEWPORTS) {
     for (const route of ROUTES) {
-      const r = await snapshotRoute(browser, viewport, route)
+      const started = Date.now()
+      let r
+      try {
+        r = await withTimeout(snapshotRoute(browser, viewport, route), PAGE_TIMEOUT_MS, `${viewport.name}/${route[0]}`)
+      } catch (e) {
+        console.log(`::warning title=snapshot-timeout::${viewport.name}/${route[0]} 超过 ${PAGE_TIMEOUT_MS}ms 未完成（页面可能卡死）`)
+        r = {
+          slug: route[0],
+          title: route[1],
+          viewport: viewport.name,
+          loadMs: Date.now() - started,
+          navError: short(e.message),
+          consoleErrors: [],
+          pageErrors: ['snapshot timeout'],
+          failedRequests: [],
+        }
+        // 卡死页面的上下文可能仍占着浏览器，重启浏览器后继续
+        await withTimeout(browser.close(), 10_000, 'browser.close').catch(() => {})
+        browser = await chromium.launch()
+      }
       results.push(r)
       console.log(
         `[${viewport.name}] ${route[0]} ${r.loadMs}ms overflowX=${r.overflowX} errors=${r.consoleErrors.length + r.pageErrors.length} failed=${r.failedRequests.length}`,
@@ -150,7 +223,9 @@ async function main() {
 
   const rows = results.map(
     (r) =>
-      `| ${r.viewport} | [${r.slug}](${r.viewport}/${r.slug}.jpg) ${r.title} | ${r.overflowX ?? '?'} | ${r.tinyText ?? '?'} | ${
+      `| ${r.viewport} | [${r.slug}](${r.viewport}/${r.slug}.jpg) ${r.title} | ${r.scrollHeight ?? '?'} / ${
+        r.viewportHeight ? (r.scrollHeight / r.viewportHeight).toFixed(1) : '?'
+      } | ${r.overflowX ?? '?'} | ${r.tinyText ?? '?'} | ${
         r.consoleErrors.length + r.pageErrors.length
       } | ${r.failedRequests.length} | ${r.loadMs} |`,
   )
@@ -159,15 +234,23 @@ async function main() {
     '',
     `生成时间：${new Date().toISOString()}　来源：${process.env.GITHUB_SHA ?? 'local'}`,
     '',
-    '| 视口 | 页面 | 横向溢出(px) | <12px 文字 | 报错 | 失败请求 | 耗时(ms) |',
-    '| --- | --- | --- | --- | --- | --- | --- |',
+    '| 视口 | 页面 | 内容高度/屏数 | 横向溢出(px) | <12px 文字 | 报错 | 失败请求 | 耗时(ms) |',
+    '| --- | --- | --- | --- | --- | --- | --- | --- |',
     ...rows,
     '',
   ].join('\n')
   await writeFile(path.join(OUT_DIR, 'README.md'), md)
 
+  for (const r of results) {
+    if ((r.overflowX ?? 0) > 0 && r.offenders?.length) {
+      console.log(`::warning title=overflow::${r.viewport}/${r.slug} +${r.overflowX}px ← ${r.offenders.join(' ; ')}`.slice(0, 900))
+    }
+  }
   const broken = results.filter((r) => r.navError || r.pageErrors.length)
   console.log(`\n共 ${results.length} 张，${broken.length} 页存在未捕获异常或导航失败`)
+  for (const r of broken) {
+    console.log(`::warning title=page-error::${r.viewport}/${r.slug} ${r.navError ?? ''} ${r.pageErrors.join(' | ')}`.slice(0, 900))
+  }
 }
 
 main().catch((e) => {

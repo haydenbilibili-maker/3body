@@ -1,10 +1,17 @@
+"""
+导入初始数据：编年史、档案、百科与人物志。
+
+    python scripts/seed_db.py           # 只填充空表，已有数据（含用户录入）保持不变
+    python scripts/seed_db.py --reset   # 删除并重建所有表后导入（会清空一切用户数据）
+"""
+import argparse
 import asyncio
 import json
 import re
 import sys
 import os
 from pathlib import Path
-from sqlalchemy import text
+from sqlalchemy import func, select, text
 
 # Add project root to sys.path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
@@ -135,23 +142,21 @@ ARCHIVE_DOCS = [
     }
 ]
 
-async def seed():
-    print(">>> Re-creating Database Tables...")
-    # Drop all tables to ensure clean slate
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
-        await conn.run_sync(Base.metadata.create_all)
-    
-    async with AsyncSessionLocal() as db:
-        print(">>> Seeding Chronicle Events (Timeline)...")
-        # 时间之流展示三体宇宙观内的关键事件时间节点，使用 seed_chronicles 中的正典事件
-        from backend.scripts.seed_chronicles import CHRONICLES as SEED_CHRONICLES
-        events = []
-        for item in SEED_CHRONICLES:
-            event_type = (item.get("event_type") or "official").strip().lower()
-            if event_type == "official":
-                event_type = "pgc"
-            event = ChronicleEventORM(
+async def _has_rows(db, model) -> bool:
+    return (await db.execute(select(func.count()).select_from(model))).scalar_one() > 0
+
+
+def build_events() -> list:
+    """时间之流展示三体宇宙观内的关键事件时间节点，使用 seed_chronicles 中的正典事件."""
+    from backend.scripts.seed_chronicles import CHRONICLES as SEED_CHRONICLES
+
+    events = []
+    for item in SEED_CHRONICLES:
+        event_type = (item.get("event_type") or "official").strip().lower()
+        if event_type == "official":
+            event_type = "pgc"
+        events.append(
+            ChronicleEventORM(
                 era=item["era"],
                 year=item["year"],
                 title=item["title"],
@@ -161,65 +166,91 @@ async def seed():
                 event_type=event_type,
                 causality_status=CAUSALITY_COLLAPSED,
             )
-            events.append(event)
-        db.add_all(events)
-        print(f"    Added {len(events)} events (3body key timeline).")
+        )
+    return events
 
-        print(">>> Seeding Archive Documents...")
-        docs = [ArchiveDocumentORM(**doc) for doc in ARCHIVE_DOCS]
-        db.add_all(docs)
-        print(f"    Added {len(docs)} documents.")
 
-        print(">>> Seeding Wiki Entries (Backup for /wiki)...")
-        if ENCYCLOPEDIA_FILE.exists():
-            with open(ENCYCLOPEDIA_FILE, "r", encoding="utf-8") as f:
-                wiki_data = json.load(f)
-            
-            wiki_entries = []
-            for w in wiki_data:
-                entry = WikiEntryORM(
-                    term=w.get("term", ""),
-                    category=w.get("category", "Theory"),
-                    summary=w.get("definition", "")[:500],
-                    content_markdown=w.get("explanation", ""),
-                    visual_effect="glitch" if w.get("category") == "Weapon" else None
-                )
-                wiki_entries.append(entry)
-            db.add_all(wiki_entries)
-            print(f"    Added {len(wiki_entries)} wiki entries.")
+def build_docs() -> list:
+    return [ArchiveDocumentORM(**doc) for doc in ARCHIVE_DOCS]
 
-        print(">>> Seeding Figures (人物志)...")
-        try:
-            from backend.scripts.seed_figures import FIGURES, FIGURES_EXTRA, _merge_figure_extra, get_figure_avatar_url
-            figure_rows = []
-            for data in FIGURES:
-                row_data = dict(data)
-                row_data["image_url"] = get_figure_avatar_url(row_data)
-                _merge_figure_extra(row_data)
-                row = FigureORM(
-                    name=row_data["name"],
-                    en_name=row_data.get("en_name"),
-                    role=row_data.get("role", "未知"),
-                    era=row_data.get("era", "未知"),
-                    status=row_data.get("status", "active"),
-                    description=row_data.get("description", ""),
-                    image_url=row_data.get("image_url"),
-                    quotes=row_data.get("quotes"),
-                    logic_score=float(row_data.get("logic_score", 0.5)),
-                    metrics=row_data.get("metrics"),
-                    key_events=row_data.get("key_events"),
-                    key_decisions=row_data.get("key_decisions"),
-                    relationships=row_data.get("relationships"),
-                    key_quotes=row_data.get("key_quotes"),
-                )
-                figure_rows.append(row)
-            db.add_all(figure_rows)
-            print(f"    Added {len(figure_rows)} figures.")
-        except Exception as e:
-            print(f"    Figures seed failed: {e}")
-        
+
+def build_wiki() -> list:
+    if not ENCYCLOPEDIA_FILE.exists():
+        return []
+    with open(ENCYCLOPEDIA_FILE, "r", encoding="utf-8") as f:
+        wiki_data = json.load(f)
+    return [
+        WikiEntryORM(
+            term=w.get("term", ""),
+            category=w.get("category", "Theory"),
+            summary=w.get("definition", "")[:500],
+            content_markdown=w.get("explanation", ""),
+            visual_effect="glitch" if w.get("category") == "Weapon" else None,
+        )
+        for w in wiki_data
+    ]
+
+
+def build_figures() -> list:
+    from backend.scripts.seed_figures import FIGURES, _merge_figure_extra, get_figure_avatar_url
+
+    rows = []
+    for data in FIGURES:
+        row_data = dict(data)
+        row_data["image_url"] = get_figure_avatar_url(row_data)
+        _merge_figure_extra(row_data)
+        rows.append(
+            FigureORM(
+                name=row_data["name"],
+                en_name=row_data.get("en_name"),
+                role=row_data.get("role", "未知"),
+                era=row_data.get("era", "未知"),
+                status=row_data.get("status", "active"),
+                description=row_data.get("description", ""),
+                image_url=row_data.get("image_url"),
+                quotes=row_data.get("quotes"),
+                logic_score=float(row_data.get("logic_score", 0.5)),
+                metrics=row_data.get("metrics"),
+                key_events=row_data.get("key_events"),
+                key_decisions=row_data.get("key_decisions"),
+                relationships=row_data.get("relationships"),
+                key_quotes=row_data.get("key_quotes"),
+            )
+        )
+    return rows
+
+
+SECTIONS = [
+    ("编年史事件", ChronicleEventORM, build_events),
+    ("档案文件", ArchiveDocumentORM, build_docs),
+    ("百科词条", WikiEntryORM, build_wiki),
+    ("人物志", FigureORM, build_figures),
+]
+
+
+async def seed(reset: bool = False) -> None:
+    if reset:
+        print(">>> --reset：删除并重建所有表（用户数据将被清空）")
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+            await conn.run_sync(Base.metadata.create_all)
+    else:
+        await init_db()
+
+    async with AsyncSessionLocal() as db:
+        for label, model, build in SECTIONS:
+            if await _has_rows(db, model):
+                print(f">>> 跳过{label}：表中已有数据（需要重置请加 --reset）")
+                continue
+            rows = build()
+            db.add_all(rows)
+            print(f">>> 导入{label}：{len(rows)} 条")
         await db.commit()
-        print(">>> Seed Complete.")
+    await engine.dispose()
+    print(">>> 完成")
+
 
 if __name__ == "__main__":
-    asyncio.run(seed())
+    parser = argparse.ArgumentParser(description="导入三体初始数据")
+    parser.add_argument("--reset", action="store_true", help="删除并重建所有表后导入（清空用户数据）")
+    asyncio.run(seed(reset=parser.parse_args().reset))

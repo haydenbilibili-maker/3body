@@ -1,5 +1,4 @@
 <script setup lang="ts">
-// @ts-nocheck
 /**
  * 人物关系星图 (Constellation Network)
  * 以「星图/星座」形式展示人物关系网络：节点为人物，边为关系，力导向布局 + 悬停高亮路径
@@ -163,7 +162,7 @@ function runSimulation() {
   zoomBehavior = d3
     .zoom<SVGSVGElement, unknown>()
     .scaleExtent([0.2, 4])
-    .on('zoom', (ev: { transform: unknown }) => g.attr('transform', ev.transform))
+    .on('zoom', (ev: d3.D3ZoomEvent<SVGSVGElement, unknown>) => g.attr('transform', ev.transform.toString()))
   svgEl.call(zoomBehavior)
 
   // 边
@@ -195,7 +194,7 @@ function runSimulation() {
   const node = g
     .append('g')
     .attr('class', 'nodes')
-    .selectAll('g')
+    .selectAll<SVGGElement, GraphNode>('g')
     .data(nodesCopy)
     .join('g')
     .attr('cursor', 'pointer')
@@ -284,7 +283,7 @@ function runSimulation() {
   node.on('mouseleave', function (ev: MouseEvent) {
     hoveredNodeId.value = null
     const gEl = ev.currentTarget as SVGGElement
-    d3.select(gEl).select('.node-glow').attr('stroke', (d: GraphNode) =>
+    d3.select<SVGGElement, GraphNode>(gEl).select<SVGElement>('.node-glow').attr('stroke', (d) =>
       d.figure ? 'rgba(0,255,255,0.4)' : 'rgba(255,180,0,0.25)'
     )
     d3.select(gEl).select('.node-dot').attr('stroke-width', 1.5)
