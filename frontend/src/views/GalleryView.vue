@@ -1,654 +1,279 @@
 <script setup lang="ts">
 /**
- * Sector D: Dual Vector Foil (二向箔 / 画廊)
- * 核心：降维滤镜 (2D Filter) & 冥王星的雪 (Snow of Pluto)
- * 风格：油画质感、金色与深蓝漩涡 (Van Gogh Style)
- * 优化：全面汉化
+ * Sector D：二向箔画廊
+ * 选一件展品（或上传一张图），按住让它跌入二维：它的每一层都摊开在同一个平面上，首尾相接排成一条没有厚度的画。
+ * 然后是冥王星上看到的那一幕：太阳系变成了一幅画。
+ * 逻辑见 sim/flatten.ts。
  */
-import { ref, onMounted, onUnmounted, reactive } from 'vue'
-import { NTabs, NTabPane, NUpload, NButton, useMessage, NGrid, NGridItem } from 'naive-ui'
+import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
+import SectorHeader from '@/components/SectorHeader.vue'
+import Vitrine from '@/components/Vitrine.vue'
+import HoldButton from '@/components/HoldButton.vue'
+import { sectorByPath } from '@/data/sectors'
+import { LAYERS, SPECIMENS, flatExtent, slices, type SpecimenId } from '@/sim/flatten'
 
-const message = useMessage()
-const activeTab = ref('filter')
+const question = sectorByPath('/sector-d')?.question
+const SIZE = 240
 
-// --- Tab 1: Dimensional Strike (2D Filter) ---
-const imageUrl = ref<string | null>(null)
-const isFlattening = ref(false)
-const flattenProgress = ref(0)
-const turbulenceFreq = ref(0.01) // SVG Filter 动态参数
-
-const filterSettings = reactive({
-  flatness: 0,
-  contrast: 100,
-  saturation: 100,
-  sepia: 0,
-  hueRotate: 0
-})
-
-function handleFileUpload(file: File) {
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    imageUrl.value = e.target?.result as string
-    resetFilter()
+/* ---------- 展品：用画布现画，不依赖外部图片 ---------- */
+function paint(id: SpecimenId): string {
+  const c = document.createElement('canvas')
+  c.width = c.height = SIZE * 2
+  const g = c.getContext('2d')!
+  g.scale(2, 2)
+  g.fillStyle = '#0d0e10'
+  g.fillRect(0, 0, SIZE, SIZE)
+  for (let i = 0; i < 60; i++) {
+    g.fillStyle = `rgba(220, 214, 200, ${0.2 + ((i * 37) % 10) / 20})`
+    g.fillRect((i * 97) % SIZE, (i * 53) % SIZE, 1, 1)
   }
-  reader.readAsDataURL(file)
-  return false 
-}
-
-function resetFilter() {
-  flattenProgress.value = 0
-  isFlattening.value = false
-  turbulenceFreq.value = 0.01
-  filterSettings.flatness = 0
-  filterSettings.contrast = 100
-  filterSettings.saturation = 100
-  filterSettings.sepia = 0
-  filterSettings.hueRotate = 0
-}
-
-function startStrike() {
-  if (!imageUrl.value) return
-  isFlattening.value = true
-  flattenProgress.value = 0
-  
-  const interval = setInterval(() => {
-    flattenProgress.value += 0.5 
-    const p = flattenProgress.value
-
-    filterSettings.flatness = p
-    filterSettings.contrast = 100 + p * 2 
-    filterSettings.saturation = 100 + p * 1.5 
-    filterSettings.sepia = p * 0.3 
-    filterSettings.hueRotate = p * 0.5 
-    
-    turbulenceFreq.value = 0.01 + (p / 2000) 
-    
-    if (flattenProgress.value >= 100) {
-      clearInterval(interval)
-      message.success('降维打击完成。对象已跌落至二维。')
-      turbulenceFreq.value = 0 
+  const cx = SIZE / 2
+  if (id === 'earth') {
+    const grd = g.createRadialGradient(cx - 30, cx - 30, 10, cx, cx, 80)
+    grd.addColorStop(0, '#6fa3d8')
+    grd.addColorStop(1, '#1d3c66')
+    g.fillStyle = grd
+    g.beginPath()
+    g.arc(cx, cx, 80, 0, Math.PI * 2)
+    g.fill()
+    g.fillStyle = '#5f8a4f'
+    for (const [x, y, r] of [[-25, -20, 28], [20, 15, 22], [35, -35, 14], [-30, 40, 16]]) {
+      g.beginPath()
+      g.ellipse(cx + x, cx + y, r, r * 0.7, 0.6, 0, Math.PI * 2)
+      g.fill()
     }
-  }, 30)
-}
-
-// --- Tab 2: Snow of Pluto (Scene) ---
-const canvasRef = ref<HTMLCanvasElement | null>(null)
-let snowAnimId: number
-
-function initSnow() {
-  const canvas = canvasRef.value
-  if (!canvas) return
-  const ctx = canvas.getContext('2d')
-  if (!ctx) return
-  
-  canvas.width = window.innerWidth
-  canvas.height = window.innerHeight * 0.8
-  
-  const particles: { x: number, y: number, r: number, d: number, color: string }[] = []
-  for (let i = 0; i < 300; i++) {
-    particles.push({
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
-      r: Math.random() * 2 + 0.5,
-      d: Math.random() * 20 + 10,
-      color: Math.random() > 0.9 ? '#ffd700' : '#ffffff' 
-    })
-  }
-  
-  function draw() {
-    if (!canvas || !ctx) return
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
-    
-    const grd = ctx.createLinearGradient(0, 0, 0, canvas.height)
-    grd.addColorStop(0, '#020210')
-    grd.addColorStop(1, '#000000')
-    ctx.fillStyle = grd
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
-    
-    for (const p of particles) {
-      ctx.beginPath()
-      ctx.fillStyle = p.color
-      ctx.shadowBlur = p.color === '#ffd700' ? 10 : 0
-      ctx.shadowColor = '#ffd700'
-      ctx.moveTo(p.x, p.y)
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2, true)
-      ctx.fill()
+    g.strokeStyle = 'rgba(255,255,255,0.55)'
+    g.lineWidth = 4
+    for (let k = 0; k < 4; k++) {
+      g.beginPath()
+      g.arc(cx, cx, 60 - k * 12, k, k + 1.6)
+      g.stroke()
     }
-    
-    for (const p of particles) {
-      p.y += Math.cos(p.d) + 1 + p.r / 2
-      p.x += Math.sin(p.d) * 0.5 
-      
-      if (p.x > canvas.width + 5 || p.x < -5 || p.y > canvas.height) {
-        if (Math.random() > 0.3) {
-          p.x = Math.random() * canvas.width
-          p.y = -10
-        } else {
-          p.x = Math.random() > 0.5 ? -5 : canvas.width + 5
-          p.y = Math.random() * canvas.height
-        }
-      }
+  } else if (id === 'saturn') {
+    g.strokeStyle = '#a8916a'
+    g.lineWidth = 10
+    g.beginPath()
+    g.ellipse(cx, cx, 105, 28, -0.3, Math.PI, Math.PI * 2)
+    g.stroke()
+    const grd = g.createLinearGradient(0, cx - 60, 0, cx + 60)
+    grd.addColorStop(0, '#e3cd9b')
+    grd.addColorStop(0.5, '#c09a5e')
+    grd.addColorStop(1, '#8a6a3c')
+    g.fillStyle = grd
+    g.beginPath()
+    g.arc(cx, cx, 60, 0, Math.PI * 2)
+    g.fill()
+    g.beginPath()
+    g.ellipse(cx, cx, 105, 28, -0.3, 0, Math.PI)
+    g.stroke()
+  } else {
+    g.strokeStyle = '#9a9588'
+    g.lineWidth = 3
+    g.beginPath()
+    g.arc(cx, cx, 90, 0, Math.PI * 2)
+    g.stroke()
+    for (let k = 0; k < 8; k++) {
+      const a = (k / 8) * Math.PI * 2
+      g.beginPath()
+      g.moveTo(cx, cx)
+      g.lineTo(cx + Math.cos(a) * 90, cx + Math.sin(a) * 90)
+      g.stroke()
     }
-    
-    snowAnimId = requestAnimationFrame(draw)
+    g.fillStyle = '#d8b56a'
+    for (let k = 0; k < 40; k++) {
+      const a = (k / 40) * Math.PI * 2
+      g.fillRect(cx + Math.cos(a) * 82 - 2, cx + Math.sin(a) * 82 - 2, 4, 4)
+    }
+    g.fillStyle = '#3a3c41'
+    g.beginPath()
+    g.arc(cx, cx, 18, 0, Math.PI * 2)
+    g.fill()
   }
-  draw()
+  return c.toDataURL('image/png')
 }
 
-function handleTabUpdate(v: string | number) {
-  if (String(v) === 'pluto') {
-    window.setTimeout(initSnow, 100)
-  }
-}
-
+const specimen = ref<SpecimenId | 'upload'>('earth')
+const images = ref<Record<string, string>>({})
+const src = computed(() => images.value[specimen.value] ?? '')
 onMounted(() => {
-  if (activeTab.value === 'pluto') initSnow()
+  for (const s of SPECIMENS) images.value[s.id] = paint(s.id)
 })
 
-onUnmounted(() => {
-  cancelAnimationFrame(snowAnimId)
-})
+const fileInput = ref<HTMLInputElement | null>(null)
+function onFile(e: Event) {
+  const f = (e.target as HTMLInputElement).files?.[0]
+  if (!f) return
+  const reader = new FileReader()
+  reader.onload = () => {
+    images.value = { ...images.value, upload: String(reader.result) }
+    choose('upload')
+  }
+  reader.readAsDataURL(f)
+}
 
-// --- Tab 3: Gallery (Collection) ---
-const fallenWorks = [
-  { id: 1, title: '星月夜', era: '公元 1889', desc: '危机前艺术', color: 'linear-gradient(135deg, #1a237e, #fdd835)' },
-  { id: 2, title: '呐喊', era: '公元 1893', desc: '早期焦虑', color: 'linear-gradient(135deg, #e65100, #3e2723)' },
-  { id: 3, title: '太阳系防御阵列', era: '掩体纪元', desc: '掩体主体结构', color: 'linear-gradient(135deg, #000000, #424242)' },
-  { id: 4, title: '蓝色空间号', era: '银河纪元', desc: '战舰残骸', color: 'linear-gradient(135deg, #0d47a1, #00acc1)' },
-]
+/* ---------- 跌落 ---------- */
+const flat = ref(false)
+const done = ref(false)
+const stage = ref<HTMLElement | null>(null)
+const layers = computed(() => slices(SIZE, flat.value))
+const extent = flatExtent(SIZE)
+let doneTimer: ReturnType<typeof setTimeout> | undefined
+
+function choose(id: SpecimenId | 'upload') {
+  specimen.value = id
+  flat.value = false
+  done.value = false
+}
+function fall() {
+  flat.value = true
+  clearTimeout(doneTimer)
+  doneTimer = setTimeout(async () => {
+    done.value = true
+    await nextTick()
+    stage.value?.scrollTo({ left: 0 })
+  }, 2400 + LAYERS * 80)
+}
+onUnmounted(() => clearTimeout(doneTimer))
+
+function nameOf(id: SpecimenId | 'upload') {
+  return id === 'upload' ? '你的图像' : (SPECIMENS.find((s) => s.id === id)?.name ?? '')
+}
 </script>
 
 <template>
   <div class="sector-d">
-    <div class="header">
-      <div class="header-content">
-        <h1 class="title">SECTOR D // DUAL VECTOR FOIL</h1>
-        <div class="deco-line"></div>
-        <p class="subtitle">二向箔 · 画廊 · 冥王星的雪</p>
+    <SectorHeader
+      title="二向箔画廊"
+      subtitle="一张小纸条，接触到什么，什么就开始向二维跌落。跌下去的一切，都被画进了同一幅画里。"
+      goal="选一件展品，按住让它跌入二维，看它的每一层怎样摊开在同一个平面上。"
+      accent="#c9b48a"
+    />
+
+    <div class="studio">
+      <div class="picker" role="radiogroup" aria-label="展品">
+        <button
+          v-for="s in SPECIMENS"
+          :key="s.id"
+          type="button"
+          role="radio"
+          :aria-checked="specimen === s.id"
+          :class="{ on: specimen === s.id }"
+          @click="choose(s.id)"
+        >{{ s.name }}</button>
+        <button type="button" :class="{ on: specimen === 'upload' }" @click="fileInput?.click()">上传一张图</button>
+        <input ref="fileInput" type="file" accept="image/*" hidden @change="onFile" />
+      </div>
+
+      <Vitrine flush>
+        <div ref="stage" class="stage" :class="{ flat }">
+          <div class="frame" :style="{ width: (flat ? extent.width : SIZE) + 'px', height: SIZE + 'px' }">
+            <span
+              v-for="(l, i) in layers"
+              :key="i"
+              class="layer"
+              :style="{
+                width: SIZE + 'px',
+                height: SIZE / LAYERS + 'px',
+                backgroundImage: src ? `url(${src})` : 'none',
+                backgroundSize: `${SIZE}px ${SIZE}px`,
+                backgroundPosition: `0 -${l.srcY}px`,
+                transform: flat
+                  ? `translate(${l.x}px, ${SIZE / 2 - (SIZE / LAYERS) * 2}px) scaleY(4)`
+                  : `translate(${l.x}px, ${l.y}px)`,
+                transitionDelay: flat ? i * 80 + 'ms' : '0ms',
+              }"
+            ></span>
+            <span v-if="flat" class="plane" aria-hidden="true"></span>
+          </div>
+        </div>
+        <template #caption>
+          <span v-if="!flat">{{ nameOf(specimen) }}：三维，厚度 {{ SIZE }}，被切成 {{ LAYERS }} 层只是为了让你看清它怎样摊开。</span>
+          <span v-else-if="!done">正在跌落……</span>
+          <span v-else>{{ nameOf(specimen) }}：二维，厚度 0。它的每一层都在这里，并排躺着，再也不会重叠。左右拖动可以看完整幅画。</span>
+        </template>
+      </Vitrine>
+
+      <div class="act">
+        <HoldButton v-if="!flat" tone="rust" :hold-ms="1800" :disabled="!src" @confirm="fall">按住，让它跌入二维</HoldButton>
+        <button v-else-if="done" type="button" class="plain-btn" @click="choose(specimen)">换一件展品</button>
       </div>
     </div>
 
-    <NTabs 
-      v-model:value="activeTab" 
-      type="line" 
-      animated
-      class="d-tabs" 
-      @update:value="handleTabUpdate"
-    >
-      <!-- Tab 1: Dimensional Strike -->
-      <NTabPane name="filter" tab="降维打击 (DIMENSIONAL STRIKE)">
-        <div class="filter-studio">
-          <div class="studio-main">
-            <div class="canvas-frame">
-              <div 
-                class="image-preview" 
-                :class="{ 'is-flat': flattenProgress >= 100 }"
-                :style="{ 
-                  backgroundImage: imageUrl ? `url(${imageUrl})` : 'none',
-                  filter: `
-                    contrast(${filterSettings.contrast}%) 
-                    saturate(${filterSettings.saturation}%) 
-                    sepia(${filterSettings.sepia}%)
-                    hue-rotate(${filterSettings.hueRotate}deg)
-                  `
-                }"
-              >
-                <div v-if="!imageUrl" class="upload-area">
-                  <div class="upload-cta">
-                    <div class="upload-icon" aria-hidden="true">↑</div>
-                    <p class="upload-hint">选择一张三维图像，<br />启动降维打击</p>
-                    <NUpload :show-file-list="false" @before-upload="data => handleFileUpload(data.file.file as File)">
-                      <NButton color="#d4af37" ghost round class="upload-btn">上传图像</NButton>
-                    </NUpload>
-                    <span class="upload-sub">支持 JPG、PNG</span>
-                  </div>
-                </div>
-
-                <!-- 降维扫描线 -->
-                <div v-if="isFlattening && flattenProgress < 100" class="scan-line" :style="{ top: `${100 - flattenProgress}%` }"></div>
-                
-                <!-- SVG Filter -->
-                <svg v-if="imageUrl" class="filter-svg">
-                  <filter id="distortion">
-                    <feTurbulence type="turbulence" :baseFrequency="turbulenceFreq" numOctaves="2" result="noise" />
-                    <feDisplacementMap in="SourceGraphic" in2="noise" :scale="filterSettings.flatness * 0.5" />
-                  </filter>
-                </svg>
-              </div>
-              
-              <!-- 覆盖层 -->
-              <div 
-                v-if="imageUrl"
-                class="filter-overlay"
-                :style="{ 
-                  backgroundImage: `url(${imageUrl})`,
-                  filter: 'url(#distortion)',
-                  opacity: flattenProgress > 0 ? 1 : 0
-                }"
-              ></div>
-            </div>
-            
-            <div class="controls-panel">
-              <div class="monitor-screen">
-                <div class="monitor-row">
-                  <span>维度 / DIMENSION</span>
-                  <span class="monitor-val">{{ isFlattening ? (3 - flattenProgress * 0.01).toFixed(4) : '3.0000' }}</span>
-                </div>
-                <div class="monitor-row">
-                  <span>逃逸速度 / V-ESCAPE</span>
-                  <span class="monitor-val">{{ isFlattening ? (flattenProgress > 50 ? '∞ (光速不可逃逸)' : '299,792 km/s') : '16.7 km/s' }}</span>
-                </div>
-                <div class="monitor-row">
-                  <span>熵值 / ENTROPY</span>
-                  <span class="monitor-val">{{ (flattenProgress * 8.5).toFixed(1) }} J/K</span>
-                </div>
-                <div class="monitor-bar">
-                  <div class="monitor-fill" :style="{ width: `${flattenProgress}%` }"></div>
-                </div>
-              </div>
-
-              <NButton 
-                class="strike-btn"
-                :type="isFlattening ? 'default' : 'warning'"
-                :loading="isFlattening && flattenProgress < 100"
-                :disabled="!imageUrl || (isFlattening && flattenProgress < 100)"
-                block
-                size="large"
-                @click="startStrike"
-              >
-                {{ flattenProgress >= 100 ? '重置目标 (RESET)' : (isFlattening ? '降维中 (FLATTENING)...' : '启动降维打击 (INITIATE STRIKE)') }}
-              </NButton>
-              
-              <div class="lore-box" v-if="flattenProgress >= 100">
-                <p>"针眼画师...... 把这个世界画进画里。"</p>
-              </div>
-            </div>
-          </div>
+    <transition name="fade">
+      <section v-if="done" class="pluto">
+        <h2 class="p-title">冥王星上看到的</h2>
+        <p>二向箔到来的时候，程心和艾 AA 在冥王星上。她们看着太阳跌进平面，摊开成一片巨大的、有着同心环纹的光；地球、木星、土星一颗接一颗落下去，在那个平面上展开它们的全部结构，没有一处被遮挡。</p>
+        <p>那是一幅画，像极了梵高的《星空》。太阳系所有的历史、城市和人，都在这幅画里，一笔也不少，只是永远没有了厚度。</p>
+        <p>冥王星上的地球文明博物馆，是人类留下的最后一件三维的东西。</p>
+        <p class="q">{{ question }}</p>
+        <div class="links">
+          <RouterLink to="/sector-j" class="plain-btn">躲在阴影里的人：掩体</RouterLink>
+          <RouterLink to="/sector-tomb" class="plain-btn">博物馆里的留言：文明墓碑</RouterLink>
         </div>
-      </NTabPane>
-
-      <!-- Tab 2: Gallery Collection -->
-      <NTabPane name="collection" tab="沉没的画廊 (FALLEN GALLERY)">
-        <div class="gallery-hall">
-          <div class="gallery-intro">
-            <h2>二维世界收藏</h2>
-            <p>这里收藏着那些已经被二维化的文明碎片。它们永远静止在绝对平面中，虽然失去了厚度，却获得了永恒。</p>
-          </div>
-          <NGrid x-gap="24" y-gap="24" cols="1 s:2 m:4" responsive="screen">
-            <NGridItem v-for="work in fallenWorks" :key="work.id">
-              <div class="art-frame">
-                <div class="art-canvas" :style="{ background: work.color }">
-                  <div class="art-glitch"></div>
-                </div>
-                <div class="art-info">
-                  <div class="art-title">{{ work.title }}</div>
-                  <div class="art-meta">{{ work.era }} // {{ work.desc }}</div>
-                </div>
-              </div>
-            </NGridItem>
-          </NGrid>
-        </div>
-      </NTabPane>
-
-      <!-- Tab 3: Snow of Pluto -->
-      <NTabPane name="pluto" tab="冥王星的雪 (SNOW OF PLUTO)">
-        <div class="pluto-scene">
-          <canvas ref="canvasRef" class="snow-canvas"></canvas>
-          <div class="scene-overlay">
-            <div class="dialogue-card">
-              <div class="dialogue-lines">
-                <p class="line">"像，太像了……"</p>
-                <p class="line">"像什么？"</p>
-                <p class="line highlight">"像梵高的《星月夜》。"</p>
-              </div>
-              <div class="dialogue-desc">
-                当三维世界向二维跌落时，释放出的巨大能量将一切物质解构重组。<br>
-                在冥王星的雪原上，罗辑和庄颜看到了一幅横跨太阳系的宏大油画。<br>
-                那是文明最后的挽歌。
-              </div>
-            </div>
-          </div>
-        </div>
-      </NTabPane>
-
-    </NTabs>
+      </section>
+    </transition>
   </div>
 </template>
 
 <style scoped>
-.sector-d {
-  min-height: 0;
-  background: #050510;
-  color: #e0d0a0;
-  font-family: var(--font-title-classic);
-  display: flex;
-  flex-direction: column;
-}
+.sector-d { padding: 2rem clamp(1rem, 4vw, 3rem) 3rem; max-width: 76rem; }
 
-.header {
-  padding: 1.5rem 2rem;
-  background: radial-gradient(circle at center, #1a1a2e 0%, #050510 100%);
-  border-bottom: 1px solid var(--gray-700);
-  text-align: center;
+.picker { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
+.picker button {
+  padding: 0.45rem 1rem;
+  font: inherit;
+  font-size: 0.9375rem;
+  color: var(--weathered);
+  background: transparent;
+  border: 1px solid var(--incision);
+  border-radius: 2px;
+  cursor: pointer;
 }
+.picker button.on { color: var(--bone); border-color: var(--bone); }
 
-.title {
-  font-family: var(--font-title-classic);
-  font-size: 2rem;
-  color: var(--c-gold);
-  letter-spacing: 0.2em;
-  text-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
-  margin: 0;
-}
-
-.deco-line {
-  width: 60px;
-  height: 2px;
-  background: var(--c-gold);
-  margin: 0.5rem auto;
-}
-
-.subtitle {
-  color: #8899aa;
-  font-family: var(--font-sans);
-  letter-spacing: 0.1em;
-  font-size: 0.9rem;
-}
-
-.d-tabs {
-  flex: 1;
-}
-
-:deep(.n-tabs-nav) {
-  background: rgba(10, 10, 20, 0.95);
-  padding: 0 2rem;
-}
-
-:deep(.n-tabs-tab-wrapper) {
-  flex: 1;
-  justify-content: center;
-}
-
-:deep(.n-tabs-tab__label) {
-  font-family: var(--font-sans);
-  letter-spacing: 0.1em;
-  font-weight: 600;
-  font-size: 1rem;
-}
-
-/* Studio & Strike */
-.filter-studio {
-  padding: 2rem;
-  display: flex;
-  justify-content: center;
-  min-height: 600px;
-}
-
-.studio-main {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-  width: 100%;
-  max-width: 500px;
-}
-
-.canvas-frame {
-  position: relative;
-  aspect-ratio: 1/1;
-  background: var(--black);
-  border: 12px solid var(--gray-850);
-  box-shadow: 0 0 40px rgba(0,0,0,0.6);
-  overflow: hidden;
-}
-
-.image-preview {
-  width: 100%;
-  height: 100%;
-  background-size: cover;
-  background-position: center;
-  transition: filter 0.1s;
-}
-
-.filter-overlay {
+.stage { position: relative; height: 20rem; overflow-x: auto; overflow-y: hidden; background: #0d0e10; display: flex; align-items: center; padding: 0 2rem; }
+.stage:not(.flat) { justify-content: center; }
+.frame { position: relative; flex: none; transition: width 0.1s; }
+.layer {
   position: absolute;
-  inset: 0;
-  background-size: cover;
-  background-position: center;
-  pointer-events: none;
-  mix-blend-mode: hard-light;
+  left: 0;
+  top: 0;
+  background-repeat: no-repeat;
+  transform-origin: 0 0;
+  transition: transform 2.4s cubic-bezier(0.6, 0, 0.2, 1), filter 2.4s;
 }
+.flat .layer { filter: saturate(1.35) contrast(1.1); }
+.plane { position: absolute; left: -2rem; right: -2rem; top: 50%; height: 1px; background: rgba(201, 180, 138, 0.35); }
 
-.upload-area {
-  position: absolute;
-  inset: 0;
-  display: flex;
+.act { margin-top: 1rem; min-height: 2.75rem; }
+
+.pluto { max-width: 44rem; margin-top: 2.5rem; }
+.p-title { margin: 0 0 1rem; font-family: var(--font-serif); font-weight: 900; font-size: 1.5rem; letter-spacing: 0.1em; color: var(--bone); }
+.pluto p { margin: 0 0 1rem; font-family: var(--font-serif); font-size: 1.0625rem; line-height: 1.95; color: var(--gray-150); }
+.pluto .q { margin-top: 1.5rem; padding-left: 1rem; border-left: 1px solid #c9b48a; color: var(--bone); }
+.links { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.25rem; }
+
+.plain-btn {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  background: rgba(15, 15, 25, 0.9);
+  padding: 0.6rem 1.2rem;
+  font: inherit;
+  font-size: 0.9375rem;
+  color: var(--bone);
+  background: transparent;
+  border: 1px solid var(--incision);
+  border-radius: 2px;
+  cursor: pointer;
+  text-decoration: none;
 }
+.plain-btn:hover { border-color: var(--weathered); }
+.fade-enter-active { transition: opacity 1s; }
+.fade-enter-from { opacity: 0; }
 
-.upload-cta {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  padding: 2rem;
-  text-align: center;
-  max-width: 280px;
+@media (prefers-reduced-motion: reduce) {
+  .layer { transition-duration: 0.01s; }
 }
-
-.upload-icon {
-  width: 56px;
-  height: 56px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.75rem;
-  color: rgba(212, 175, 55, 0.6);
-  border: 2px dashed rgba(212, 175, 55, 0.4);
-  border-radius: 50%;
-  margin-bottom: 0.25rem;
-}
-
-.upload-hint {
-  margin: 0;
-  font-size: 0.95rem;
-  color: var(--gray-400);
-  line-height: 1.4;
-}
-
-.upload-btn {
-  margin-top: 0.5rem;
-  min-width: 140px;
-}
-
-.upload-sub {
-  font-size: 0.75rem;
-  color: var(--gray-400);
-}
-
-.scan-line {
-  position: absolute;
-  left: 0; right: 0;
-  height: 2px;
-  background: var(--white);
-  box-shadow: 0 0 10px var(--white), 0 0 20px var(--c-cyan);
-  z-index: 10;
-}
-
-.filter-svg {
-  position: absolute;
-  width: 0; height: 0;
-}
-
-.controls-panel {
-  background: #0a0a12;
-  border: 1px solid var(--gray-800);
-  padding: 1.5rem;
-}
-
-.monitor-screen {
-  font-family: var(--font-sans);
-  margin-bottom: 1.5rem;
-  background: var(--black);
-  padding: 1rem;
-  border: 1px solid var(--gray-700);
-  color: #00ffaa;
-}
-
-.monitor-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0 0.5rem;
-  justify-content: space-between;
-  margin-bottom: 0.5rem;
-  font-size: 1.1rem;
-}
-
-.monitor-val {
-  color: var(--c-gold);
-}
-
-.monitor-bar {
-  height: 4px;
-  background: var(--gray-900);
-  margin-top: 0.5rem;
-}
-.monitor-fill {
-  height: 100%;
-  background: var(--c-red);
-  transition: width 0.1s linear;
-}
-
-.strike-btn {
-  font-family: var(--font-sans);
-  letter-spacing: 0.1em;
-  font-weight: bold;
-}
-
-.lore-box {
-  margin-top: 1rem;
-  text-align: center;
-  color: var(--gray-400);
-  font-style: italic;
-  font-size: 0.9rem;
-}
-
-/* Gallery Collection */
-.gallery-hall {
-  padding: 3rem 10%;
-}
-
-.gallery-intro {
-  text-align: center;
-  margin-bottom: 3rem;
-}
-
-.gallery-intro h2 {
-  color: var(--c-gold);
-  font-family: var(--font-title-classic);
-}
-
-.gallery-intro p {
-  color: var(--gray-400);
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.art-frame {
-  background: var(--gray-950);
-  border: 1px solid var(--gray-700);
-  padding: 10px;
-  transition: transform 0.3s;
-}
-
-.art-frame:hover {
-  transform: translateY(-5px);
-  border-color: var(--c-gold);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-}
-
-.art-canvas {
-  aspect-ratio: 3/4;
-  margin-bottom: 1rem;
-  position: relative;
-  overflow: hidden;
-}
-
-.art-glitch {
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(transparent, transparent 2px, rgba(0,0,0,0.1) 3px);
-  opacity: 0.3;
-}
-
-.art-info {
-  text-align: center;
-}
-
-.art-title {
-  color: var(--gray-150);
-  font-family: var(--font-title-classic);
-  margin-bottom: 0.3rem;
-}
-
-.art-meta {
-  color: var(--gray-400);
-  font-size: 0.75rem;
-  font-family: var(--font-sans);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-}
-
-/* Pluto Scene */
-.pluto-scene {
-  height: 70vh;
-  position: relative;
-  overflow: hidden;
-}
-
-.snow-canvas {
-  position: absolute;
-  inset: 0;
-}
-
-.scene-overlay {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-}
-
-.dialogue-card {
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(5px);
-  padding: 3rem;
-  border: 1px solid rgba(212, 175, 55, 0.3);
-  text-align: center;
-  max-width: 600px;
-}
-
-.line {
-  font-size: 1.2rem;
-  margin-bottom: 1rem;
-  color: var(--gray-200);
-  font-family: var(--font-title-classic);
-}
-
-.highlight {
-  color: var(--c-gold);
-  font-size: 1.4rem;
-  text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
-}
-
-.dialogue-desc {
-  margin-top: 2rem;
-  padding-top: 1rem;
-  border-top: 1px solid rgba(255,255,255,0.1);
-  color: var(--gray-400);
-  line-height: 1.6;
+@media (max-width: 640px) {
+  .stage { height: 17rem; padding: 0 1rem; }
 }
 </style>

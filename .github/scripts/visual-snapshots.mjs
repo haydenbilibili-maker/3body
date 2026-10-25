@@ -403,6 +403,71 @@ const STATES = [
       await page.waitForTimeout(900)
     },
   },
+  {
+    // 编年史：刻两件事进石碑，拖到一千八百九十万年后
+    name: 'desktop-chronicle-erosion',
+    viewport: 'desktop',
+    slug: 'sector-b',
+    act: async (page) => {
+      const carve = page.getByRole('button', { name: '刻入石碑' })
+      await carve.first().click({ timeout: 10000 })
+      await carve.nth(3).click()
+      await page.locator('.v-range').fill('2')
+      await page.waitForTimeout(300)
+      await page.locator('.v-range').fill('3')
+      await page.waitForTimeout(800)
+    },
+  },
+  {
+    // 二向箔画廊：键盘触发「按住，让它跌入二维」，等待摊开
+    name: 'desktop-gallery-flat',
+    viewport: 'desktop',
+    slug: 'sector-d',
+    act: async (page) => {
+      await page.getByRole('radio', { name: '土星' }).click({ timeout: 8000 })
+      await page.getByRole('button', { name: '按住，让它跌入二维' }).focus()
+      await page.keyboard.press('Enter')
+      await page.waitForTimeout(4200)
+    },
+  },
+  {
+    // 文明墓碑：选「斗大的字」，刻下默认留言，拖到十亿年后
+    name: 'mobile-tomb-billion',
+    viewport: 'mobile',
+    slug: 'sector-tomb',
+    act: async (page) => {
+      await page.getByText('斗大的字').click({ timeout: 8000 })
+      await page.getByRole('button', { name: '按住，刻进石碑' }).focus()
+      await page.keyboard.press('Enter')
+      await page.locator('.scrub input').fill('7')
+      await page.waitForTimeout(600)
+    },
+  },
+  {
+    // 银河人类：先开火（按住）、不回头，走完四个决定
+    name: 'desktop-galaxy-voyage',
+    viewport: 'desktop',
+    slug: 'sector-human',
+    act: async (page) => {
+      await page.getByRole('button', { name: '继续向深空前进' }).click({ timeout: 8000 })
+      await page.getByRole('button', { name: '按住，先开火，夺取别的船上的物资' }).focus()
+      await page.keyboard.press('Enter')
+      await page.getByRole('button', { name: '保留选举和法律，哪怕效率更低' }).click()
+      await page.getByRole('button', { name: '不回去，这里就是我们的家' }).click()
+      await page.waitForTimeout(500)
+    },
+  },
+  {
+    // 人物志：一个人的选择，翻开第一条后果
+    name: 'mobile-figures-choices',
+    viewport: 'mobile',
+    slug: 'sector-p',
+    act: async (page) => {
+      await page.getByRole('button', { name: '一个人的选择' }).click({ timeout: 10000 })
+      await page.getByRole('button', { name: '后来发生了什么' }).first().click({ timeout: 5000 })
+      await page.waitForTimeout(400)
+    },
+  },
 ]
 
 async function snapshotState(browser, state) {

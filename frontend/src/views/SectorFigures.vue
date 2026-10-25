@@ -9,6 +9,8 @@ import { NModal, NProgress, NTimeline, NTimelineItem, NInput, NButton, NCheckbox
 import { API, apiUrl } from '@/constants'
 import type { Figure, KeyDecision, FigureRelationship, KeyQuote } from '@/types/figures'
 import FiguresNetworkGraph from '@/components/FiguresNetworkGraph.vue'
+import SectorHeader from '@/components/SectorHeader.vue'
+import { sectorByPath } from '@/data/sectors'
 import { figureImageUrl } from '@/utils/imageFallback'
 import { hasDialogue, getDialogueSet } from '@/data/figureDialogues'
 import { useLlmConfigStore } from '@/stores/llmConfig'
@@ -29,7 +31,25 @@ const dialogueInput = ref('')
 const dialogueListRef = ref<HTMLElement | null>(null)
 const llmConfig = useLlmConfigStore()
 /** 子模块：'list' 档案列表 | 'graph' 关系星图 */
-const subModule = ref<'list' | 'graph'>('list')
+const subModule = ref<'list' | 'graph' | 'choices'>('list')
+const question = sectorByPath('/sector-p')?.question
+
+/** 一个人的选择：所有人物的关键决策，按出场顺序排成一列；后果要自己翻开 */
+const allChoices = computed(() =>
+  figures.value.flatMap((f) => keyDecisions(f).map((d, i) => ({ key: `${f.id}-${i}`, who: f, d }))),
+)
+const revealed = ref<Set<string>>(new Set())
+function reveal(k: string) {
+  revealed.value = new Set(revealed.value).add(k)
+}
+const METRIC_NAMES: Record<string, string> = {
+  rationality: '理性',
+  empathy: '共情',
+  deterrence: '威慑力',
+  alienation: '疏离',
+  logic_score: '逻辑',
+}
+const metricName = (k: string) => METRIC_NAMES[k] ?? k
 
 function parseJson<T = unknown>(str: string | null | undefined): T | null {
   if (!str) return null
@@ -354,59 +374,33 @@ onMounted(() => {
 
 <template>
   <div class="sector-figures">
-    <div class="bg-grid"></div>
-    <header class="header">
-      <div class="header-left">
-        <h1 class="title">HUMANITY_DOSSIER // 人物志</h1>
-        <div class="subtitle">PDC 绝密档案库</div>
-      </div>
+    <SectorHeader
+      title="人物志"
+      subtitle="罗辑、叶文洁、章北海、程心……在宇宙的尺度上，他们每个人都只是一粒尘埃，却都做过一个改变了文明走向的决定。"
+      goal="翻阅档案，看人物之间的关系；或者走进「一个人的选择」，在知道后果之前，先读一读他们当时面对的处境。"
+      accent="#c9b48a"
+    />
 
-      <!-- 子模块切换：档案列表 | 关系星图 -->
-      <div class="sub-module-tabs">
-        <button
-          type="button"
-          class="sub-tab"
-          :class="{ active: subModule === 'list' }"
-          @click="subModule = 'list'"
-        >
-          <span class="sub-tab-icon">📁</span>
-          <span>档案列表</span>
-        </button>
-        <button
-          type="button"
-          class="sub-tab"
-          :class="{ active: subModule === 'graph' }"
-          @click="subModule = 'graph'"
-        >
-          <span class="sub-tab-icon">◇</span>
-          <span>关系星图</span>
-        </button>
-      </div>
-      
-      <div class="header-right">
-        <div class="search-box">
-          <NInput 
-            v-model:value="searchQuery" 
-            placeholder="SEARCH RECORDS..." 
-            class="tech-input"
-            clearable
-          >
-            <template #prefix>🔍</template>
-          </NInput>
-        </div>
-        <div v-if="subModule === 'list'" class="filters">
-          <span 
-            v-for="role in ['all', '面壁者', '执剑人', '科学家', '军方/ETO']" 
+    <div class="fig-controls">
+      <nav class="volumes" aria-label="分册">
+        <button type="button" :class="{ on: subModule === 'list' }" :aria-pressed="subModule === 'list'" @click="subModule = 'list'">档案</button>
+        <button type="button" :class="{ on: subModule === 'graph' }" :aria-pressed="subModule === 'graph'" @click="subModule = 'graph'">关系星图</button>
+        <button type="button" :class="{ on: subModule === 'choices' }" :aria-pressed="subModule === 'choices'" @click="subModule = 'choices'">一个人的选择</button>
+      </nav>
+      <div v-if="subModule === 'list'" class="fig-filter">
+        <NInput v-model:value="searchQuery" placeholder="按姓名查找" clearable class="fig-search" />
+        <div class="filters">
+          <button
+            v-for="role in ['all', '面壁者', '执剑人', '科学家', '军方/ETO']"
             :key="role"
+            type="button"
             class="filter-tag"
             :class="{ active: filterRole === role }"
             @click="filterRole = role"
-          >
-            {{ role === 'all' ? 'ALL RECORDS' : role.toUpperCase() }}
-          </span>
+          >{{ role === 'all' ? '全部' : role }}</button>
         </div>
       </div>
-    </header>
+    </div>
 
     <!-- 加载态 -->
     <div v-if="loading" class="loading-state">
@@ -414,10 +408,24 @@ onMounted(() => {
     </div>
     <!-- 空状态 -->
     <div v-else-if="subModule === 'list' && filteredFigures.length === 0" class="empty-state">
-      <div class="empty-icon">📁</div>
-      <h2>暂无档案记录</h2>
+            <h2>暂无档案记录</h2>
       <p>智子档案库未同步或当前筛选无匹配人物。请检查后端服务或切换筛选条件。</p>
     </div>
+
+    <!-- 一个人的选择 -->
+    <section v-else-if="subModule === 'choices'" class="choices">
+      <p v-if="!allChoices.length" class="muted">档案里还没有记录任何决策。</p>
+      <ol v-else class="choice-list">
+        <li v-for="c in allChoices" :key="c.key" class="choice">
+          <p class="c-who">{{ c.who.name }}<span>{{ c.who.era }}</span></p>
+          <p class="c-ctx">{{ c.d.context }}</p>
+          <p class="c-dec">{{ c.d.decision }}</p>
+          <p v-if="revealed.has(c.key)" class="c-out">{{ c.d.outcome }}</p>
+          <button v-else type="button" class="c-reveal" @click="reveal(c.key)">后来发生了什么</button>
+        </li>
+      </ol>
+      <p v-if="allChoices.length" class="c-q">{{ question }}</p>
+    </section>
 
     <!-- 关系星图子模块 -->
     <div v-else-if="subModule === 'graph'" class="graph-module">
@@ -438,10 +446,6 @@ onMounted(() => {
           <div class="card-img">
             <img :src="figureImageUrl(f.image_url, f.en_name, `https://placehold.co/300x400/111/444?text=${encodeURIComponent(f.name)}`)" alt="Portrait" />
             <div class="status-indicator" :class="f.status.toLowerCase()"></div>
-            <div class="logic-score-badge">
-              THREAT LEVEL: {{ displayLogicScore(f) }}
-            </div>
-            <div class="scan-line"></div>
           </div>
           <div class="card-info">
             <div class="name-row">
@@ -470,11 +474,10 @@ onMounted(() => {
       preset="card"
       class="dossier-modal"
       style="width: 800px; max-width: 95vw;"
-      :title="`CLASSIFIED FILE #${selectedFigure?.id.toString().padStart(4, '0')}`"
+      :title="`档案 ${selectedFigure?.id.toString().padStart(4, '0')}`"
     >
       <div v-if="selectedFigure" class="dossier-content">
         <!-- Watermark -->
-        <div class="watermark">TOP SECRET</div>
 
         <div class="dossier-layout">
           <!-- Left Column: Portrait & Stats -->
@@ -483,7 +486,7 @@ onMounted(() => {
               <img :src="figurePortraitUrl(selectedFigure)" alt="" class="portrait-img" />
               <div class="portrait-overlay">
                 <div class="status-badge" :class="selectedFigure.status.toLowerCase()">
-                  {{ selectedFigure.status.toUpperCase() }}
+                  {{ selectedFigure.status }}
                 </div>
               </div>
             </div>
@@ -494,16 +497,16 @@ onMounted(() => {
               
               <div class="info-grid">
                 <div class="info-item">
-                  <label>ROLE</label>
+                  <label>身份</label>
                   <span>{{ selectedFigure.role }}</span>
                 </div>
                 <div class="info-item">
-                  <label>ERA</label>
+                  <label>纪元</label>
                   <span>{{ selectedFigure.era }}</span>
                 </div>
                 <div class="info-item">
-                  <label>THREAT</label>
-                  <span class="text-red-500 font-bold">{{ displayLogicScore(selectedFigure) }}/100</span>
+                  <label>逻辑值</label>
+                  <span class="num">{{ displayLogicScore(selectedFigure) }} / 100</span>
                 </div>
               </div>
             </div>
@@ -511,27 +514,26 @@ onMounted(() => {
             <!-- 与他/与她对话：核心人物主入口，置于左侧显著位置 -->
             <div v-if="hasDialogue(selectedFigure.name)" class="dossier-dialogue-cta">
               <button type="button" class="dialogue-cta-btn" @click="openDialogue">
-                <span class="dialogue-cta-icon">💬</span>
-                <span class="dialogue-cta-text">{{ dialogueEntryLabel }}</span>
+                                <span class="dialogue-cta-text">{{ dialogueEntryLabel }}</span>
                 <span class="dialogue-cta-sub">选择问题或输入提问，与 TA 实时对话</span>
               </button>
             </div>
 
             <div class="dossier-section">
-              <h3 class="section-title">人格光谱 (Personality)</h3>
+              <h3 class="section-title">人格光谱</h3>
               <div v-if="metricsEntries(selectedFigure).length" class="metrics-list">
                 <div class="metric-row" v-for="([key, val]) in metricsEntries(selectedFigure)" :key="key">
-                  <span class="metric-name">{{ key.toUpperCase() }}</span>
+                  <span class="metric-name">{{ metricName(key) }}</span>
                   <div class="metric-bar-container">
                     <div 
                       class="metric-bar" 
-                      :style="{ width: `${val}%`, backgroundColor: key === 'empathy' ? '#ff3333' : '#00ffff' }"
+                      :style="{ width: `${val}%`, backgroundColor: key === 'empathy' ? 'var(--rust-bright)' : 'var(--weathered)' }"
                     ></div>
                   </div>
                   <span class="metric-val">{{ val }}</span>
                 </div>
               </div>
-              <p v-else class="text-xs text-gray-500">NO DATA AVAILABLE</p>
+              <p v-else class="text-xs text-gray-500">没有记录</p>
             </div>
           </div>
 
@@ -539,12 +541,12 @@ onMounted(() => {
           <div class="col-right">
             
             <div class="dossier-section">
-              <h3 class="section-title">履历摘要 (Summary)</h3>
+              <h3 class="section-title">履历</h3>
               <p class="desc-text">{{ selectedFigure.description }}</p>
             </div>
 
             <div v-if="keyQuotes(selectedFigure).length || selectedFigure.quotes" class="dossier-section">
-              <h3 class="section-title">语录 (Quotes)</h3>
+              <h3 class="section-title">语录</h3>
               <template v-if="keyQuotes(selectedFigure).length">
                 <div v-for="(q, i) in keyQuotes(selectedFigure)" :key="i" class="quote-block">
                   <p class="quote-text">"{{ q.quote }}"</p>
@@ -557,21 +559,21 @@ onMounted(() => {
             </div>
 
             <div v-if="keyDecisions(selectedFigure).length" class="dossier-section">
-              <h3 class="section-title">关键决策 (Key Decisions)</h3>
+              <h3 class="section-title">关键决策</h3>
               <div class="timeline-simple">
                 <div v-for="(d, i) in keyDecisions(selectedFigure)" :key="i" class="timeline-event">
                   <div class="timeline-dot"></div>
                   <div class="timeline-content">
                     <div class="decision-name">{{ d.decision }}</div>
                     <div class="decision-ctx">{{ d.context }}</div>
-                    <div class="decision-res">➔ {{ d.outcome }}</div>
+                    <div class="decision-res">后来：{{ d.outcome }}</div>
                   </div>
                 </div>
               </div>
             </div>
 
             <div v-if="relationships(selectedFigure).length" class="dossier-section">
-              <h3 class="section-title">关系网络 (Network)</h3>
+              <h3 class="section-title">关系</h3>
               <div class="network-grid">
                 <div v-for="(r, i) in relationships(selectedFigure)" :key="i" class="network-card">
                   <div class="rel-header">
@@ -1385,5 +1387,108 @@ onMounted(() => {
   .dossier-layout { grid-template-columns: 1fr; }
   .col-left { border-right: none; border-bottom: 1px solid var(--gray-700); padding-right: 0; padding-bottom: 2rem; margin-bottom: 2rem; }
   .portrait-wrapper { max-width: 300px; margin: 0 auto 1.5rem; }
+}
+
+/* ---------- 档案馆外观（覆盖上面的旧样式） ---------- */
+.sector-figures { padding: 2rem clamp(1rem, 4vw, 3rem) 3rem; max-width: 80rem; background: none; color: var(--bone); font-family: var(--font-sans); }
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.muted { color: var(--weathered); }
+.fig-controls { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 1rem; margin-bottom: 1.75rem; border-bottom: 1px solid var(--incision-soft); }
+.volumes { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+.volumes button {
+  padding: 0.6rem 1rem;
+  font: inherit;
+  font-size: 0.9375rem;
+  color: var(--weathered);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid transparent;
+  margin-bottom: -1px;
+  cursor: pointer;
+}
+.volumes button.on { color: var(--bone); border-bottom-color: var(--bone); }
+.fig-filter { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; padding-bottom: 0.6rem; }
+.fig-search { width: 12rem; }
+.filters { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.filter-tag {
+  padding: 0.3rem 0.75rem;
+  font: inherit;
+  font-size: 0.875rem;
+  color: var(--weathered);
+  background: transparent;
+  border: 1px solid var(--incision);
+  border-radius: 2px;
+  box-shadow: none;
+  text-shadow: none;
+  cursor: pointer;
+}
+.filter-tag.active { color: var(--bone); border-color: var(--bone); background: transparent; }
+
+.loading-state, .empty-state { padding: 3rem 0; text-align: left; color: var(--weathered); }
+.empty-state h2 { font-family: var(--font-serif); color: var(--bone); }
+.loading-text { animation: none; color: var(--weathered); font-family: var(--font-sans); }
+
+.grid-container { padding: 0; gap: 1.25rem; }
+.figure-card { background: var(--slab); border: 1px solid var(--incision-soft); border-radius: 0; box-shadow: none; transform: none; }
+.figure-card:hover { border-color: var(--weathered); box-shadow: none; transform: none; }
+.card-img img { filter: grayscale(1) contrast(1.05); transition: filter 0.6s; }
+.figure-card:hover .card-img img { filter: grayscale(0.3); }
+.status-indicator { display: none; }
+.card-info { padding: 0.8rem 0.9rem 1rem; background: none; border: 0; }
+.cn-name { font-family: var(--font-serif); font-weight: 600; font-size: 1.125rem; color: var(--bone); text-shadow: none; }
+.en-name { font-family: var(--font-sans); font-size: 0.75rem; color: var(--weathered); letter-spacing: 0; text-transform: none; }
+.role-tag, .era-tag { font-family: var(--font-sans); font-size: 0.8125rem; color: var(--weathered); background: none; border: 0; padding: 0; }
+.role-tag::after { content: ' · '; }
+.card-decor { display: none; }
+
+.choices { max-width: 46rem; }
+.choice-list { list-style: none; margin: 0; padding: 0; border-left: 1px solid var(--incision); }
+.choice { position: relative; padding: 0 0 1.75rem 1.25rem; }
+.choice::before { content: ''; position: absolute; left: -4px; top: 0.5rem; width: 7px; height: 7px; background: #c9b48a; }
+.c-who { margin: 0 0 0.4rem; font-family: var(--font-serif); font-weight: 600; color: var(--bone); }
+.c-who span { margin-left: 0.75rem; font-family: var(--font-sans); font-weight: 400; font-size: 0.8125rem; color: var(--weathered); }
+.c-ctx { margin: 0 0 0.4rem; font-size: 0.9375rem; line-height: 1.8; color: var(--weathered); }
+.c-dec { margin: 0 0 0.6rem; font-family: var(--font-serif); font-size: 1.0625rem; line-height: 1.85; color: var(--bone); }
+.c-out { margin: 0; padding-left: 0.9rem; border-left: 1px solid var(--incision); font-family: var(--font-serif); line-height: 1.85; color: var(--gray-150); }
+.c-reveal {
+  padding: 0.3rem 0.8rem;
+  font: inherit;
+  font-size: 0.875rem;
+  color: var(--cherenkov);
+  background: transparent;
+  border: 1px solid rgba(var(--cherenkov-rgb), 0.5);
+  border-radius: 2px;
+  cursor: pointer;
+}
+.c-q { margin: 1rem 0 0; padding-left: 1rem; border-left: 1px solid #c9b48a; font-family: var(--font-serif); font-size: 1.125rem; color: var(--bone); }
+
+.dossier-modal :deep(.n-card) { background: var(--slab) !important; border: 1px solid var(--incision) !important; border-radius: 2px !important; box-shadow: none !important; }
+.dossier-modal :deep(.n-card-header__main) { font-family: var(--font-sans) !important; font-size: 0.875rem !important; color: var(--weathered) !important; letter-spacing: 0.08em; text-shadow: none !important; }
+.portrait-img { filter: grayscale(0.85); }
+.status-badge { font-family: var(--font-sans); font-size: 0.8125rem; color: var(--bone); background: rgba(19, 20, 22, 0.8); border: 1px solid var(--incision); box-shadow: none; text-shadow: none; }
+.cn-name-lg { font-family: var(--font-serif); font-weight: 900; color: var(--bone); text-shadow: none; }
+.en-name-lg { font-family: var(--font-sans); color: var(--weathered); letter-spacing: 0; }
+.info-item label { font-family: var(--font-sans); font-size: 0.8125rem; color: var(--weathered); letter-spacing: 0; }
+.info-item span { color: var(--bone); }
+.section-title { font-family: var(--font-serif); font-weight: 600; font-size: 1rem; color: var(--bone); letter-spacing: 0.08em; border: 0; text-shadow: none; }
+.section-title::before, .section-title::after { display: none; }
+.desc-text, .decision-ctx, .rel-desc { color: var(--gray-150); line-height: 1.85; }
+.quote-block { border-left: 1px solid var(--incision); background: none; }
+.quote-text { font-family: var(--font-serif); color: var(--bone); font-style: normal; }
+.quote-meta { color: var(--weathered); }
+.metric-name { font-family: var(--font-sans); font-size: 0.8125rem; color: var(--weathered); }
+.metric-bar-container { background: var(--incision-soft); }
+.metric-bar { box-shadow: none; }
+.timeline-dot { background: #c9b48a; box-shadow: none; }
+.decision-name { color: var(--bone); font-family: var(--font-serif); }
+.decision-res { color: var(--weathered); }
+.network-card { background: var(--void); border: 1px solid var(--incision-soft); box-shadow: none; }
+.rel-target { color: var(--bone); font-family: var(--font-serif); }
+.rel-type { color: var(--weathered); background: none; border: 1px solid var(--incision); }
+.dialogue-cta-btn { background: transparent; border: 1px solid rgba(var(--cherenkov-rgb), 0.5); color: var(--cherenkov); box-shadow: none; }
+.dialogue-cta-sub { color: var(--weathered); }
+
+@media (max-width: 720px) {
+  .fig-search { width: 100%; }
 }
 </style>
