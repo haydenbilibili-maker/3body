@@ -369,7 +369,7 @@ onUnmounted(() => {
     rgba(0, 20, 30, 0.6) 0%,
     rgba(0, 5, 10, 0.95) 100%
   );
-  border: 1px solid rgba(0, 240, 255, 0.12);
+  border: 1px solid rgba(var(--cherenkov-rgb), 0.12);
   border-radius: 6px;
   overflow: hidden;
 }
@@ -384,7 +384,7 @@ onUnmounted(() => {
   gap: 1rem;
   font-family: var(--font-mono);
   font-size: 0.75rem;
-  color: rgba(0, 240, 255, 0.7);
+  color: rgba(var(--cherenkov-rgb), 0.7);
 }
 
 .legend-item {
@@ -399,7 +399,7 @@ onUnmounted(() => {
   border-radius: 50%;
   background: rgba(0, 40, 50, 0.9);
   border: 1.5px solid var(--c-cyan);
-  box-shadow: 0 0 8px rgba(0, 240, 255, 0.5);
+  box-shadow: 0 0 8px rgba(var(--cherenkov-rgb), 0.5);
 }
 
 .legend-item .dot.external {

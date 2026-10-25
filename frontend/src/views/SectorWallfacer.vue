@@ -1391,7 +1391,7 @@ onMounted(() => {
 }
 
 .holo-card:hover {
-  box-shadow: 0 0 30px rgba(0, 240, 255, 0.1);
+  box-shadow: 0 0 30px rgba(var(--cherenkov-rgb), 0.1);
   border-color: rgba(255, 255, 255, 0.2);
 }
 

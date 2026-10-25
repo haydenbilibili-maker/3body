@@ -842,7 +842,7 @@ onUnmounted(() => {
   border-radius: 50%;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+  box-shadow: 0 0 10px rgba(var(--cherenkov-rgb), 0.3);
 }
 
 .brain-matter {

@@ -16,8 +16,8 @@
   --font-mono: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, 'PingFang SC', 'Microsoft YaHei', monospace;   /* 数据、终端、代号 */
   --font-sans: 'Inter', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;  /* 界面与正文 */
   --font-serif: 'Noto Serif SC', 'Songti SC', 'SimSun', serif;                                              /* 叙事、原著、碑文 */
-  --font-title: 'Orbitron', 'Inter', 'PingFang SC', 'Microsoft YaHei', sans-serif;                          /* 科技感标题（只用于标题） */
-  --font-title-classic: 'Cinzel', 'Noto Serif SC', 'Songti SC', serif;                                      /* 古典标题：画廊、档案馆、归零者 */
+  --font-title: 'Noto Serif SC', 'Songti SC', 'SimSun', serif;                                              /* 碑刻标题：宋体 900 */
+  --font-title-classic: var(--font-title);                                                                  /* 旧名，已并入碑刻标题 */
   /* 兼容旧名 */
   --font-tech: var(--font-mono);
   --font-display: var(--font-sans);
@@ -46,7 +46,7 @@
   --gray-150: #ddd;
   --gray-100: #eee;
   --white: #fff;
-  --c-cyan: #00f0ff;     /* 信号 / 链接 / 选中 */
+  --c-cyan: var(--cherenkov);     /* 信号 / 链接 / 选中（并入切伦科夫蓝） */
   --c-sky: #00ccff;
   --c-red: #ff3333;      /* 警报、失败 */
   --c-amber: #ffaa00;    /* 警告 */
@@ -54,26 +54,43 @@
   --c-gold: #d4af37;     /* 古典 / 荣誉 */
   --c-magenta: #ff00ff;
 
+  /*
+   * 冥王星档案馆 · 深时（docs：3body 视觉与交互总方案）
+   * 「石」承载记忆：骨白刻在玄武岩上；「光」只给正在发生的事：切伦科夫蓝。
+   */
+  --void: #131416;        /* 玄武：页面底色 */
+  --slab: #1c1d20;        /* 碑面：展柜、面板 */
+  --slab-raised: #232428;
+  --incision: #3a3c41;    /* 刻痕：线、边框、刻度 */
+  --incision-soft: #2a2c30;
+  --bone: #dcd6c8;        /* 骨白：正文与标题 */
+  --weathered: #9a9588;   /* 风化：次要文字 */
+  --cherenkov: #7db8ff;   /* 唯一的光 */
+  --cherenkov-rgb: 125, 184, 255;
+  --rust: #b0432f;        /* 红岸：不可逆与危险 */
+  --rust-bright: #d2553f;
+
   /* Palette Mappings */
-  --bg-deep: #000510;
-  --holo-blue: #00FFC8; /* Sophon Green/Cyan */
-  --holo-red: #FF3C00;  /* Stellar Collapse */
-  --holo-green: #00FF41; /* Terminal Green */
+  /* 旧令牌映射到新色板：各页无需改动即随之换色 */
+  --bg-deep: var(--void);
+  --holo-blue: var(--cherenkov);
+  --holo-red: var(--rust-bright);
+  --holo-green: #8fc79a;
   
   /* Compatibility Layer (Mapping old vars to new system) */
-  --text: #E0FFF8;
-  --text-muted: rgba(224, 255, 248, 0.6);
-  --primary: var(--holo-blue);
-  --primary-dim: rgba(0, 255, 200, 0.1);
+  --text: var(--bone);
+  --text-muted: var(--weathered);
+  --primary: var(--cherenkov);
+  --primary-dim: rgba(var(--cherenkov-rgb), 0.1);
   --danger: var(--holo-red);
   --success: var(--holo-green);
   --bg: var(--bg-deep);
-  --bg-elevated: rgba(0, 240, 255, 0.03);
-  --border: rgba(0, 240, 255, 0.15);
-  --border-glow: rgba(0, 240, 255, 0.3);
-  /* tailwind.config.js 引用的交互态底色（此前未定义） */
-  --bg-hover: rgba(0, 240, 255, 0.08);
-  --bg-active: rgba(0, 240, 255, 0.14);
+  --bg-elevated: var(--slab);
+  --border: var(--incision);
+  --border-glow: rgba(var(--cherenkov-rgb), 0.35);
+  /* tailwind.config.js 引用的交互态底色 */
+  --bg-hover: rgba(var(--cherenkov-rgb), 0.07);
+  --bg-active: rgba(var(--cherenkov-rgb), 0.13);
   
   /* Textures */
   --star-noise: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
@@ -81,8 +98,8 @@
 
 body {
   margin: 0;
-  background-color: var(--bg-deep);
-  color: #E0FFF8; /* Cold White */
+  background-color: var(--void);
+  color: var(--bone);
   font-family: var(--font-display);
   overflow-x: hidden; /* Only prevent horizontal scroll */
   -webkit-font-smoothing: antialiased;
@@ -115,7 +132,7 @@ body {
   width: 200%;
   height: 200%;
   background-image: 
-    radial-gradient(circle at 50% 50%, rgba(0, 255, 200, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(var(--cherenkov-rgb), 0.03) 0%, transparent 50%),
     radial-gradient(circle at 80% 20%, rgba(0, 100, 255, 0.02) 0%, transparent 40%);
   animation: drift 240s linear infinite;
   opacity: 0.6;
@@ -132,9 +149,8 @@ body {
 /* --- TYPOGRAPHY AS ARCHITECTURE --- */
 
 h1, h2, h3, .title {
-  font-weight: 200;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.06em;
 }
 
 .mono-data {
@@ -144,79 +160,65 @@ h1, h2, h3, .title {
   opacity: 0.8;
 }
 
-/* --- THE LIGHT OF PHYSICS (GLOW) --- */
+/* --- 光：只给正在发生的事 --- */
 
 .tech-glow {
-  text-shadow: 0 0 12px rgba(0, 255, 200, 0.4);
+  text-shadow: 0 0 14px rgba(var(--cherenkov-rgb), 0.45);
 }
 
 .warning-glow {
-  text-shadow: 0 0 12px rgba(255, 60, 0, 0.6);
+  text-shadow: 0 0 12px rgba(176, 67, 47, 0.6);
 }
 
-/* --- INTERACTION CHOREOGRAPHY --- */
-
-/* Smooth out all interactions */
+/* --- 交互节奏 --- */
 button, a, input, .card {
-  transition-duration: 400ms;
-  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  transition-duration: 300ms;
+  transition-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
-/* Global panel texture + edge glow */
+/* 面板：碑面 + 刻痕，不再悬浮位移 */
 .panel,
 .card,
 .module-card,
 .civ-card,
 .stone-tablet {
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.025);
 }
 
-.panel:hover,
-.card:hover,
-.module-card:hover,
-.civ-card:hover {
-  transform: translateY(-1px);
-}
-
-/* Unified keyboard focus ring */
+/* 统一的键盘焦点 */
 :focus-visible {
-  outline: 1px solid rgba(0, 255, 200, 0.55);
+  outline: 1px solid rgba(var(--cherenkov-rgb), 0.8);
   outline-offset: 2px;
 }
 
-/* Selection State */
 ::selection {
-  background: rgba(0, 255, 200, 0.2);
+  background: rgba(var(--cherenkov-rgb), 0.28);
   color: var(--white);
 }
 
-/* Scrollbar (The Machine) */
+/* 滚动条：刻痕 */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--bg-deep);
-  border-left: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--void);
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 255, 200, 0.2);
+  background: var(--incision);
   border-radius: 0;
-  border: 1px solid transparent;
-  background-clip: content-box;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--holo-blue);
-  box-shadow: 0 0 10px var(--holo-blue);
+  background: var(--weathered);
 }
 
-/* Selection */
-::selection {
-  background: rgba(0, 255, 200, 0.2);
-  color: var(--white);
-  text-shadow: 0 0 5px var(--holo-blue);
+/* 尊重「减少动态」设置：只保留必要的过渡 */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* ------------------------------------------------------------------
@@ -225,7 +227,7 @@ button, a, input, .card {
  * ------------------------------------------------------------------ */
 @media (max-width: 768px) {
   /* 扇区标题：统一字号上限，长英文代号在单词边界换行（首页大标题除外） */
-  .app-main:not(.app-main--full) h1 {
+  .app-main:not(.app-main--full) h1:not(.sh-title) {
     font-size: clamp(1.15rem, 6vw, 1.6rem) !important;
     letter-spacing: 0.04em !important;
     line-height: 1.3;

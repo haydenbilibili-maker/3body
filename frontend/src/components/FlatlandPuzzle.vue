@@ -305,7 +305,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey))
 .fl-cell.remembered.wall { background: #211d2e; }
 .fl-cell.hidden { background: #030206; }
 .fl-cell.exit.visible,
-.fl-cell.exit.remembered { box-shadow: inset 0 0 0 2px rgba(0, 255, 200, 0.6); }
+.fl-cell.exit.remembered { box-shadow: inset 0 0 0 2px rgba(var(--cherenkov-rgb), 0.6); }
 .fl-cell.exit.visible::after { content: '出口'; font-size: 0.75rem; color: var(--holo-blue); opacity: 0.8; }
 
 /* 升维：墙退化成细线，所有内部一览无余 */

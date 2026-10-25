@@ -186,8 +186,8 @@ const eraColor = (i: number) => {
   position: fixed;
   inset: 0;
   background-image:
-    linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
+    linear-gradient(rgba(var(--cherenkov-rgb), 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(var(--cherenkov-rgb), 0.03) 1px, transparent 1px);
   background-size: 24px 24px;
   pointer-events: none;
   z-index: 0;
@@ -196,7 +196,7 @@ const eraColor = (i: number) => {
 /* Header */
 .header {
   padding: 1.5rem 2rem;
-  border-bottom: 1px solid rgba(0, 240, 255, 0.2);
+  border-bottom: 1px solid rgba(var(--cherenkov-rgb), 0.2);
   position: relative;
   z-index: 1;
 }
@@ -212,7 +212,7 @@ const eraColor = (i: number) => {
   letter-spacing: 0.08em;
   color: var(--c-cyan);
   margin: 0;
-  text-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
+  text-shadow: 0 0 20px rgba(var(--cherenkov-rgb), 0.3);
 }
 
 .subtitle {
@@ -234,8 +234,8 @@ const eraColor = (i: number) => {
   font-family: var(--font-mono);
   font-size: 0.75rem;
   padding: 2px 8px;
-  border: 1px solid rgba(0, 240, 255, 0.3);
-  color: rgba(0, 240, 255, 0.8);
+  border: 1px solid rgba(var(--cherenkov-rgb), 0.3);
+  color: rgba(var(--cherenkov-rgb), 0.8);
 }
 
 /* Content */
@@ -263,7 +263,7 @@ const eraColor = (i: number) => {
   font-family: var(--font-mono);
   font-size: 0.75rem;
   letter-spacing: 0.2em;
-  color: rgba(0, 240, 255, 0.6);
+  color: rgba(var(--cherenkov-rgb), 0.6);
   margin-bottom: 1.5rem;
 }
 
@@ -279,7 +279,7 @@ const eraColor = (i: number) => {
 }
 
 .tree-edge.active {
-  stroke: rgba(0, 240, 255, 0.6);
+  stroke: rgba(var(--cherenkov-rgb), 0.6);
   stroke-width: 2;
 }
 
@@ -292,15 +292,15 @@ const eraColor = (i: number) => {
 }
 
 .tree-node.root {
-  fill: rgba(0, 240, 255, 0.15);
-  stroke: rgba(0, 240, 255, 0.4);
+  fill: rgba(var(--cherenkov-rgb), 0.15);
+  stroke: rgba(var(--cherenkov-rgb), 0.4);
 }
 
 .tree-node:hover,
 .tree-node.active {
-  fill: var(--era-color, rgba(0, 240, 255, 0.3));
+  fill: var(--era-color, rgba(var(--cherenkov-rgb), 0.3));
   stroke: var(--era-color, var(--c-cyan));
-  filter: drop-shadow(0 0 8px var(--era-color, rgba(0, 240, 255, 0.5)));
+  filter: drop-shadow(0 0 8px var(--era-color, rgba(var(--cherenkov-rgb), 0.5)));
 }
 
 .tree-label {
@@ -344,7 +344,7 @@ const eraColor = (i: number) => {
 }
 
 .galaxy-timeline :deep(.n-timeline-item-content__time) {
-  color: rgba(0, 240, 255, 0.6);
+  color: rgba(var(--cherenkov-rgb), 0.6);
   font-family: var(--font-mono);
   font-size: 0.75rem;
 }
@@ -367,8 +367,8 @@ const eraColor = (i: number) => {
 }
 
 .evo-card:hover {
-  border-color: rgba(0, 240, 255, 0.2);
-  box-shadow: 0 0 20px rgba(0, 240, 255, 0.06);
+  border-color: rgba(var(--cherenkov-rgb), 0.2);
+  box-shadow: 0 0 20px rgba(var(--cherenkov-rgb), 0.06);
 }
 
 .card-content {
@@ -380,8 +380,8 @@ const eraColor = (i: number) => {
 
 .card-quote {
   font-size: 0.85rem;
-  color: rgba(0, 240, 255, 0.7);
-  border-left: 3px solid rgba(0, 240, 255, 0.4);
+  color: rgba(var(--cherenkov-rgb), 0.7);
+  border-left: 3px solid rgba(var(--cherenkov-rgb), 0.4);
   padding-left: 1rem;
   margin: 0 0 1rem;
   font-style: italic;

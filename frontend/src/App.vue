@@ -31,12 +31,42 @@ const appClass = computed(() => {
   return classes
 })
 
+// Naive UI 主题：跟随冥王星档案馆色板（切伦科夫蓝为唯一的光，碑面底色，2px 圆角，宋体不用于控件）
 const themeOverrides: GlobalThemeOverrides = {
   common: {
-    primaryColor: '#00FFFF',
-    primaryColorHover: '#79F2FF',
-    primaryColorPressed: '#00CBCC',
-    primaryColorSuppl: '#00CBCC',
+    primaryColor: '#7DB8FF',
+    primaryColorHover: '#A3CCFF',
+    primaryColorPressed: '#5A9AE6',
+    primaryColorSuppl: '#5A9AE6',
+    errorColor: '#D2553F',
+    errorColorHover: '#E06B55',
+    warningColor: '#C9A45C',
+    successColor: '#8FC79A',
+    infoColor: '#7DB8FF',
+    textColorBase: '#DCD6C8',
+    textColor1: '#DCD6C8',
+    textColor2: '#C4BEB0',
+    textColor3: '#9A9588',
+    bodyColor: '#131416',
+    cardColor: '#1C1D20',
+    modalColor: '#1C1D20',
+    popoverColor: '#232428',
+    borderColor: '#3A3C41',
+    dividerColor: '#2A2C30',
+    borderRadius: '2px',
+    borderRadiusSmall: '2px',
+    fontFamily: "'Inter', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif",
+    fontFamilyMono: "'JetBrains Mono', Menlo, Consolas, monospace",
+  },
+  Tabs: {
+    tabTextColorLine: '#9A9588',
+    tabTextColorActiveLine: '#DCD6C8',
+    tabTextColorHoverLine: '#DCD6C8',
+    barColor: '#7DB8FF',
+    tabTextColorSegment: '#9A9588',
+    tabTextColorActiveSegment: '#DCD6C8',
+    tabColorSegment: '#232428',
+    colorSegment: '#1C1D20',
   },
 }
 </script>
