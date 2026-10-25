@@ -39,23 +39,26 @@ function grow() {
 
   const tips: Tip[] = []
   const seed = (x: number, y: number, a: number) =>
-    tips.push({ x, y, a: a + (Math.random() - 0.5) * 0.8, len: 0, max: (80 + Math.random() * 220) * dpr, w: (1.4 + Math.random()) * dpr })
-  for (let i = 0; i < 26; i++) {
+    tips.push({ x, y, a: a + (Math.random() - 0.5) * 0.8, len: 0, max: (60 + Math.random() * 160) * dpr, w: (0.7 + Math.random() * 0.6) * dpr })
+  for (let i = 0; i < 40; i++) {
     seed(Math.random() * W, 0, Math.PI / 2)
     seed(Math.random() * W, H, -Math.PI / 2)
   }
-  for (let i = 0; i < 16; i++) {
+  for (let i = 0; i < 26; i++) {
     seed(0, Math.random() * H, 0)
     seed(W, Math.random() * H, Math.PI)
   }
   let segs = 0
   const step = () => {
     if (!props.active) return
-    ctx.strokeStyle = 'rgba(225, 238, 250, 0.55)'
+    ctx.strokeStyle = 'rgba(225, 238, 250, 0.32)'
     ctx.lineCap = 'round'
+    ctx.shadowColor = 'rgba(200, 225, 255, 0.6)'
+    ctx.shadowBlur = 3 * dpr
     for (let i = tips.length - 1; i >= 0; i--) {
       const t = tips[i]
-      const s = 3.2 * dpr
+      const s = 2.2 * dpr
+      t.a += (Math.random() - 0.5) * 0.08
       const nx = t.x + Math.cos(t.a) * s
       const ny = t.y + Math.sin(t.a) * s
       ctx.lineWidth = t.w
@@ -67,13 +70,13 @@ function grow() {
       t.y = ny
       t.len += s
       segs++
-      if (Math.random() < 0.08 && t.w > 0.5 * dpr && tips.length < 900) {
+      if (Math.random() < 0.13 && t.w > 0.3 * dpr && tips.length < 1400) {
         const side = Math.random() < 0.5 ? 1 : -1
-        tips.push({ x: t.x, y: t.y, a: t.a + side * (Math.PI / 3), len: 0, max: t.max * 0.45, w: t.w * 0.7 })
+        tips.push({ x: t.x, y: t.y, a: t.a + side * (Math.PI / 3), len: 0, max: (t.max - t.len) * 0.5, w: t.w * 0.75 })
       }
       if (t.len >= t.max) tips.splice(i, 1)
     }
-    if (tips.length && segs < 40000) raf = requestAnimationFrame(step)
+    if (tips.length && segs < 70000) raf = requestAnimationFrame(step)
   }
   let reduce = false
   try {

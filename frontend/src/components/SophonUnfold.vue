@@ -66,10 +66,12 @@ function up() {
 /** 键盘：↑ 展开一维，↓ 收回一维，Enter 在二维时开始刻电路 */
 function key(e: KeyboardEvent) {
   if (stage.value !== 'drag') return
-  const dim = dimensionAt(d)
+  // 以目标位置为准，连续按键不会被动画的滞后吞掉
+  const dim = dimensionAt(target)
   if (e.key === 'ArrowUp' && dim > 1) target = distanceFor(dim - 1)
   else if (e.key === 'ArrowDown' && dim < 11) target = distanceFor(dim + 1)
   else if (e.key === 'Enter' && dim === 2) {
+    d = target
     dragging = true
     up()
   } else return
