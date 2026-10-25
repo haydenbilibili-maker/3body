@@ -297,6 +297,8 @@ onUnmounted(() => {
   --m-gold: #e8d27a;
   position: relative;
   min-height: 100%;
+  /* overflow:hidden 的弹性子项最小高度为 0，会被压扁并裁掉下方内容：禁止收缩，让它随内容长高 */
+  flex-shrink: 0;
   background: #020205;
   color: var(--gray-100);
   overflow: hidden;
