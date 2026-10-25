@@ -6,7 +6,7 @@
  * 换成三体人的头脑：思维透明，想到即说出，没有盲区。
  * 逻辑见 sim/blind.ts。
  */
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { recordAnswer } from '@/data/answers'
 import SectorHeader from '@/components/SectorHeader.vue'
 import Vitrine from '@/components/Vitrine.vue'
@@ -18,7 +18,7 @@ const question = sectorByPath('/sector-blind')?.question
 const mind = ref<Mind>('human')
 const channel = ref<Channel>('think')
 const draft = ref('')
-const thoughts = ref<{ t: Thought; mind: Mind }[]>([])
+const thoughts = ref<{ t: Thought; mind: Mind; body: string }[]>([])
 let nextId = 1
 
 const SUGGEST = ['把舰队开往木星', '我不相信我们能赢', '真正的计划，是让他们以为我在骗他们']
@@ -26,9 +26,42 @@ const SUGGEST = ['把舰队开往木星', '我不相信我们能赢', '真正的
 const counts = computed(() => tally(thoughts.value.map((x) => x.t)))
 const sophonLog = ref<HTMLElement | null>(null)
 
+/* ---------- 智子看得见的身体：打字的节奏、手的移动 ---------- */
+let keyTimes: number[] = []
+function onType() {
+  keyTimes.push(performance.now())
+}
+function cadence(): string {
+  if (keyTimes.length < 3) return ''
+  let longest = 0
+  let at = 0
+  for (let i = 1; i < keyTimes.length; i++) {
+    const g = keyTimes[i] - keyTimes[i - 1]
+    if (g > longest) {
+      longest = g
+      at = i
+    }
+  }
+  const total = (keyTimes[keyTimes.length - 1] - keyTimes[0]) / 1000
+  if (longest < 700) return `他打字很快，${total.toFixed(1)} 秒，没有犹豫。`
+  return `他在第 ${at + 1} 个字之前停了 ${(longest / 1000).toFixed(1)} 秒。`
+}
+const trail = ref<{ x: number; y: number }[]>([])
+let lastPt = 0
+function onPointer(e: PointerEvent) {
+  const now = performance.now()
+  if (now - lastPt < 40) return
+  lastPt = now
+  trail.value = [...trail.value.slice(-160), { x: e.clientX / innerWidth, y: e.clientY / innerHeight }]
+}
+const trailPath = computed(() => trail.value.map((p, i) => `${i ? 'L' : 'M'}${(p.x * 100).toFixed(1)} ${(p.y * 60).toFixed(1)}`).join(' '))
+onMounted(() => window.addEventListener('pointermove', onPointer))
+onUnmounted(() => window.removeEventListener('pointermove', onPointer))
+
 function submit(text = draft.value) {
   if (!text.trim()) return
-  thoughts.value.push({ t: record(nextId++, text, channel.value, mind.value), mind: mind.value })
+  thoughts.value.push({ t: record(nextId++, text, channel.value, mind.value), mind: mind.value, body: cadence() })
+  keyTimes = []
   draft.value = ''
   nextTick(() => sophonLog.value?.scrollTo({ top: sophonLog.value.scrollHeight }))
 }
@@ -104,7 +137,7 @@ watch(
             >{{ c.name }}</button>
           </div>
           <div class="field">
-            <input v-model="draft" maxlength="80" placeholder="写下一个念头" aria-label="念头" />
+            <input v-model="draft" maxlength="80" placeholder="写下一个念头" aria-label="念头" @input="onType" />
             <button type="submit" class="plain-btn primary" :disabled="!draft.trim()">好</button>
           </div>
           <p class="ch-note">{{ channelNote }}</p>
@@ -120,9 +153,16 @@ watch(
           <li v-if="!thoughts.length" class="empty">信道静默。</li>
           <li v-for="(x, i) in thoughts" :key="x.t.id" :class="{ wall: !x.t.seen }">
             <span class="stamp num">{{ String(i + 1).padStart(3, '0') }}</span>
-            <span>{{ sophonLine(x.t, x.mind) }}</span>
+            <span>{{ sophonLine(x.t, x.mind) }}<em v-if="x.body" class="body">{{ x.body }}</em></span>
           </li>
         </ol>
+        <figure class="hand" aria-label="智子记录下的你的手的轨迹">
+          <svg viewBox="0 0 100 60" preserveAspectRatio="none" aria-hidden="true">
+            <path :d="trailPath" />
+            <circle v-if="trail.length" :cx="trail[trail.length - 1].x * 100" :cy="trail[trail.length - 1].y * 60" r="0.9" />
+          </svg>
+          <figcaption>它也看着你的手：这是你刚才在屏幕上移动的轨迹。它能记下你的一切动作，只是读不出你在想什么。</figcaption>
+        </figure>
         <dl class="tally">
           <div><dt>智子看见</dt><dd class="num">{{ counts.seen }}</dd></div>
           <div><dt>只有你知道</dt><dd class="num">{{ counts.hidden }}</dd></div>
@@ -239,4 +279,10 @@ watch(
 @media (max-width: 900px) {
   .room { grid-template-columns: 1fr; }
 }
+.body { display: block; margin-top: 0.15rem; font-style: normal; font-size: 0.75rem; color: var(--weathered); }
+.hand { margin: 1rem 0 0; }
+.hand svg { display: block; width: 100%; height: 5.5rem; background: #0b0c0e; border: 1px solid var(--incision-soft); }
+.hand path { fill: none; stroke: rgba(125, 184, 255, 0.55); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.hand circle { fill: var(--cherenkov); }
+.hand figcaption { margin-top: 0.4rem; font-size: 0.75rem; line-height: 1.6; color: var(--weathered); }
 </style>

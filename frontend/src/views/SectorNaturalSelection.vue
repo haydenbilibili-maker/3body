@@ -9,6 +9,7 @@ import { onUnmounted, ref } from 'vue'
 import SectorHeader from '@/components/SectorHeader.vue'
 import Vitrine from '@/components/Vitrine.vue'
 import HoldButton from '@/components/HoldButton.vue'
+import PageCosmos from '@/components/PageCosmos.vue'
 import { sectorByPath } from '@/data/sectors'
 import { recordAnswer } from '@/data/answers'
 
@@ -45,7 +46,9 @@ function returnToFleet() {
   act.value = 'trial'
   recordAnswer('/sector-ns', '照常试航，回到了舰队')
 }
+const cosmos = ref<InstanceType<typeof PageCosmos> | null>(null)
 function forwardFour() {
+  cosmos.value?.play('gforce')
   act.value = 'chase'
   chaseLine.value = 0
   clearInterval(chaseTimer)
@@ -64,6 +67,7 @@ function restart() {
 
 <template>
   <div class="sector-ns">
+    <PageCosmos ref="cosmos" />
     <SectorHeader
       title="自然选择号"
       subtitle="章北海从危机纪元初就确信人类会输，却把这个念头藏了两百年。现在，他是「自然选择」号恒星级战舰的代理舰长。"
