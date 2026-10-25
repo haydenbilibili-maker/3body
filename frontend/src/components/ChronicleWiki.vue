@@ -34,15 +34,15 @@ onMounted(async () => {
   padding: 1rem;
 }
 .wiki-card {
-  background: rgba(0, 240, 255, 0.05);
-  border: 1px solid rgba(0, 240, 255, 0.2);
+  background: rgba(var(--cherenkov-rgb), 0.05);
+  border: 1px solid rgba(var(--cherenkov-rgb), 0.2);
   padding: 1.5rem;
   backdrop-filter: blur(10px);
   transition: all 0.3s;
 }
 .wiki-card:hover {
   border-color: var(--c-cyan);
-  box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+  box-shadow: 0 0 15px rgba(var(--cherenkov-rgb), 0.2);
 }
 .wiki-header {
   display: flex;

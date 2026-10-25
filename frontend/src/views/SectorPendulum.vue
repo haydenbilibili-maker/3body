@@ -374,7 +374,7 @@ const envText = computed(() => {
   max-height: calc(100vh - 4rem);
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: rgba(0, 240, 255, 0.3) rgba(0, 0, 0, 0.5);
+  scrollbar-color: rgba(var(--cherenkov-rgb), 0.3) rgba(0, 0, 0, 0.5);
 }
 
 .monitor-overlay::-webkit-scrollbar {
@@ -384,7 +384,7 @@ const envText = computed(() => {
   background: rgba(0, 0, 0, 0.5);
 }
 .monitor-overlay::-webkit-scrollbar-thumb {
-  background: rgba(0, 240, 255, 0.3);
+  background: rgba(var(--cherenkov-rgb), 0.3);
   border-radius: 2px;
 }
 
@@ -393,9 +393,9 @@ const envText = computed(() => {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  background: rgba(0, 240, 255, 0.05);
+  background: rgba(var(--cherenkov-rgb), 0.05);
   padding: 1.5rem;
-  border: 1px solid rgba(0, 240, 255, 0.2);
+  border: 1px solid rgba(var(--cherenkov-rgb), 0.2);
   backdrop-filter: blur(5px);
 }
 .metric {

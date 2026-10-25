@@ -4,16 +4,18 @@
  * "The ship was a small world, and the universe was a dark forest."
  */
 import { RouterView, useRoute } from 'vue-router'
-import { onMounted, onUnmounted, watch } from 'vue'
+import { computed, onMounted, onUnmounted, watch } from 'vue'
 import { useUniverseStore } from '@/stores/universe'
 import { useUserStore } from '@/stores/user'
 import AppNav from '@/components/AppNav.vue'
+import DeepTimeRail from '@/components/DeepTimeRail.vue'
 import SophonIntercept from '@/components/commercial/SophonIntercept.vue'
 import { soundManager } from '@/utils/sound'
 
 const universe = useUniverseStore()
 const userStore = useUserStore()
 const route = useRoute()
+const isHome = computed(() => route.path === '/sector-c')
 
 // --- Global Sound Handling ---
 const handleGlobalClick = (e: MouseEvent) => {
@@ -73,7 +75,11 @@ onUnmounted(() => {
       <AppNav />
     </header>
 
-    <main class="app-main" :class="{ 'app-main--full': route.path === '/sector-c' }">
+    <div class="app-body">
+    <aside v-if="!isHome" class="app-rail">
+      <DeepTimeRail />
+    </aside>
+    <main class="app-main" :class="{ 'app-main--full': isHome }">
       <RouterView v-slot="{ Component }">
         <transition name="dimension-unfold" mode="out-in">
           <Suspense>
@@ -83,19 +89,23 @@ onUnmounted(() => {
             <template #fallback>
               <div class="loading-state">
                 <div class="loading-spinner"></div>
-                <span>LOADING SYSTEM...</span>
+                <span>正在调取档案……</span>
               </div>
             </template>
           </Suspense>
         </transition>
       </RouterView>
     </main>
+    </div>
 
     <SophonIntercept />
 
     <footer class="app-footer">
       <span class="slogan">给岁月以文明，而不是给文明以岁月</span>
-      <span class="meta mono-data">ERA: {{ universe.currentEra }} // DETERRENCE: {{ (universe.deterrence * 100).toFixed(0) }}%</span>
+      <span class="meta">
+        <span class="meta-item">此刻<b>{{ universe.currentEra }}</b></span>
+        <span class="meta-item">威慑度<b class="num">{{ (universe.deterrence * 100).toFixed(0) }}%</b></span>
+      </span>
     </footer>
   </div>
 </template>
@@ -107,8 +117,27 @@ onUnmounted(() => {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  color: #E0FFF8;
+  color: var(--bone);
   position: relative;
+}
+
+.app-body {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  position: relative;
+  z-index: 10;
+}
+.app-rail {
+  flex: 0 0 8.5rem;
+  border-right: 1px solid var(--incision-soft);
+}
+.app-body > .app-main {
+  flex: 1 1 0;
+  min-width: 0;
+}
+@media (max-width: 1279px) {
+  .app-rail { display: none; }
 }
 
 .app-main {
@@ -125,8 +154,8 @@ onUnmounted(() => {
 /* 扇区根节点：去除强制高度，避免 padding 导致溢出 */
 .app-main > * {
   width: 100%;
-  /* min-height: 100%;  <-- 移除此行，防止 content + padding > 100% 导致滚动条 */
-  flex: 1 1 auto;
+  /* 不收缩：页面根节点若带 overflow:hidden，弹性收缩会把它压成一屏高并裁掉下方内容 */
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
 }
@@ -148,14 +177,17 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   gap: 2rem;
-  padding: 1rem 3rem;
-  font-size: 0.75rem;
-  color: rgba(224, 255, 248, 0.5);
-  border-top: 1px solid rgba(0, 255, 200, 0.05);
+  padding: 0.7rem 2.5rem;
+  font-size: 0.8125rem;
+  color: var(--weathered);
+  border-top: 1px solid var(--incision-soft);
+  background: rgba(19, 20, 22, 0.92);
   position: relative;
   z-index: 50;
-  letter-spacing: 0.1em;
 }
+.meta { display: flex; gap: 1.75rem; }
+.meta-item b { margin-left: 0.5rem; font-weight: 500; color: var(--bone); }
+.meta-item .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 
 /* 小屏：外层与扇区根节点的左右边距合计约 16px（原为 3rem + 各页 2rem，内容区只剩约 230px） */
 @media (max-width: 768px) {
@@ -254,8 +286,8 @@ onUnmounted(() => {
 
 .slogan {
   font-family: var(--font-serif);
-  font-style: italic;
-  opacity: 0.7;
+  letter-spacing: 0.12em;
+  color: var(--weathered);
 }
 
 /* --- DIMENSIONAL UNFOLDING TRANSITION --- */
@@ -268,15 +300,15 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   gap: 1rem;
-  color: var(--c-cyan);
-  font-family: var(--font-mono);
-  letter-spacing: 2px;
+  color: var(--weathered);
+  font-family: var(--font-serif);
+  letter-spacing: 0.2em;
 }
 
 .loading-spinner {
   width: 40px;
   height: 40px;
-  border: 2px solid rgba(0, 240, 255, 0.3);
+  border: 2px solid rgba(var(--cherenkov-rgb), 0.3);
   border-top-color: var(--c-cyan);
   border-radius: 50%;
   animation: spin 1s linear infinite;
@@ -286,23 +318,18 @@ onUnmounted(() => {
   to { transform: rotate(360deg); }
 }
 
+/* 展厅切换：像远处的光抵达——由模糊变清晰，只此一次的出场 */
 .dimension-unfold-enter-active {
-  transition: all 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.9s ease, filter 0.9s ease;
 }
-
 .dimension-unfold-leave-active {
-  transition: all 0.6s cubic-bezier(0.7, 0, 0.84, 0); /* Quicker exit into void */
+  transition: opacity 0.25s ease;
 }
-
 .dimension-unfold-enter-from {
   opacity: 0;
-  transform: scale(0.96) translateY(15px); /* Submerged */
-  filter: blur(10px);
+  filter: blur(6px);
 }
-
 .dimension-unfold-leave-to {
   opacity: 0;
-  transform: scale(1.02); /* Dissolving outwards */
-  filter: blur(5px);
 }
 </style>

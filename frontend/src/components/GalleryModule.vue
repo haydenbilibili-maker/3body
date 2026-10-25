@@ -253,7 +253,7 @@ onMounted(loadItems)
   font-size: 1.2rem;
   letter-spacing: 0.1em;
   margin: 0;
-  text-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+  text-shadow: 0 0 10px rgba(var(--cherenkov-rgb), 0.3);
 }
 
 .module-subtitle {
@@ -282,7 +282,7 @@ onMounted(loadItems)
 .foil-card:hover .foil-frame {
   transform: rotateX(5deg) translateY(-10px);
   border-color: var(--holo-blue);
-  box-shadow: 0 15px 30px rgba(0, 240, 255, 0.15);
+  box-shadow: 0 15px 30px rgba(var(--cherenkov-rgb), 0.15);
   background: rgba(2, 6, 23, 0.9);
 }
 
@@ -364,7 +364,7 @@ onMounted(loadItems)
   background: rgba(0, 20, 40, 0.8);
   position: relative;
   overflow: hidden;
-  box-shadow: 0 0 50px rgba(0, 240, 255, 0.1);
+  box-shadow: 0 0 50px rgba(var(--cherenkov-rgb), 0.1);
   display: flex;
   flex-direction: column;
 }
@@ -372,7 +372,7 @@ onMounted(loadItems)
 .retina-scanline {
   position: absolute;
   top: 0; left: 0; width: 100%; height: 10px;
-  background: rgba(0, 240, 255, 0.3);
+  background: rgba(var(--cherenkov-rgb), 0.3);
   opacity: 0.5;
   animation: scan 4s linear infinite;
   pointer-events: none;
@@ -418,8 +418,8 @@ onMounted(loadItems)
 }
 .img-grid-overlay {
   position: absolute; inset: 0;
-  background-image: linear-gradient(rgba(0,255,200,0.1) 1px, transparent 1px),
-  linear-gradient(90deg, rgba(0,255,200,0.1) 1px, transparent 1px);
+  background-image: linear-gradient(rgba(var(--cherenkov-rgb),0.1) 1px, transparent 1px),
+  linear-gradient(90deg, rgba(var(--cherenkov-rgb),0.1) 1px, transparent 1px);
   background-size: 20px 20px;
   pointer-events: none;
 }

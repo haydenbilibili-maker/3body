@@ -235,8 +235,8 @@ function carveStone() {
   position: fixed;
   inset: 0;
   background-image:
-    linear-gradient(rgba(0, 240, 255, 0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 240, 255, 0.02) 1px, transparent 1px);
+    linear-gradient(rgba(var(--cherenkov-rgb), 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(var(--cherenkov-rgb), 0.02) 1px, transparent 1px);
   background-size: 24px 24px;
   pointer-events: none;
   z-index: 0;
@@ -245,7 +245,7 @@ function carveStone() {
 /* Header */
 .header {
   padding: 1.5rem 2rem;
-  border-bottom: 1px solid rgba(0, 240, 255, 0.15);
+  border-bottom: 1px solid rgba(var(--cherenkov-rgb), 0.15);
   position: relative;
   z-index: 1;
 }
@@ -307,7 +307,7 @@ function carveStone() {
 
 .section-title {
   font-size: 1rem;
-  color: rgba(0, 240, 255, 0.7);
+  color: rgba(var(--cherenkov-rgb), 0.7);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   padding-bottom: 0.5rem;
   margin-bottom: 1.25rem;
@@ -319,7 +319,7 @@ function carveStone() {
 }
 
 .title-icon {
-  color: rgba(0, 240, 255, 0.5);
+  color: rgba(var(--cherenkov-rgb), 0.5);
   font-size: 0.75rem;
 }
 
@@ -537,8 +537,8 @@ function carveStone() {
 
 .civ-epitaph {
   font-size: 0.85rem;
-  color: rgba(0, 240, 255, 0.6);
-  border-left: 2px solid rgba(0, 240, 255, 0.3);
+  color: rgba(var(--cherenkov-rgb), 0.6);
+  border-left: 2px solid rgba(var(--cherenkov-rgb), 0.3);
   padding-left: 0.75rem;
   margin: 0 0 0.75rem;
   font-style: italic;

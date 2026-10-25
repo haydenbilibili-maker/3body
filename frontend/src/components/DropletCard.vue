@@ -42,10 +42,10 @@ defineProps<{
 
 .droplet-card:hover, .droplet-card.active {
   transform: translateY(-5px) scale(1.02);
-  border-color: rgba(0, 255, 200, 0.4);
+  border-color: rgba(var(--cherenkov-rgb), 0.4);
   box-shadow: 
     0 30px 60px rgba(0, 0, 0, 0.6),
-    inset 0 0 20px rgba(0, 255, 200, 0.1);
+    inset 0 0 20px rgba(var(--cherenkov-rgb), 0.1);
 }
 
 .reflection {

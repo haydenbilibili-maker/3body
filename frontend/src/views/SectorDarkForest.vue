@@ -1284,7 +1284,7 @@ const axioms = [
     0deg,
     transparent 0,
     transparent 2px,
-    rgba(0, 240, 255, 0.03) 3px
+    rgba(var(--cherenkov-rgb), 0.03) 3px
   );
   pointer-events: none;
 }
@@ -1543,7 +1543,7 @@ const axioms = [
 .scan-line {
   position: absolute;
   top: 0; bottom: 0; width: 2px;
-  background: rgba(0, 240, 255, 0.5);
+  background: rgba(var(--cherenkov-rgb), 0.5);
   box-shadow: 0 0 10px var(--c-cyan);
   animation: scan 2s linear infinite;
 }

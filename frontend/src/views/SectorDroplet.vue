@@ -390,7 +390,7 @@ onMounted(() => {
   right: auto;
   max-width: 320px;
   background: rgba(0, 0, 0, 0.75);
-  border: 1px solid rgba(0, 240, 255, 0.35);
+  border: 1px solid rgba(var(--cherenkov-rgb), 0.35);
   color: var(--gray-100);
   padding: 1rem;
   font-family: var(--font-mono);
@@ -459,7 +459,7 @@ onMounted(() => {
 }
 
 .journey-btn:hover:not(:disabled) {
-  background: rgba(0, 240, 255, 0.15);
+  background: rgba(var(--cherenkov-rgb), 0.15);
 }
 
 .journey-btn:disabled {
@@ -494,13 +494,13 @@ onMounted(() => {
 .waypoint-chip:hover {
   border-color: var(--c-cyan);
   color: var(--c-cyan);
-  background: rgba(0, 240, 255, 0.08);
+  background: rgba(var(--cherenkov-rgb), 0.08);
 }
 
 .waypoint-chip.active {
   border-color: var(--c-cyan);
   color: var(--c-cyan);
-  background: rgba(0, 240, 255, 0.2);
+  background: rgba(var(--cherenkov-rgb), 0.2);
 }
 
 .hud-overlay {
@@ -536,7 +536,7 @@ onMounted(() => {
   position: absolute;
   top: 0; left: 0; right: 0;
   padding: 0.5rem;
-  background: rgba(0, 240, 255,0.1);
+  background: rgba(var(--cherenkov-rgb),0.1);
   display: flex;
   justify-content: space-between;
   color: var(--c-cyan);
@@ -652,7 +652,7 @@ onMounted(() => {
   cursor: pointer;
   transition: all 0.3s;
 }
-.jam-btn:hover { background: rgba(0, 240, 255,0.1); }
+.jam-btn:hover { background: rgba(var(--cherenkov-rgb),0.1); }
 
 @keyframes ripple {
   0% { width: 220px; height: 220px; opacity: 1; }

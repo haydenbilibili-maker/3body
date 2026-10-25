@@ -49,7 +49,7 @@ withDefaults(defineProps<{
 .tech-card {
   position: relative;
   background: rgba(2, 6, 23, 0.6);
-  border: 1px solid rgba(0, 240, 255, 0.1);
+  border: 1px solid rgba(var(--cherenkov-rgb), 0.1);
   backdrop-filter: blur(10px);
   padding: 1.25rem;
   display: flex;
@@ -77,8 +77,8 @@ withDefaults(defineProps<{
 }
 
 .tech-card:hover {
-  border-color: rgba(0, 240, 255, 0.3);
-  box-shadow: 0 0 20px rgba(0, 240, 255, 0.1);
+  border-color: rgba(var(--cherenkov-rgb), 0.3);
+  box-shadow: 0 0 20px rgba(var(--cherenkov-rgb), 0.1);
   background: rgba(2, 6, 23, 0.7);
 }
 
@@ -129,7 +129,7 @@ withDefaults(defineProps<{
   color: var(--holo-blue);
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  text-shadow: 0 0 5px rgba(0, 240, 255, 0.5);
+  text-shadow: 0 0 5px rgba(var(--cherenkov-rgb), 0.5);
 }
 .variant-danger .tech-title { color: var(--holo-red); text-shadow: 0 0 5px rgba(255, 42, 42, 0.5); }
 
@@ -169,7 +169,7 @@ withDefaults(defineProps<{
     0deg,
     transparent,
     transparent 2px,
-    rgba(0, 240, 255, 0.02) 3px
+    rgba(var(--cherenkov-rgb), 0.02) 3px
   );
   pointer-events: none;
   z-index: 0;
