@@ -526,9 +526,8 @@ function statusName(st: string): string {
               <div 
                 class="bomb-icon"
                 :class="{ active: i === gameState.activeBombIndex, used: i < gameState.activeBombIndex }"
-              >
-                ☢️
-              </div>
+                aria-hidden="true"
+              ></div>
             </div>
 
             <div
@@ -922,13 +921,17 @@ function statusName(st: string): string {
 
 .bomb-icon {
   position: absolute;
-  bottom: -15px;
-  font-size: 1.5rem;
+  bottom: -6px;
+  width: 12px;
+  height: 12px;
+  border: 1px solid var(--weathered);
+  border-radius: 50%;
+  background: var(--slab);
   transform: translateX(-50%);
   opacity: 0.5;
   transition: all 0.3s;
 }
-.bomb-icon.active { opacity: 1; transform: translateX(-50%) scale(1.2); color: var(--c-red); }
+.bomb-icon.active { opacity: 1; transform: translateX(-50%) scale(1.2); border-color: var(--rust-bright); background: var(--rust); }
 .bomb-icon.used { opacity: 0.2; transform: translateX(-50%) scale(0.8); }
 
 .controls {

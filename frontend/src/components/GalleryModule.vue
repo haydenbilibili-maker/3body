@@ -161,7 +161,7 @@ onMounted(loadItems)
     <div class="gallery-header">
       <div class="header-info">
         <h2 class="module-title">档案馆</h2>
-        <span class="module-subtitle">绝密历史档案 [{{ items.length }}] · 智子视网膜投影</span>
+        <span class="module-subtitle">历史档案 {{ items.length }} 件</span>
       </div>
     </div>
 

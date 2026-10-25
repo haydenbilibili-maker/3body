@@ -234,7 +234,7 @@ onMounted(loadEncyclopedia)
         <div class="card-edge bottom-right"></div>
         
         <div class="wiki-header">
-          <span class="cat-tag">{{ item.category }}</span>
+          <span class="cat-tag">{{ CATEGORY_LABELS[item.category] ?? item.category }}</span>
           <h3 class="wiki-term">{{ item.term }}</h3>
         </div>
         
@@ -287,9 +287,10 @@ onMounted(loadEncyclopedia)
 
 /* Filter Styles */
 .wiki-filter { display: flex; gap: 1rem; margin-bottom: 2rem; border-bottom: 1px solid var(--border-tech); padding-bottom: 0.5rem; }
-.filter-tab { background: transparent; border: none; color: var(--text-muted); font-family: var(--font-tech); font-size: 0.8rem; padding: 0.5rem 1rem; cursor: pointer; transition: all 0.3s; position: relative; }
+.wiki-filter { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-bottom: 0; }
+.filter-tab { flex: none; white-space: nowrap; background: transparent; border: none; color: var(--text-muted); font-family: var(--font-tech); font-size: 0.8rem; padding: 0.5rem 1rem; cursor: pointer; transition: all 0.3s; position: relative; }
 .filter-tab.active { color: var(--holo-blue); text-shadow: none; }
-.filter-tab.active::after { content: ''; position: absolute; bottom: -0.6rem; left: 0; width: 100%; height: 2px; background: var(--holo-blue); box-shadow: none; }
+.filter-tab.active::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 2px; background: var(--holo-blue); box-shadow: none; }
 
 /* Grid Styles */
 .wiki-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
