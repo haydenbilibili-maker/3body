@@ -182,7 +182,6 @@ onMounted(() => {
 })
 onUnmounted(() => {
   cancelAnimationFrame(raf)
-  cancelAnimationFrame(holdRaf)
   ro?.disconnect()
 })
 </script>
