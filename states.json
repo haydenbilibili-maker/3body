@@ -1,0 +1,58 @@
+[
+  {
+    "name": "desktop-nav-dropdown",
+    "viewport": "desktop",
+    "slug": "sector-b",
+    "error": null,
+    "pageErrors": []
+  },
+  {
+    "name": "tablet-1024-nav-drawer",
+    "viewport": "desktop",
+    "slug": "sector-b",
+    "error": null,
+    "pageErrors": []
+  },
+  {
+    "name": "mobile-nav-drawer",
+    "viewport": "mobile",
+    "slug": "sector-b",
+    "error": null,
+    "pageErrors": []
+  },
+  {
+    "name": "mobile-nav-drawer-scrolled",
+    "viewport": "mobile",
+    "slug": "sector-b",
+    "error": null,
+    "pageErrors": []
+  },
+  {
+    "name": "desktop-flatland-lifted",
+    "viewport": "desktop",
+    "slug": "sector-g",
+    "error": null,
+    "pageErrors": []
+  },
+  {
+    "name": "mobile-647-choose",
+    "viewport": "mobile",
+    "slug": "sector-u",
+    "error": null,
+    "pageErrors": []
+  },
+  {
+    "name": "desktop-membrane-3d",
+    "viewport": "desktop",
+    "slug": "sector-m",
+    "error": null,
+    "pageErrors": []
+  },
+  {
+    "name": "desktop-redcoast-reply",
+    "viewport": "desktop",
+    "slug": "sector-r",
+    "error": null,
+    "pageErrors": []
+  }
+]
