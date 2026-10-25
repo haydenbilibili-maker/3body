@@ -55,6 +55,7 @@ const navGroups = [
     label: '宇宙',
     code: 'UNIVERSE',
     items: [
+      { path: '/sector-tale', label: '童话', code: 'TALE' },
       { path: '/sector-j', label: '掩体', code: 'BUNKER' },
       { path: '/sector-l', label: '曲率', code: 'LIGHTSPEED' },
       { path: '/sector-g', label: '四维', code: '4D-FRAG' },

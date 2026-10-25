@@ -196,6 +196,12 @@ const router = createRouter({
       component: () => import('@/views/SectorSwordholder.vue'),
       meta: { title: '执剑人', sector: 'sword' },
     },
+    {
+      path: '/sector-tale',
+      name: 'sector-tale',
+      component: () => import('@/views/SectorTale.vue'),
+      meta: { title: '童话', sector: 'tale' },
+    },
     { path: '/figures', redirect: '/sector-p' },
     { path: '/sophon', redirect: '/sector-a' },
     { path: '/chronicle', redirect: '/sector-b' },

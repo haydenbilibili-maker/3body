@@ -48,6 +48,7 @@ export const SECTORS: Sector[] = [
   { path: '/sector-ns', name: '自然选择号', era: 'crisis', question: '如果你确信人类会输，背叛是不是另一种忠诚？' },
   { path: '/sector-e', name: '黑暗森林', era: 'deterrence', question: '在无法确认善意的宇宙里，沉默是怯弱，还是唯一的道德？' },
   { path: '/sector-sword', name: '执剑人', era: 'deterrence', question: '一个不愿意毁灭世界的人，能守住世界吗？' },
+  { path: '/sector-tale', name: '童话', era: 'broadcast', question: '一个故事可以有多少种读法，哪一种能救人？' },
   { path: '/sector-j', name: '掩体', era: 'bunker', question: '躲起来，是生存还是放弃？' },
   { path: '/sector-l', name: '曲率驱动', era: 'bunker', question: '人类为什么曾经禁止自己飞向光速？' },
   { path: '/sector-g', name: '四维碎片', era: 'deterrence', question: '如果墙只在它的维度里成立，什么才是「内部」？' },

@@ -59,6 +59,7 @@ const ROUTES = [
   ['sector-ledger', '读者的档案'],
   ['sector-sword', '执剑人'],
   ['sector-ns', '自然选择号'],
+  ['sector-tale', '童话'],
 ]
 
 const VIEWPORTS = [
@@ -250,6 +251,33 @@ const STATES = [
     act: async (page) => {
       await page.click('.nav-hamburger')
       await page.waitForTimeout(600)
+    },
+  },
+  {
+    // 童话：点开一个意象，委员会的三种读法展开
+    name: 'tale-council-open',
+    viewport: 'desktop',
+    slug: 'sector-tale',
+    act: async (page) => {
+      await page.getByRole('button', { name: '肥皂', exact: true }).click()
+      await page.waitForTimeout(500)
+    },
+  },
+  {
+    // 童话：三条读法写进报告、交出之后，历史给出答案
+    name: 'mobile-tale-reveal',
+    viewport: 'mobile',
+    slug: 'sector-tale',
+    act: async (page) => {
+      for (const [word, n] of [['画师', 0], ['肥皂', 0], ['伞', 1]]) {
+        await page.getByRole('button', { name: word, exact: true }).click()
+        await page.locator('.council:visible .reading').nth(n).click()
+        await page.waitForTimeout(150)
+      }
+      const hold = page.getByRole('button', { name: '按住，交出报告' })
+      await hold.focus()
+      await page.keyboard.press('Enter')
+      await page.waitForTimeout(3600)
     },
   },
   {
