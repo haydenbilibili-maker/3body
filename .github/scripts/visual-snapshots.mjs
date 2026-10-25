@@ -259,6 +259,34 @@ const STATES = [
       await page.waitForTimeout(300)
     },
   },
+  {
+    // 四维碎片「方寸之间」：开始第一关、走两步后升维（墙应退化为细线、密室内部可见）
+    name: 'desktop-flatland-lifted',
+    viewport: 'desktop',
+    slug: 'sector-g',
+    act: async (page) => {
+      await page.getByRole('button', { name: '开始' }).click({ timeout: 8000 })
+      await page.keyboard.press('ArrowDown')
+      await page.keyboard.press('ArrowRight')
+      await page.keyboard.press('ArrowRight')
+      await page.keyboard.press('ArrowRight')
+      await page.keyboard.press('Space')
+      await page.keyboard.press('ArrowDown')
+      await page.waitForTimeout(500)
+    },
+  },
+  {
+    // 647 小宇宙：等广播信号（第 12 天）→ 接收 → 跳过 → 归还质量（抉择界面）
+    name: 'mobile-647-choose',
+    viewport: 'mobile',
+    slug: 'sector-u',
+    act: async (page) => {
+      await page.getByRole('button', { name: '接收广播' }).click({ timeout: 20000 })
+      await page.getByRole('button', { name: '跳过' }).click({ timeout: 5000 })
+      await page.getByRole('button', { name: '归还质量' }).click({ timeout: 5000 })
+      await page.waitForTimeout(600)
+    },
+  },
 ]
 
 async function snapshotState(browser, state) {

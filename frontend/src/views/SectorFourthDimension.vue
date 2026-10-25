@@ -153,8 +153,8 @@ function sendToRing() {
   background: #0a000a;
   border-bottom: 1px solid #330033;
 }
-:deep(.n-tabs-tab) { color: #8855aa !important; }
-:deep(.n-tabs-tab--active) { color: var(--c-magenta) !important; font-weight: bold; }
+:deep(.n-tabs-tab) { color: #b9a3d6 !important; }
+:deep(.n-tabs-tab--active) { color: #f0e2ff !important; font-weight: 600; }
 
 /* Tesseract */
 .canvas-container {

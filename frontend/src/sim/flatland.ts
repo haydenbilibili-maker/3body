@@ -80,7 +80,7 @@ export function parseLevel(level: FlatLevel): FlatState {
     moves: 0,
     lifts: 0,
     status: 'playing',
-    message: level.intro,
+    message: '你站在平面上。四周只有墙，和墙投下的影子。',
     seen: [],
   }
   state.seen = visibleCells(state)
