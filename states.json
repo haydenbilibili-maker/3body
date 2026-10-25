@@ -1,0 +1,268 @@
+[
+  {
+    "name": "desktop-nav-dropdown",
+    "viewport": "desktop",
+    "slug": "sector-b",
+    "error": null,
+    "pageErrors": []
+  },
+  {
+    "name": "tablet-1024-nav-drawer",
+    "viewport": "desktop",
+    "slug": "sector-b",
+    "error": null,
+    "pageErrors": []
+  },
+  {
+    "name": "mobile-nav-drawer",
+    "viewport": "mobile",
+    "slug": "sector-b",
+    "error": null,
+    "pageErrors": []
+  },
+  {
+    "name": "mobile-nav-drawer-scrolled",
+    "viewport": "mobile",
+    "slug": "sector-b",
+    "error": null,
+    "pageErrors": []
+  },
+  {
+    "name": "desktop-flatland-lifted",
+    "viewport": "desktop",
+    "slug": "sector-g",
+    "error": null,
+    "pageErrors": []
+  },
+  {
+    "name": "mobile-647-choose",
+    "viewport": "mobile",
+    "slug": "sector-u",
+    "error": null,
+    "pageErrors": []
+  },
+  {
+    "name": "desktop-membrane-3d",
+    "viewport": "desktop",
+    "slug": "sector-m",
+    "error": null,
+    "pageErrors": []
+  },
+  {
+    "name": "desktop-redcoast-reply",
+    "viewport": "desktop",
+    "slug": "sector-r",
+    "error": null,
+    "pageErrors": []
+  },
+  {
+    "name": "desktop-reader-gbk-txt",
+    "viewport": "desktop",
+    "slug": "sector-library",
+    "error": null,
+    "pageErrors": []
+  },
+  {
+    "name": "mobile-reader-epub",
+    "viewport": "mobile",
+    "slug": "sector-library",
+    "error": null,
+    "pageErrors": []
+  },
+  {
+    "name": "desktop-bunker-hold",
+    "viewport": "desktop",
+    "slug": "sector-j",
+    "error": null,
+    "pageErrors": []
+  },
+  {
+    "name": "desktop-curvature-flight",
+    "viewport": "desktop",
+    "slug": "sector-l",
+    "error": null,
+    "pageErrors": []
+  },
+  {
+    "name": "mobile-blind-thoughts",
+    "viewport": "mobile",
+    "slug": "sector-blind",
+    "error": null,
+    "pageErrors": []
+  },
+  {
+    "name": "desktop-chronicle-erosion",
+    "viewport": "desktop",
+    "slug": "sector-b",
+    "error": null,
+    "pageErrors": []
+  },
+  {
+    "name": "desktop-gallery-flat",
+    "viewport": "desktop",
+    "slug": "sector-d",
+    "error": null,
+    "pageErrors": []
+  },
+  {
+    "name": "mobile-tomb-billion",
+    "viewport": "mobile",
+    "slug": "sector-tomb",
+    "error": null,
+    "pageErrors": []
+  },
+  {
+    "name": "desktop-galaxy-voyage",
+    "viewport": "desktop",
+    "slug": "sector-human",
+    "error": null,
+    "pageErrors": []
+  },
+  {
+    "name": "mobile-figures-choices",
+    "viewport": "mobile",
+    "slug": "sector-p",
+    "error": null,
+    "pageErrors": []
+  },
+  {
+    "name": "desktop-returners-end",
+    "viewport": "desktop",
+    "slug": "sector-x",
+    "error": null,
+    "pageErrors": []
+  },
+  {
+    "name": "mobile-guestbook-signal",
+    "viewport": "mobile",
+    "slug": "sector-guestbook",
+    "error": null,
+    "pageErrors": []
+  },
+  {
+    "name": "desktop-chronicle-archive",
+    "viewport": "desktop",
+    "slug": "sector-b",
+    "error": null,
+    "pageErrors": []
+  },
+  {
+    "name": "mobile-chronicle-wiki",
+    "viewport": "mobile",
+    "slug": "sector-b",
+    "error": null,
+    "pageErrors": []
+  },
+  {
+    "name": "desktop-guzheng-after",
+    "viewport": "desktop",
+    "slug": "sector-guzheng",
+    "error": null,
+    "pageErrors": []
+  },
+  {
+    "name": "mobile-sleep-stay",
+    "viewport": "mobile",
+    "slug": "sector-sleep",
+    "error": null,
+    "pageErrors": []
+  },
+  {
+    "name": "desktop-ledger-filled",
+    "viewport": "desktop",
+    "slug": "sector-guzheng",
+    "error": null,
+    "pageErrors": []
+  },
+  {
+    "name": "desktop-sword-alarm",
+    "viewport": "desktop",
+    "slug": "sector-sword",
+    "error": null,
+    "pageErrors": []
+  },
+  {
+    "name": "mobile-ns-fled",
+    "viewport": "mobile",
+    "slug": "sector-ns",
+    "error": null,
+    "pageErrors": []
+  },
+  {
+    "name": "desktop-home-gravity",
+    "viewport": "desktop",
+    "slug": "sector-c",
+    "error": null,
+    "pageErrors": []
+  },
+  {
+    "name": "desktop-droplet-mirror",
+    "viewport": "desktop",
+    "slug": "sector-w",
+    "error": null,
+    "pageErrors": []
+  },
+  {
+    "name": "desktop-forest-lamp",
+    "viewport": "desktop",
+    "slug": "sector-e",
+    "error": null,
+    "pageErrors": []
+  },
+  {
+    "name": "desktop-gallery-page-fall",
+    "viewport": "desktop",
+    "slug": "sector-d",
+    "error": null,
+    "pageErrors": []
+  },
+  {
+    "name": "desktop-warp",
+    "viewport": "desktop",
+    "slug": "sector-r",
+    "error": null,
+    "pageErrors": []
+  },
+  {
+    "name": "desktop-sophon-unfold",
+    "viewport": "desktop",
+    "slug": "sector-a",
+    "error": null,
+    "pageErrors": []
+  },
+  {
+    "name": "desktop-redcoast-waterfall",
+    "viewport": "desktop",
+    "slug": "sector-r",
+    "error": null,
+    "pageErrors": []
+  },
+  {
+    "name": "desktop-sleep-frost",
+    "viewport": "desktop",
+    "slug": "sector-sleep",
+    "error": null,
+    "pageErrors": []
+  },
+  {
+    "name": "desktop-guzheng-slice",
+    "viewport": "desktop",
+    "slug": "sector-guzheng",
+    "error": null,
+    "pageErrors": []
+  },
+  {
+    "name": "desktop-guestbook-scatter",
+    "viewport": "desktop",
+    "slug": "sector-guestbook",
+    "error": null,
+    "pageErrors": []
+  },
+  {
+    "name": "desktop-tomb-chisel",
+    "viewport": "desktop",
+    "slug": "sector-tomb",
+    "error": null,
+    "pageErrors": []
+  }
+]
