@@ -8,6 +8,8 @@ import { computed, ref } from 'vue'
 import SectorHeader from '@/components/SectorHeader.vue'
 import Vitrine from '@/components/Vitrine.vue'
 import HoldButton from '@/components/HoldButton.vue'
+import WorldlineMap from '@/components/WorldlineMap.vue'
+import { readWorldline, summarize } from '@/sim/worldline'
 import { ERAS, SECTORS, eraById } from '@/data/sectors'
 import { answers, forgetAll, visits } from '@/data/answers'
 
@@ -29,8 +31,18 @@ const rooms = computed(() =>
 const answered = computed(() => rooms.value.filter((r) => r.answer))
 const visitedCount = computed(() => rooms.value.filter((r) => r.visited || r.answer).length)
 
+const worldline = computed(() => summarize(readWorldline(answers.value)))
 const archiveText = computed(() =>
-  ['一个读者的深时档案', '', ...answered.value.map((r) => `${r.eraName} · ${r.name}：${r.answer}`)].join('\n'),
+  [
+    '一个读者的深时档案',
+    worldline.value.diverged
+      ? `我的世界线与原著有 ${worldline.value.diverged} 处分岔，最早在「${worldline.value.first?.fork.room}」。`
+      : '',
+    '',
+    ...answered.value.map((r) => `${r.eraName} · ${r.name}：${r.answer}`),
+  ]
+    .filter((l, i) => i !== 1 || l)
+    .join('\n'),
 )
 const copied = ref(false)
 /* 印成拓片：打印时整页切换为 VI 的拓片主题（见 main.css 的 @media print），版式与乐园离园石碑一致 */
@@ -60,6 +72,8 @@ async function copy() {
       <div><dt>走进过的展厅</dt><dd class="num">{{ visitedCount }} / {{ rooms.length }}</dd></div>
       <div><dt>留下了选择的展厅</dt><dd class="num">{{ answered.length }}</dd></div>
     </dl>
+
+    <WorldlineMap />
 
     <ol class="rooms">
       <li v-for="r in rooms" :key="r.path" class="room" :class="{ done: r.answer, seen: r.visited && !r.answer }">
