@@ -12,6 +12,7 @@ import { computed, onMounted, onUnmounted, ref, shallowRef, watch } from 'vue'
 import { recordAnswer } from '@/data/answers'
 import SectorHeader from '@/components/SectorHeader.vue'
 import Vitrine from '@/components/Vitrine.vue'
+import SlowLight from '@/components/SlowLight.vue'
 import { sectorByPath } from '@/data/sectors'
 import {
   BAND,
@@ -197,6 +198,7 @@ watch(ending, (e) => {
 
 <template>
   <div class="sector-curv">
+    <SlowLight :active="ending === 'domain'" />
     <SectorHeader
       title="曲率驱动"
       subtitle="抹平身后的空间，船就会被前方的空间拉着走。这是唯一能接近光速的办法，也是人类曾经立法禁止的技术。"
