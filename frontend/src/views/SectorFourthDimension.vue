@@ -1,16 +1,17 @@
 <script setup lang="ts">
 /**
  * Sector G: The 4th Dimension (四维碎片)
- * 核心：四维视觉 (Tesseract), 魔戒对话 (The Ring), 高维手术 (Surgery)
+ * 核心：方寸之间（平面国升维解谜，见 components/FlatlandPuzzle.vue + sim/flatland.ts）、超立方体投影、魔戒对话
  * 风格：故障艺术 (Glitch), 深紫/霓虹
  */
-import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
-import { NTabs, NTabPane, NInput, NButton, useMessage } from 'naive-ui'
+import { ref, reactive, onMounted, onUnmounted } from 'vue'
+import { NTabs, NTabPane } from 'naive-ui'
 import { TresCanvas } from '@tresjs/core'
 import { OrbitControls } from '@tresjs/cientos'
 import The4DTesseract from '@/components/The4DTesseract.vue'
 import { soundManager } from '@/utils/sound'
-import { useUserStore } from '@/stores/user'
+import SectorHeader from '@/components/SectorHeader.vue'
+import FlatlandPuzzle from '@/components/FlatlandPuzzle.vue'
 
 onMounted(() => {
   soundManager.startAmbient('void')
@@ -20,9 +21,7 @@ onUnmounted(() => {
   soundManager.stopAmbient()
 })
 
-const message = useMessage()
-const userStore = useUserStore()
-const activeTab = ref('tesseract')
+const activeTab = ref('flatland')
 
 // --- Tab 2: The Ring (Chat) ---
 const chatHistory = reactive([
@@ -53,72 +52,29 @@ function sendToRing() {
   }, 1500)
 }
 
-// --- Tab 3: High-Dim Surgery (Game) ---
-// 简化的逻辑游戏：从 3x3 网格的封闭“盒子”中取出中心的“心”，而不经过边界。
-// 实际上通过“切换层级”来模拟第4维移动。
-const surgeryState = reactive({
-  layer: 0, // 0: 3D Slice A, 1: 3D Slice B (High Dim)
-  grid: [
-    [1, 1, 1],
-    [1, 2, 1], // 2 is the Target (Heart)
-    [1, 1, 1]
-  ],
-  hasHeart: false,
-  message: '目标：取出红心。规则：不能穿过白墙。'
-})
-
-function toggleLayer() {
-  if (!userStore.checkPermission(1, '高维移动 (High-Dimensional Movement)')) {
-    return
-  }
-  surgeryState.layer = surgeryState.layer === 0 ? 1 : 0
-  surgeryState.message = surgeryState.layer === 1 
-    ? '进入四维空间... 墙壁消失了。' 
-    : '返回三维空间... 墙壁闭合。'
-}
-
-function clickCell(r: number, c: number) {
-  const cell = surgeryState.grid[r][c]
-  
-  // Layer 0: Wall (1) blocks interaction
-  if (surgeryState.layer === 0) {
-    if (cell === 1) {
-      message.error('无法穿过墙壁！')
-      return
-    }
-    if (cell === 2) {
-      // In 3D, fully enclosed, cannot reach
-      message.error('无法触及！它被封在里面。')
-      return
-    }
-  }
-  
-  // Layer 1: High Dim - Walls are "below" us, accessible
-  if (surgeryState.layer === 1) {
-    if (cell === 2) {
-      surgeryState.grid[r][c] = 0
-      surgeryState.hasHeart = true
-      message.success('已从高维取走心脏！')
-      surgeryState.message = '手术成功。请返回三维确认。'
-    } else if (cell === 1) {
-      message.info('这是三维的墙，在四维看来只是一条线。')
-    }
-  }
-}
-
 </script>
 
 <template>
   <div class="sector-g">
-    <div class="header">
-      <h1 class="glitch-text" data-text="SECTOR G // 4TH DIMENSION">SECTOR G // 4TH DIMENSION</h1>
-      <p class="subtitle">魔戒 · 墓地 · 维度碎片</p>
-    </div>
+    <SectorHeader
+      code="SECTOR G · THE FOURTH DIMENSION"
+      title="四维碎片"
+      subtitle="方寸之间，深不见底"
+      goal="用升维取走平面国密室里的所有东西，一面墙都不打破——在碎片蒸发之前。"
+      accent="#c58bff"
+      class="g-header"
+    />
 
     <NTabs v-model:value="activeTab" type="segment" class="g-tabs">
-      
+      <!-- Module 0: Flatland（核心玩法）-->
+      <NTabPane name="flatland" tab="方寸之间">
+        <div class="flatland-pane">
+          <FlatlandPuzzle />
+        </div>
+      </NTabPane>
+
       <!-- Module 1: Tesseract -->
-      <NTabPane name="tesseract" tab="四维视觉 (VISION)">
+      <NTabPane name="tesseract" tab="超立方体">
         <div class="canvas-container">
           <TresCanvas window-size clear-color="#050005" presets="realistic">
             <TresPerspectiveCamera :position="[4, 4, 4]" :look-at="[0, 0, 0]" />
@@ -134,7 +90,7 @@ function clickCell(r: number, c: number) {
       </NTabPane>
 
       <!-- Module 2: The Ring -->
-      <NTabPane name="ring" tab="魔戒对话 (THE RING)">
+      <NTabPane name="ring" tab="魔戒对话">
         <div class="ring-interface">
           <div class="ring-monitor">
             <div class="scan-line"></div>
@@ -162,47 +118,6 @@ function clickCell(r: number, c: number) {
         </div>
       </NTabPane>
 
-      <!-- Module 3: High-Dim Surgery -->
-      <NTabPane name="surgery" tab="高维手术 (SURGERY)">
-        <div class="surgery-container">
-          <div class="surgery-board" :class="{ 'high-dim': surgeryState.layer === 1 }">
-            <div class="board-header">
-              <span>维度: {{ surgeryState.layer === 0 ? '3D (常规)' : '4D (高维)' }}</span>
-              <button class="dim-switch" @click="toggleLayer">
-                {{ surgeryState.layer === 0 ? '进入四维 (ENTER 4D)' : '返回三维 (RETURN 3D)' }}
-              </button>
-            </div>
-            
-            <div class="grid-3x3">
-              <template v-for="(row, r) in surgeryState.grid" :key="r">
-                <div 
-                  v-for="(cell, c) in row" 
-                  :key="`${r}-${c}`"
-                  class="cell"
-                  :class="{ 
-                    wall: cell === 1, 
-                    target: cell === 2, 
-                    empty: cell === 0,
-                    'wall-faded': surgeryState.layer === 1 && cell === 1
-                  }"
-                  @click="clickCell(r, c)"
-                >
-                  <span v-if="cell === 2">❤️</span>
-                </div>
-              </template>
-            </div>
-            
-            <div class="status-log">
-              {{ surgeryState.message }}
-            </div>
-            
-            <div class="inventory" v-if="surgeryState.hasHeart">
-              物品栏: [ ❤️ 心脏 ]
-            </div>
-          </div>
-        </div>
-      </NTabPane>
-
     </NTabs>
   </div>
 </template>
@@ -217,24 +132,15 @@ function clickCell(r: number, c: number) {
   flex-direction: column;
 }
 
-.header {
-  padding: 1rem 2rem;
-  border-bottom: 1px solid #330033;
-  background: #0a000a;
+.g-header {
+  padding: 1.25rem 2rem 0;
+  margin-bottom: 0;
 }
 
-.glitch-text {
-  font-family: var(--font-mono);
-  font-size: 1.5rem;
-  color: var(--c-magenta);
-  text-shadow: 2px 2px var(--c-cyan);
-  position: relative;
-}
-
-.subtitle {
-  color: #8855aa;
-  font-size: 0.8rem;
-  margin-top: 0.5rem;
+.flatland-pane {
+  padding: 1.5rem 2rem 2rem;
+  font-family: var(--font-sans);
+  color: var(--gray-150);
 }
 
 .g-tabs {
@@ -247,8 +153,8 @@ function clickCell(r: number, c: number) {
   background: #0a000a;
   border-bottom: 1px solid #330033;
 }
-:deep(.n-tabs-tab) { color: #8855aa !important; }
-:deep(.n-tabs-tab--active) { color: var(--c-magenta) !important; font-weight: bold; }
+:deep(.n-tabs-tab) { color: #b9a3d6 !important; }
+:deep(.n-tabs-tab--active) { color: #f0e2ff !important; font-weight: 600; }
 
 /* Tesseract */
 .canvas-container {
@@ -324,73 +230,8 @@ function clickCell(r: number, c: number) {
 }
 .ring-input button:hover { background: #550055; }
 
-/* Surgery */
-.surgery-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-  padding: 2rem;
-}
-.surgery-board {
-  background: var(--gray-900);
-  padding: 2rem;
-  border: 2px solid var(--gray-600);
-  width: 400px;
-  transition: all 0.5s;
-}
-.surgery-board.high-dim {
-  border-color: var(--c-cyan);
-  box-shadow: 0 0 20px rgba(0, 240, 255,0.2);
-  transform: scale(1.05) rotateX(10deg);
-}
-
-.board-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-}
-.dim-switch {
-  background: #004444;
-  color: var(--c-cyan);
-  border: 1px solid var(--c-cyan);
-  padding: 0.5rem 1rem;
-  cursor: pointer;
-}
-.dim-switch:hover { background: #006666; }
-
-.grid-3x3 {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin-bottom: 2rem;
-}
-.cell {
-  aspect-ratio: 1;
-  background: var(--gray-800);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2rem;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-.cell.wall { background: var(--white); }
-.cell.wall-faded { background: rgba(255,255,255,0.1); border: 1px dashed var(--white); }
-.cell.target { background: #220000; }
-.cell:hover { opacity: 0.8; }
-
-.status-log {
-  padding: 1rem;
-  background: var(--black);
-  border: 1px solid var(--gray-700);
-  color: var(--gray-300);
-  font-size: 0.9rem;
-}
-.inventory {
-  margin-top: 1rem;
-  color: var(--c-red);
-  font-weight: bold;
+@media (max-width: 768px) {
+  .g-header { padding: 1rem 1rem 0; }
+  .flatland-pane { padding: 1rem; }
 }
 </style>

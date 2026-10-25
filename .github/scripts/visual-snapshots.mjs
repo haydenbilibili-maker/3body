@@ -131,6 +131,15 @@ async function snapshotRoute(browser, viewport, [slug, title]) {
           if (smallBodySamples.length < 3) smallBodySamples.push(`${style.fontSize} ${text.slice(0, 24)}`)
         }
       }
+      // 根节点裁切：页面根元素 overflow:hidden 且内容高于自身——下方内容被藏起来、无法滚动到
+      const root = main?.firstElementChild
+      let clippedY = 0
+      if (root) {
+        const st = getComputedStyle(root)
+        if (['hidden', 'clip'].includes(st.overflowY) && root.scrollHeight > root.clientHeight + 4) {
+          clippedY = root.scrollHeight - root.clientHeight
+        }
+      }
       // 溢出元凶：右边缘超出视口、而父元素没有超出的元素（即「第一个撑出屏幕」的元素）
       const vw = window.innerWidth
       const describe = (el) =>
@@ -157,6 +166,7 @@ async function snapshotRoute(browser, viewport, [slug, title]) {
         viewportHeight: main ? main.clientHeight : window.innerHeight,
         tinyText,
         smallBody,
+        clippedY,
         smallBodySamples,
         title: document.title,
         h1: document.querySelector('h1')?.textContent?.trim() ?? null,
@@ -202,11 +212,12 @@ async function snapshotRoute(browser, viewport, [slug, title]) {
 }
 
 // 交互态快照：只靠逐页截图看不到的界面（下拉菜单、手机抽屉）。每项：视口、页面、操作、截图名
+// 导航相关的交互态放在编年史页：首页的 Three.js 背景在 CI 的软件渲染下偶尔让主线程卡住数十秒
 const STATES = [
   {
     name: 'desktop-nav-dropdown',
     viewport: 'desktop',
-    slug: 'sector-c',
+    slug: 'sector-b',
     act: async (page) => {
       const group = page.locator('.nav-group').nth(1)
       try {
@@ -239,7 +250,7 @@ const STATES = [
   {
     name: 'mobile-nav-drawer',
     viewport: 'mobile',
-    slug: 'sector-c',
+    slug: 'sector-b',
     act: async (page) => {
       await page.click('.nav-hamburger')
       await page.waitForTimeout(600)
@@ -248,7 +259,7 @@ const STATES = [
   {
     name: 'mobile-nav-drawer-scrolled',
     viewport: 'mobile',
-    slug: 'sector-c',
+    slug: 'sector-b',
     act: async (page) => {
       await page.click('.nav-hamburger')
       await page.waitForTimeout(400)
@@ -257,6 +268,50 @@ const STATES = [
         if (el) el.scrollTop = el.scrollHeight
       })
       await page.waitForTimeout(300)
+    },
+  },
+  {
+    // 四维碎片「方寸之间」：开始第一关、走两步后升维（墙应退化为细线、密室内部可见）
+    name: 'desktop-flatland-lifted',
+    viewport: 'desktop',
+    slug: 'sector-g',
+    act: async (page) => {
+      await page.getByRole('button', { name: '开始' }).click({ timeout: 8000 })
+      await page.keyboard.press('ArrowDown')
+      await page.keyboard.press('ArrowRight')
+      await page.keyboard.press('ArrowRight')
+      await page.keyboard.press('ArrowRight')
+      await page.keyboard.press('Space')
+      await page.keyboard.press('ArrowDown')
+      await page.waitForTimeout(500)
+    },
+  },
+  {
+    // 647 小宇宙：等广播信号（第 12 天）→ 接收 → 跳过 → 归还质量（抉择界面）
+    name: 'mobile-647-choose',
+    viewport: 'mobile',
+    slug: 'sector-u',
+    act: async (page) => {
+      await page.getByRole('button', { name: '接收广播' }).click({ timeout: 20000 })
+      await page.getByRole('button', { name: '跳过' }).click({ timeout: 5000 })
+      await page.getByRole('button', { name: '归还质量' }).click({ timeout: 5000 })
+      await page.waitForTimeout(600)
+    },
+  },
+  {
+    // 宇宙膜「田园时代」：按住折叠 7 次，从十维走到三维（我们在这里）
+    name: 'desktop-membrane-3d',
+    viewport: 'desktop',
+    slug: 'sector-m',
+    act: async (page) => {
+      const btn = page.locator('.m-fold')
+      for (let i = 0; i < 7; i += 1) {
+        await btn.hover({ timeout: 5000 })
+        await page.mouse.down()
+        await page.waitForTimeout(1300)
+        await page.mouse.up()
+        await page.waitForTimeout(600)
+      }
     },
   },
 ]
@@ -370,6 +425,11 @@ async function main() {
   for (const r of results) {
     if ((r.overflowX ?? 0) > 0 && r.offenders?.length) {
       console.log(`::warning title=overflow::${r.viewport}/${r.slug} +${r.overflowX}px ← ${r.offenders.join(' ; ')}`.slice(0, 900))
+    }
+  }
+  for (const r of results) {
+    if ((r.clippedY ?? 0) > 0) {
+      console.log(`::warning title=clipped-root::${r.viewport}/${r.slug} 根节点 overflow:hidden 裁掉了 ${r.clippedY}px 内容`)
     }
   }
   const broken = results.filter((r) => r.navError || r.pageErrors.length)
