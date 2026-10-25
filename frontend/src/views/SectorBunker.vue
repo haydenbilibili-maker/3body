@@ -113,6 +113,9 @@ watch(act, (a) => {
 
 <template>
   <div class="sector-bunker">
+    <Teleport to="body">
+      <div v-if="act === 'struck'" class="sun-flash" aria-hidden="true"></div>
+    </Teleport>
     <SectorHeader
       title="掩体"
       subtitle="广播纪元之后，太阳系的坐标已经暴露。人类有几十年时间，为一场不知何时到来的打击做准备。"
@@ -327,5 +330,23 @@ watch(act, (a) => {
 @media (max-width: 900px) {
   .plans { grid-template-columns: 1fr; }
   .hold { grid-template-columns: 1fr; }
+}
+/* 太阳被击中：整个屏幕先被白光吞没，再慢慢退成焦黄 */
+.sun-flash {
+  position: fixed;
+  inset: 0;
+  z-index: 880;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 50%, #fffaf0, #ffd9a0 45%, #b0432f 100%);
+  animation: sun-flash 3.2s ease-out forwards;
+}
+@keyframes sun-flash {
+  0% { opacity: 0; }
+  6% { opacity: 1; }
+  30% { opacity: 0.85; }
+  100% { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sun-flash { animation-duration: 0.6s; }
 }
 </style>

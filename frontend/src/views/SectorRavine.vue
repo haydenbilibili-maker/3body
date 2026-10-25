@@ -8,6 +8,7 @@ import { computed, nextTick, ref, watch } from 'vue'
 import { recordAnswer } from '@/data/answers'
 import SectorHeader from '@/components/SectorHeader.vue'
 import Vitrine from '@/components/Vitrine.vue'
+import BodyState from '@/components/BodyState.vue'
 import { sectorByPath } from '@/data/sectors'
 
 const question = sectorByPath('/sector-ravine')?.question
@@ -203,6 +204,7 @@ watch(ended, (e) => {
 
 <template>
   <div class="sector-ravine">
+    <BodyState :hunger="stats.hunger" :health="stats.health" :sanity="stats.sanity" :day="stats.day" />
     <SectorHeader
       title="大低谷"
       subtitle="为了四百年后的舰队，人类曾让一代人挨饿。这是那一代人里，一个普通人的三十天。"
