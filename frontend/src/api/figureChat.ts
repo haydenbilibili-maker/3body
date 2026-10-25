@@ -15,6 +15,17 @@ export interface FigureChatPayload {
   figure_description?: string
   message: string
   history?: FigureChatMessage[]
+  /** 对话室的场景（data/figureScenes.ts）：此刻在哪里、知道什么、心防是否已经打开 */
+  scene?: {
+    title: string
+    era: string
+    setting: string
+    knows: string
+    mood?: string
+    secret?: string
+    reveal?: boolean
+    visitor?: string
+  }
   /** 以下三项仅在后端开启 3BODY_LLM_ALLOW_CLIENT_OVERRIDE 时生效 */
   api_key?: string
   base_url?: string
