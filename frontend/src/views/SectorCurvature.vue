@@ -1,683 +1,328 @@
 <script setup lang="ts">
 /**
- * Sector L: Curvature Propulsion (曲率驱动)
- * 核心：折纸船隐喻 (Origami), 相对论航行 (Relativistic Flight), 黑域生成 (Black Domain)
- * 风格：梦幻流体，粒子光效，相对论视觉畸变
+ * Sector L：曲率驱动
+ * 序 云天明的童话：把肥皂抹在船尾，水的张力变了，纸船就自己往前走。
+ * 航行：驾驶一艘曲率飞船。航迹里的光速会降下来——
+ *   绕太阳一圈，航迹合拢成黑域（安全声明，也是牢笼）；
+ *   一直往外飞，就离开了太阳系；
+ *   航迹在远处拖得太长，就成了给猎人看的路标。
+ * 逻辑见 sim/curvature.ts。
  */
-import { ref, onMounted, onUnmounted, computed, reactive, watch } from 'vue'
-import { NTabs, NTabPane, useMessage } from 'naive-ui'
-import { soundManager } from '@/utils/sound'
-import { useUserStore } from '@/stores/user'
+import { computed, onMounted, onUnmounted, ref, shallowRef } from 'vue'
+import SectorHeader from '@/components/SectorHeader.vue'
+import Vitrine from '@/components/Vitrine.vue'
+import { sectorByPath } from '@/data/sectors'
+import {
+  BAND,
+  ENDINGS,
+  EXPOSE_LIMIT,
+  FAR,
+  H,
+  MAX_SPEED,
+  STAR,
+  TRAIL_LIFE,
+  W,
+  contraction,
+  coverage,
+  createFlight,
+  speedOf,
+  step,
+  type FlightState,
+} from '@/sim/curvature'
 
-const message = useMessage()
-const userStore = useUserStore()
-const activeTab = ref('domain') // Default to the main game
+const question = sectorByPath('/sector-l')?.question
 
-// --- 1. Origami Boat (Metaphor) ---
-const boatSpeed = ref(1)
-const isSoapDropped = ref(false)
-
-const canDropSoap = computed(() => userStore.checkPermission(2, '修改物理常量 (Alter Physics Constants)'))
-
+/* ---------- 序：纸船 ---------- */
+const soap = ref(false)
+let soapTimer: ReturnType<typeof setTimeout> | undefined
 function dropSoap() {
-  if (isSoapDropped.value) return
-  if (!canDropSoap.value) {
-    message.warning('需面壁者权限方可投放肥皂，改变「水的张力」。')
+  soap.value = true
+  clearTimeout(soapTimer)
+  soapTimer = setTimeout(() => (soap.value = false), 3200)
+}
+
+/* ---------- 航行 ---------- */
+const canvas = ref<HTMLCanvasElement | null>(null)
+const flight = shallowRef<FlightState>(createFlight())
+const flying = ref(false)
+const ending = computed(() => flight.value.ending)
+const keys = { up: false, left: false, right: false }
+const pointer = { active: false, x: 0, y: 0 }
+let raf = 0
+
+function onKey(e: KeyboardEvent) {
+  const down = e.type === 'keydown'
+  const k = e.key.toLowerCase()
+  if (k === 'w' || k === 'arrowup') keys.up = down
+  else if (k === 'a' || k === 'arrowleft') keys.left = down
+  else if (k === 'd' || k === 'arrowright') keys.right = down
+  else return
+  if (flying.value) e.preventDefault()
+}
+function toCanvas(e: PointerEvent) {
+  const r = canvas.value!.getBoundingClientRect()
+  return { x: ((e.clientX - r.left) / r.width) * W, y: ((e.clientY - r.top) / r.height) * H }
+}
+function onPointerDown(e: PointerEvent) {
+  if (!flying.value) return
+  canvas.value?.setPointerCapture(e.pointerId)
+  pointer.active = true
+  Object.assign(pointer, toCanvas(e))
+}
+function onPointerMove(e: PointerEvent) {
+  if (pointer.active) Object.assign(pointer, toCanvas(e))
+}
+function onPointerUp() {
+  pointer.active = false
+}
+
+function input() {
+  const s = flight.value.ship
+  if (pointer.active) {
+    let diff = Math.atan2(pointer.y - s.y, pointer.x - s.x) - s.angle
+    while (diff > Math.PI) diff -= 2 * Math.PI
+    while (diff < -Math.PI) diff += 2 * Math.PI
+    const dist = Math.hypot(pointer.x - s.x, pointer.y - s.y)
+    return { turn: Math.max(-1, Math.min(1, diff * 3)), thrust: dist > 24 ? 1 : 0 }
+  }
+  return { turn: (keys.right ? 1 : 0) - (keys.left ? 1 : 0), thrust: keys.up ? 1 : 0 }
+}
+
+function loop() {
+  flight.value = step(flight.value, input())
+  draw()
+  if (flight.value.ending) {
+    stop()
     return
   }
-  isSoapDropped.value = true
-  boatSpeed.value = 5
-  message.info('曲率驱动启动：空间张力差异产生推力')
-  soundManager.playClick()
-  setTimeout(() => {
-    boatSpeed.value = 1
-    isSoapDropped.value = false
-  }, 3000)
+  raf = requestAnimationFrame(loop)
 }
-
-// --- 2. Black Domain (The Game) ---
-const domainCanvas = ref<HTMLCanvasElement | null>(null)
-const domainCtx = ref<CanvasRenderingContext2D | null>(null)
-// Physics state
-const ship = reactive({ 
-  x: 400, y: 300, 
-  vx: 0, vy: 0, 
-  angle: -Math.PI/2,
-  thrust: 0 
-})
-const trails = ref<Array<{x: number, y: number, size: number, alpha: number}>>([])
-const isDomainSafe = ref(false)
-const lightSpeed = ref(300000) // c
-const formationProgress = ref(0) // 0 to 1 animates the black domain forming
-
-// Constants
-const MAX_SPEED = 4 // Simulating "c" limit for gameplay
-const FRICTION = 0.98
-
-// Controls
-const keys = reactive({ w: false, a: false, s: false, d: false })
-const joystick = reactive({ active: false, dx: 0, dy: 0, originX: 0, originY: 0, curX: 0, curY: 0 })
-
-function initDomain() {
-  if (!domainCanvas.value) return
-  domainCtx.value = domainCanvas.value.getContext('2d')
-  
-  // Resize canvas to fit container
-  const resize = () => {
-    if (domainCanvas.value) {
-      domainCanvas.value.width = domainCanvas.value.parentElement?.clientWidth || 800
-      domainCanvas.value.height = domainCanvas.value.parentElement?.clientHeight || 500
-      // Reset ship center
-      ship.x = domainCanvas.value.width / 2
-      ship.y = domainCanvas.value.height * 0.8
-    }
-  }
-  window.addEventListener('resize', resize)
-  resize()
-
-  window.addEventListener('keydown', handleKey)
-  window.addEventListener('keyup', handleKey)
-  domainLoop()
+function ignite() {
+  flight.value = createFlight()
+  flying.value = true
+  window.addEventListener('keydown', onKey)
+  window.addEventListener('keyup', onKey)
+  cancelAnimationFrame(raf)
+  raf = requestAnimationFrame(loop)
 }
-
-// Touch Logic
-function handleTouchStart(e: TouchEvent) {
-  if (activeTab.value !== 'domain') return
-  e.preventDefault() // Prevent scroll
-  const touch = e.touches[0]
-  joystick.active = true
-  joystick.originX = touch.clientX
-  joystick.originY = touch.clientY
-  joystick.curX = touch.clientX
-  joystick.curY = touch.clientY
-  joystick.dx = 0
-  joystick.dy = 0
+function stop() {
+  flying.value = false
+  pointer.active = false
+  window.removeEventListener('keydown', onKey)
+  window.removeEventListener('keyup', onKey)
+  cancelAnimationFrame(raf)
 }
-
-function handleTouchMove(e: TouchEvent) {
-  if (!joystick.active) return
-  e.preventDefault()
-  const touch = e.touches[0]
-  joystick.curX = touch.clientX
-  joystick.curY = touch.clientY
-  
-  const deltaX = touch.clientX - joystick.originX
-  const deltaY = touch.clientY - joystick.originY
-  const maxDist = 50
-  const dist = Math.hypot(deltaX, deltaY)
-  
-  const angle = Math.atan2(deltaY, deltaX)
-  const force = Math.min(dist, maxDist) / maxDist
-  
-  joystick.dx = Math.cos(angle) * force
-  joystick.dy = Math.sin(angle) * force
-}
-
-function handleTouchEnd() {
-  joystick.active = false
-  joystick.dx = 0
-  joystick.dy = 0
-}
-
-function handleKey(e: KeyboardEvent) {
-  const val = e.type === 'keydown'
-  if (e.key === 'w' || e.key === 'ArrowUp') keys.w = val
-  if (e.key === 'a' || e.key === 'ArrowLeft') keys.a = val
-  if (e.key === 's' || e.key === 'ArrowDown') keys.s = val
-  if (e.key === 'd' || e.key === 'ArrowRight') keys.d = val
-}
-
-function domainLoop() {
-  if (!domainCtx.value || !domainCanvas.value) return
-  const ctx = domainCtx.value
-  const cvs = domainCanvas.value
-  
-  // --- Physics Update ---
-  let turn = 0
-  ship.thrust = 0
-  
-  if (keys.a) turn -= 0.08
-  if (keys.d) turn += 0.08
-  if (keys.w) ship.thrust = 0.15
-  
-  // Joystick Override
-  if (joystick.active) {
-    // Determine target angle
-    const joyAngle = Math.atan2(joystick.dy, joystick.dx)
-    let diff = joyAngle - ship.angle
-    while (diff <= -Math.PI) diff += Math.PI*2
-    while (diff > Math.PI) diff -= Math.PI*2
-    
-    // Smooth turn towards joystick direction
-    if (Math.hypot(joystick.dx, joystick.dy) > 0.2) {
-      if (Math.abs(diff) > 0.1) turn = Math.sign(diff) * 0.1
-      ship.thrust = Math.hypot(joystick.dx, joystick.dy) * 0.15
-    }
-  }
-
-  ship.angle += turn
-  
-  if (ship.thrust > 0) {
-    ship.vx += Math.cos(ship.angle) * ship.thrust
-    ship.vy += Math.sin(ship.angle) * ship.thrust
-    
-    // Add Trail Particle
-    if (Math.random() > 0.3) {
-      trails.value.push({
-        x: ship.x - Math.cos(ship.angle) * 15,
-        y: ship.y - Math.sin(ship.angle) * 15,
-        size: 5 + Math.random() * 5,
-        alpha: 0.6
-      })
-    }
-  }
-  
-  // Friction & Limit
-  ship.vx *= FRICTION
-  ship.vy *= FRICTION
-  const speed = Math.hypot(ship.vx, ship.vy)
-  if (speed > MAX_SPEED) {
-    ship.vx = (ship.vx / speed) * MAX_SPEED
-    ship.vy = (ship.vy / speed) * MAX_SPEED
-  }
-  
-  ship.x += ship.vx
-  ship.y += ship.vy
-  
-  // Wrap around screen
-  if (ship.x < 0) ship.x = cvs.width
-  if (ship.x > cvs.width) ship.x = 0
-  if (ship.y < 0) ship.y = cvs.height
-  if (ship.y > cvs.height) ship.y = 0
-
-  // --- Rendering ---
-  
-  // 1. Background (Deep Space or Black Domain)
-  if (isDomainSafe.value) {
-    // Transition to Black Domain
-    if (formationProgress.value < 1) formationProgress.value += 0.01
-    
-    const darkAlpha = formationProgress.value
-    ctx.fillStyle = `rgba(0, 0, 5, ${darkAlpha})`
-    ctx.fillRect(0, 0, cvs.width, cvs.height)
-    
-    // Safe text
-    if (formationProgress.value > 0.8) {
-      ctx.fillStyle = 'rgba(0, 255, 0, 0.1)'
-      ctx.font = '20px monospace'
-      ctx.textAlign = 'center'
-      ctx.fillText('SAFE ZONE ESTABLISHED', cvs.width/2, cvs.height/2)
-    }
-  } else {
-    // Normal Space - Clear with fade for motion blur
-    ctx.fillStyle = '#050510'
-    ctx.fillRect(0, 0, cvs.width, cvs.height)
-  }
-  
-  // 2. Star (The Sun)
-  const starX = cvs.width / 2
-  const starY = cvs.height / 2
-  ctx.save()
-  ctx.translate(starX, starY)
-  const starRedshift = isDomainSafe.value ? 0.8 : 0
-  ctx.fillStyle = isDomainSafe.value ? `rgb(100, 0, 0)` : '#ffd700'
-  ctx.shadowBlur = isDomainSafe.value ? 5 : 50
-  ctx.shadowColor = isDomainSafe.value ? '#500' : '#fc0'
-  ctx.beginPath()
-  ctx.arc(0, 0, 30, 0, Math.PI*2)
-  ctx.fill()
-  ctx.restore()
-  
-  // 3. Trails (Soap Bubbles / Space Distortion)
-  ctx.save()
-  // "Soap" effect: Screen blend mode + varying colors
-  ctx.globalCompositeOperation = 'screen'
-  
-  for (let i = trails.value.length - 1; i >= 0; i--) {
-    const p = trails.value[i]
-    p.size += 0.1 // Expand
-    p.alpha -= 0.002 // Fade very slowly (Slow fog)
-    
-    if (p.alpha <= 0) {
-      trails.value.splice(i, 1)
-      continue
-    }
-    
-    const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size)
-    // Iridescent colors for soap bubble effect
-    grad.addColorStop(0, `rgba(255, 255, 255, ${p.alpha * 0.5})`)
-    grad.addColorStop(0.5, `rgba(100, 200, 255, ${p.alpha * 0.3})`)
-    grad.addColorStop(1, `rgba(50, 0, 100, 0)`)
-    
-    ctx.fillStyle = grad
-    ctx.beginPath()
-    ctx.arc(p.x, p.y, p.size, 0, Math.PI*2)
-    ctx.fill()
-  }
-  ctx.restore()
-  
-  // 4. Ship (Relativistic Effects)
-  ctx.save()
-  ctx.translate(ship.x, ship.y)
-  ctx.rotate(ship.angle)
-  
-  // LENGTH CONTRACTION: Scale X based on speed ratio
-  // As speed -> MAX_SPEED (c), scaleX -> 0
-  const speedRatio = Math.min(1, speed / MAX_SPEED)
-  const lorentzFactor = Math.sqrt(1 - speedRatio * speedRatio * 0.9) // Exaggerated
-  ctx.scale(lorentzFactor, 1) // Contract length
-  
-  // DOPPLER SHIFT: Color changes
-  // Blue shift at front (engine), Red shift at back?
-  // Actually, visual appearance is usually blue-shifted if moving towards viewer, but here we view from top.
-  // Let's make the ship glow blue when fast.
-  const shipColor = `hsl(${200 + speedRatio * 60}, 100%, ${50 + speedRatio * 50}%)`
-  
-  // Draw Ship Body
-  ctx.fillStyle = shipColor
-  ctx.shadowBlur = 10 * speedRatio
-  ctx.shadowColor = shipColor
-  ctx.beginPath()
-  ctx.moveTo(20, 0)
-  ctx.lineTo(-15, 12)
-  ctx.lineTo(-10, 0)
-  ctx.lineTo(-15, -12)
-  ctx.fill()
-  
-  // Engine
-  if (ship.thrust > 0) {
-    ctx.beginPath()
-    ctx.moveTo(-10, 0)
-    ctx.lineTo(-30 - Math.random() * 20, 0)
-    ctx.strokeStyle = '#0ff'
-    ctx.lineWidth = 3
-    ctx.stroke()
-  }
-  
-  ctx.restore()
-  
-  // 5. Joystick Feedback
-  if (joystick.active) {
-    ctx.save()
-    ctx.translate(joystick.originX - cvs.getBoundingClientRect().left, joystick.originY - cvs.getBoundingClientRect().top)
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)'
-    ctx.lineWidth = 2
-    ctx.beginPath()
-    ctx.arc(0, 0, 50, 0, Math.PI*2)
-    ctx.stroke()
-    ctx.beginPath()
-    ctx.arc(joystick.dx*50, joystick.dy*50, 20, 0, Math.PI*2)
-    ctx.fillStyle = 'rgba(0, 255, 255, 0.5)'
-    ctx.fill()
-    ctx.restore()
-  }
-  
-  // 6. Check Win Condition
-  if (!isDomainSafe.value && trails.value.length > 300) { // Require significant fog
-    activateBlackDomain()
-  }
-  
-  requestAnimationFrame(domainLoop)
-}
-
-function activateBlackDomain() {
-  if (isDomainSafe.value) return
-  isDomainSafe.value = true
-  lightSpeed.value = 16.7
-  message.success('黑域生成！光速已降低至 16.7 km/s。安全声明发布。')
-  soundManager.playConfirm() // Use specific sound if available
-  // Maybe add a low thud later
-}
-
-onMounted(() => {
-  initDomain()
-  soundManager.startAmbient('void') // Use void ambient for space
-})
-
+onMounted(draw)
 onUnmounted(() => {
-  window.removeEventListener('keydown', handleKey)
-  window.removeEventListener('keyup', handleKey)
-  soundManager.stopAmbient()
+  stop()
+  clearTimeout(soapTimer)
 })
 
+/* ---------- 绘制 ---------- */
+function draw() {
+  const ctx = canvas.value?.getContext('2d')
+  if (!ctx) return
+  const st = flight.value
+  ctx.fillStyle = '#0d0e10'
+  ctx.fillRect(0, 0, W, H)
+
+  // 包裹带
+  ctx.setLineDash([2, 6])
+  ctx.strokeStyle = 'rgba(154, 149, 136, 0.25)'
+  for (const r of [BAND.inner, BAND.outer]) {
+    ctx.beginPath()
+    ctx.arc(STAR.x, STAR.y, r, 0, Math.PI * 2)
+    ctx.stroke()
+  }
+  ctx.strokeStyle = 'rgba(176, 67, 47, 0.25)'
+  ctx.beginPath()
+  ctx.arc(STAR.x, STAR.y, FAR, 0, Math.PI * 2)
+  ctx.stroke()
+  ctx.setLineDash([])
+
+  // 太阳
+  const dim = st.ending === 'domain'
+  const g = ctx.createRadialGradient(STAR.x, STAR.y, 0, STAR.x, STAR.y, 40)
+  g.addColorStop(0, dim ? '#6b2a1f' : '#fff6e0')
+  g.addColorStop(0.45, dim ? '#3a1712' : '#e8c483')
+  g.addColorStop(1, 'rgba(232, 196, 131, 0)')
+  ctx.fillStyle = g
+  ctx.beginPath()
+  ctx.arc(STAR.x, STAR.y, 40, 0, Math.PI * 2)
+  ctx.fill()
+
+  // 航迹：低光速区，越老越淡；远处被看见的部分是锈红
+  for (const p of st.trail) {
+    const a = (1 - p.age / TRAIL_LIFE) * 0.55
+    const far = Math.hypot(p.x - STAR.x, p.y - STAR.y) > FAR
+    ctx.fillStyle = far ? `rgba(210, 85, 63, ${a})` : `rgba(125, 184, 255, ${a})`
+    ctx.beginPath()
+    ctx.arc(p.x, p.y, 3 + (p.age / TRAIL_LIFE) * 9, 0, Math.PI * 2)
+    ctx.fill()
+  }
+
+  // 飞船：沿航向收缩
+  const s = st.ship
+  ctx.save()
+  ctx.translate(s.x, s.y)
+  ctx.rotate(s.angle)
+  ctx.scale(contraction(s), 1)
+  ctx.fillStyle = '#dcd6c8'
+  ctx.beginPath()
+  ctx.moveTo(14, 0)
+  ctx.lineTo(-10, 7)
+  ctx.lineTo(-6, 0)
+  ctx.lineTo(-10, -7)
+  ctx.closePath()
+  ctx.fill()
+  ctx.restore()
+
+  if (dim) {
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.45)'
+    ctx.fillRect(0, 0, W, H)
+  }
+}
+
+/* ---------- 读数（每帧随 flight 刷新） ---------- */
+const speedPct = computed(() => Math.round((speedOf(flight.value.ship) / MAX_SPEED) * 100))
+const wrapPct = computed(() => Math.round(coverage(flight.value.trail) * 100))
+const seenPct = computed(() => Math.round((flight.value.exposure / EXPOSE_LIMIT) * 100))
 </script>
 
 <template>
-  <div class="sector-l">
-    <div class="header">
-      <h1 class="title">SECTOR L // LIGHTSPEED</h1>
-      <p class="subtitle">曲率驱动与黑域 (Curvature & Black Domain)</p>
+  <div class="sector-curv">
+    <SectorHeader
+      title="曲率驱动"
+      subtitle="抹平身后的空间，船就会被前方的空间拉着走。这是唯一能接近光速的办法，也是人类曾经立法禁止的技术。"
+      goal="驾驶曲率飞船。绕太阳一圈让航迹合拢，或者一直飞出去——但别让远处的航迹被看见。"
+      accent="#7db8ff"
+    />
+
+    <section class="tale">
+      <div class="tale-text">
+        <p class="tale-quote">「把肥皂抹在船尾的水里，水的张力变了，船就自己往前走。」</p>
+        <p class="tale-cite">云天明讲给程心的童话里，赫尔辛根默斯肯的纸船。程心后来才读懂：肥皂是曲率，水是空间。</p>
+        <button type="button" class="plain-btn" :disabled="soap" @click="dropSoap">{{ soap ? '纸船在走' : '在船尾抹一点肥皂' }}</button>
+      </div>
+      <svg class="lake" viewBox="0 0 320 90" aria-hidden="true">
+        <line x1="0" y1="62" x2="320" y2="62" class="water" />
+        <g class="boat" :class="{ go: soap }">
+          <path d="M0,52 L36,52 L30,60 L6,60 Z" class="hull" />
+          <path d="M18,52 L18,22 L32,48 Z" class="sail" />
+          <g v-if="soap" class="ripples">
+            <ellipse cx="-4" cy="61" rx="6" ry="1.5" />
+            <ellipse cx="-14" cy="61" rx="10" ry="2" />
+            <ellipse cx="-28" cy="61" rx="14" ry="2.5" />
+          </g>
+        </g>
+      </svg>
+    </section>
+
+    <div class="flight">
+      <Vitrine flush class="flight-frame">
+        <div class="stage">
+          <canvas
+            ref="canvas"
+            :width="W"
+            :height="H"
+            class="cv"
+            @pointerdown="onPointerDown"
+            @pointermove="onPointerMove"
+            @pointerup="onPointerUp"
+            @pointercancel="onPointerUp"
+          ></canvas>
+          <div v-if="!flying && !ending" class="brief">
+            <p>太阳周围的虚线是包裹带，航迹落在里面，才算在围住它。最外圈的锈红虚线之外，航迹会被远方看见。</p>
+            <p class="muted">按住画面，飞船朝手指的方向飞；键盘用 W / ← / →。</p>
+            <button type="button" class="plain-btn primary" @click="ignite">点火</button>
+          </div>
+        </div>
+        <template #caption>
+          <span class="read">速度 <b class="num">{{ speedPct }}%</b> 光速上限</span>
+          <span class="read">航迹包裹太阳 <b class="num">{{ wrapPct }}%</b></span>
+          <span class="read" :class="{ warn: seenPct > 60 }">被远方看见 <b class="num">{{ Math.min(100, seenPct) }}%</b></span>
+        </template>
+      </Vitrine>
+
+      <transition name="fade">
+        <aside v-if="ending" class="ending">
+          <h2 class="end-title">{{ ENDINGS[ending].title }}</h2>
+          <p v-for="l in ENDINGS[ending].lines" :key="l">{{ l }}</p>
+          <p class="history">在原著里，人类最终选择了掩体计划，并立法禁止研究光速飞船：它只能带走少数人，航迹会暴露自己，而一个人人都想逃走的社会会先从内部瓦解。维德的星环集团违背了这条法律。很多年后，二向箔到来，能逃出去的只有光速飞船。</p>
+          <p class="q">{{ question }}</p>
+          <div class="end-actions">
+            <button type="button" class="plain-btn primary" @click="ignite">再飞一次</button>
+            <RouterLink to="/sector-j" class="plain-btn">人类选的那条路：掩体</RouterLink>
+            <RouterLink to="/sector-human" class="plain-btn">离开的人：银河人类</RouterLink>
+          </div>
+        </aside>
+      </transition>
     </div>
-
-    <NTabs type="segment" v-model:value="activeTab" class="l-tabs">
-      
-      <!-- Tab 1: Black Domain Game -->
-      <NTabPane name="domain" tab="黑域模拟 (SIMULATION)">
-        <div class="domain-view">
-          <div class="domain-hud">
-            <div class="hud-item speed">
-              <span class="label">C-LIMIT</span>
-              <span class="value" :class="{ 'c-reduced': isDomainSafe }">{{ lightSpeed }} km/s</span>
-            </div>
-            <div class="hud-item status">
-              <span class="label">STATUS</span>
-              <span class="value">{{ isDomainSafe ? 'SAFE (BLACK DOMAIN)' : 'EXPOSED (DARK FOREST)' }}</span>
-            </div>
-            <div class="hud-item hint">
-              [WASD] 飞行并产生慢雾，包裹恒星以发布安全声明。
-            </div>
-          </div>
-          
-          <div class="canvas-wrapper">
-            <canvas 
-              ref="domainCanvas" 
-              @touchstart="handleTouchStart"
-              @touchmove="handleTouchMove"
-              @touchend="handleTouchEnd"
-            ></canvas>
-          </div>
-        </div>
-      </NTabPane>
-
-      <!-- Tab 2: 折纸隐喻 -->
-      <NTabPane name="origami" tab="折纸隐喻 (METAPHOR)">
-        <div class="origami-view">
-          <header class="origami-header">
-            <h2 class="origami-title">折纸隐喻</h2>
-            <p class="origami-sub">云天明童话 · 赫尔辛根默斯肯的肥皂与船</p>
-          </header>
-
-          <div class="metaphor-card">
-            <blockquote class="metaphor-quote">
-              「把肥皂弄在船尾的水里，改变水的张力，船就自己动了。」
-            </blockquote>
-            <p class="metaphor-cite">—— 赫尔辛根默斯肯</p>
-            <ul class="metaphor-keys">
-              <li><span class="key">肥皂</span> → 空间曲率 / 张力差异</li>
-              <li><span class="key">船</span> → 曲率驱动飞船</li>
-              <li><span class="key">船尾的航迹</span> → 黑域、慢雾（低光速区）</li>
-            </ul>
-          </div>
-
-          <div class="paper-lake">
-            <div class="lake-wave"></div>
-            <div class="boat-container" :style="{ animationDuration: `${4 / boatSpeed}s` }">
-              <div class="boat">⛵</div>
-              <template v-if="isSoapDropped">
-                <div class="ripple r1"></div>
-                <div class="ripple r2"></div>
-                <div class="ripple r3"></div>
-              </template>
-            </div>
-          </div>
-
-          <div class="controls">
-            <button
-              class="soap-btn"
-              :class="{ locked: !canDropSoap, active: isSoapDropped }"
-              :disabled="isSoapDropped"
-              @click="dropSoap"
-            >
-              {{ isSoapDropped ? '曲率驱动中…' : '投放肥皂 (DROP SOAP)' }}
-            </button>
-            <p v-if="!canDropSoap" class="soap-hint">面壁者权限可解锁投放，体验「改变水的张力」。</p>
-          </div>
-        </div>
-      </NTabPane>
-
-    </NTabs>
   </div>
 </template>
 
 <style scoped>
-.sector-l {
-  min-height: 0;
-  background: #0a0a1a;
-  color: #aaddff;
-  font-family: var(--font-mono);
-  display: flex;
-  flex-direction: column;
-}
+.sector-curv { padding: 2rem clamp(1rem, 4vw, 3rem) 3rem; max-width: 76rem; }
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.muted { color: var(--weathered); }
 
-.header {
-  padding: 1rem 2rem;
-  border-bottom: 1px solid rgba(170, 221, 255, 0.2);
-  background: #050510;
-}
+.tale { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 20rem); gap: 2rem; align-items: center; margin-bottom: 2rem; }
+.tale-quote { margin: 0 0 0.6rem; font-family: var(--font-serif); font-size: 1.1875rem; line-height: 1.8; color: var(--bone); }
+.tale-cite { margin: 0 0 1rem; font-size: 0.9375rem; line-height: 1.75; color: var(--weathered); }
+.lake { width: 100%; height: auto; overflow: visible; }
+.water { stroke: var(--incision); stroke-width: 1; }
+.hull { fill: var(--bone); }
+.sail { fill: var(--gray-200); }
+.ripples ellipse { fill: none; stroke: var(--cherenkov); stroke-width: 0.8; opacity: 0.6; }
+.boat { transform: translateX(40px); transition: transform 3s cubic-bezier(0.3, 0, 0.2, 1); }
+.boat.go { transform: translateX(270px); }
 
-.title { margin: 0; letter-spacing: 2px; font-size: 1.5rem; color: var(--white); }
-.subtitle { color: #557799; font-size: 0.8rem; margin-top: 0.5rem; }
-
-.l-tabs { flex: 1; display: flex; flex-direction: column; }
-:deep(.n-tabs-pane-wrapper) { flex: 1; min-height: 0; display: flex; flex-direction: column; }
-:deep(.n-tab-pane) { flex: 1; display: flex; flex-direction: column; min-height: 0; }
-
-/* Domain View */
-.domain-view {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  background: var(--black);
-  position: relative;
-}
-
-.domain-hud {
+.flight { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(16rem, 1fr); gap: 1.5rem; align-items: start; }
+.stage { position: relative; }
+.cv { display: block; width: 100%; height: auto; background: #0d0e10; touch-action: none; cursor: crosshair; }
+.brief {
   position: absolute;
-  top: 0; left: 0; right: 0;
-  padding: 1rem;
-  display: flex;
-  justify-content: space-between;
+  inset: auto 1.25rem 1.25rem 1.25rem;
+  max-width: 30rem;
+  padding: 1rem 1.25rem;
+  background: rgba(19, 20, 22, 0.88);
+  border: 1px solid var(--incision);
+}
+.brief p { margin: 0 0 0.6rem; font-size: 0.9375rem; line-height: 1.75; color: var(--bone); }
+.read { margin-right: 1.5rem; white-space: nowrap; }
+.read b { font-weight: 400; color: var(--bone); }
+.read.warn, .read.warn b { color: var(--rust-bright); }
+
+.end-title { margin: 0 0 1rem; font-family: var(--font-serif); font-weight: 900; font-size: 1.75rem; letter-spacing: 0.12em; color: var(--bone); }
+.ending p { margin: 0 0 0.8rem; font-family: var(--font-serif); font-size: 1.0625rem; line-height: 1.9; color: var(--gray-150); }
+.ending .history { font-family: var(--font-sans); font-size: 0.875rem; line-height: 1.8; color: var(--weathered); }
+.ending .q { margin-top: 1.25rem; padding-left: 1rem; border-left: 1px solid var(--cherenkov); color: var(--bone); }
+.end-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.25rem; }
+
+.plain-btn {
+  display: inline-flex;
   align-items: center;
-  background: rgba(0,0,0,0.7);
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-  z-index: 10;
-  pointer-events: none;
-}
-
-.hud-item { display: flex; flex-direction: column; }
-.label { font-size: 0.75rem; color: #557799; letter-spacing: 1px; }
-.value { font-size: 1.2rem; font-weight: bold; }
-.c-reduced { color: var(--c-red); text-shadow: 0 0 10px var(--c-red); }
-.hint { opacity: 0.6; font-size: 0.8rem; max-width: 300px; text-align: right; }
-
-.canvas-wrapper { flex: 1; width: 100%; height: 100%; position: relative; }
-canvas { width: 100%; height: 100%; display: block; }
-
-/* Origami 折纸隐喻 */
-.origami-view {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 1.5rem 1rem 2rem;
-  gap: 1.5rem;
-  background: radial-gradient(ellipse 80% 60% at 50% 0%, #1a1a2e 0%, #0a0a18 50%, #050508 100%);
-  overflow-y: auto;
-}
-
-.origami-header {
-  text-align: center;
-}
-
-.origami-title {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 600;
-  letter-spacing: 0.15em;
-  color: #c8e4ff;
-}
-
-.origami-sub {
-  margin: 0.35rem 0 0;
-  font-size: 0.8rem;
-  color: rgba(170, 221, 255, 0.7);
-  letter-spacing: 0.06em;
-}
-
-.metaphor-card {
-  max-width: 520px;
-  width: 100%;
-  padding: 1.25rem 1.5rem;
-  background: rgba(10, 20, 40, 0.6);
-  border: 1px solid rgba(170, 221, 255, 0.2);
-  border-radius: 8px;
-}
-
-.metaphor-quote {
-  margin: 0;
-  font-size: 1.05rem;
-  line-height: 1.6;
-  color: #aaddff;
-  font-style: italic;
-  border-left: 3px solid rgba(170, 221, 255, 0.4);
-  padding-left: 1rem;
-}
-
-.metaphor-cite {
-  margin: 0.5rem 0 0 1rem;
-  font-size: 0.85rem;
-  color: rgba(170, 221, 255, 0.6);
-}
-
-.metaphor-keys {
-  margin: 1rem 0 0;
-  padding: 0 0 0 1rem;
-  list-style: none;
-  font-size: 0.88rem;
-  color: rgba(200, 230, 255, 0.85);
-  line-height: 1.8;
-}
-
-.metaphor-keys .key {
-  color: #7dd3fc;
-  font-weight: 600;
-  margin-right: 0.25rem;
-}
-
-.paper-lake {
-  width: 100%;
-  max-width: 640px;
-  height: 180px;
-  border: 1px solid rgba(170, 221, 255, 0.15);
-  border-radius: 8px;
-  position: relative;
-  overflow: hidden;
-  background: linear-gradient(180deg, #0a1520 0%, #0d1f30 40%, #0a1825 100%);
-  box-shadow: inset 0 0 40px rgba(0, 40, 80, 0.3);
-}
-
-.lake-wave {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, transparent 0%, rgba(100, 180, 255, 0.03) 50%, transparent 100%);
-  background-size: 200% 100%;
-  animation: wave 6s ease-in-out infinite;
-  pointer-events: none;
-}
-
-.boat-container {
-  position: absolute;
-  top: 50%;
-  left: -60px;
-  font-size: 2.75rem;
-  transform: translateY(-50%);
-  animation: sail 12s linear infinite;
-  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.4));
-}
-
-.ripple {
-  position: absolute;
-  right: 15px;
-  bottom: 50%;
-  width: 24px;
-  height: 24px;
-  margin-bottom: -12px;
-  margin-right: -12px;
-  border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.45);
-  animation: ripple-out 1.2s ease-out infinite;
-  pointer-events: none;
-}
-
-.ripple.r1 { animation-delay: 0s; }
-.ripple.r2 { animation-delay: 0.4s; }
-.ripple.r3 { animation-delay: 0.8s; }
-
-.controls {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.soap-btn {
-  padding: 0.85rem 2.5rem;
-  background: rgba(170, 221, 255, 0.08);
-  color: #aaddff;
-  border: 1px solid rgba(170, 221, 255, 0.5);
-  font-family: inherit;
-  font-size: 0.95rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
+  padding: 0.6rem 1.2rem;
+  font: inherit;
+  font-size: 0.9375rem;
+  color: var(--bone);
+  background: transparent;
+  border: 1px solid var(--incision);
+  border-radius: 2px;
   cursor: pointer;
-  border-radius: 6px;
-  transition: background 0.25s, border-color 0.25s, box-shadow 0.25s;
+  text-decoration: none;
 }
+.plain-btn:hover { border-color: var(--weathered); }
+.plain-btn:disabled { opacity: 0.5; cursor: default; }
+.plain-btn.primary { border-color: var(--cherenkov); color: var(--cherenkov); }
+.fade-enter-active { transition: opacity 0.8s; }
+.fade-enter-from { opacity: 0; }
 
-.soap-btn:hover:not(:disabled) {
-  background: rgba(170, 221, 255, 0.15);
-  border-color: #aaddff;
-  box-shadow: 0 0 20px rgba(170, 221, 255, 0.25);
+@media (max-width: 900px) {
+  .tale, .flight { grid-template-columns: 1fr; }
+  .brief { position: static; max-width: none; border-width: 1px 0 0; }
 }
-
-.soap-btn.active {
-  border-color: #7dd3fc;
-  color: #7dd3fc;
-  box-shadow: 0 0 15px rgba(125, 211, 252, 0.3);
-}
-
-.soap-btn.locked {
-  opacity: 0.75;
-}
-
-.soap-btn:disabled {
-  cursor: not-allowed;
-}
-
-.soap-hint {
-  font-size: 0.75rem;
-  color: rgba(170, 221, 255, 0.55);
-  margin: 0;
-}
-
-@keyframes sail {
-  0% { left: -60px; }
-  100% { left: 100%; }
-}
-
-@keyframes wave {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-}
-
-@keyframes ripple-out {
-  0% { transform: scale(1); opacity: 0.85; }
-  100% { transform: scale(3.5); opacity: 0; }
-}
-
-:deep(.n-tabs-nav) { background: #050510; }
-:deep(.n-tabs-tab) { color: #557799; }
-:deep(.n-tabs-tab--active) { color: #aaddff; font-weight: bold; }
-
-@media (max-width: 600px) {
-  .domain-hud { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
-  .hint { text-align: left; max-width: 100%; }
-  .origami-view { padding: 1rem 0.75rem; gap: 1.25rem; }
-  .origami-title { font-size: 1.25rem; }
-  .metaphor-card { padding: 1rem 1.25rem; }
-  .metaphor-quote { font-size: 0.95rem; }
-  .paper-lake { height: 140px; }
-  .boat-container { font-size: 2.25rem; }
-  .soap-btn { padding: 0.75rem 1.75rem; font-size: 0.9rem; }
+@media (prefers-reduced-motion: reduce) {
+  .boat { transition: none; }
 }
 </style>
