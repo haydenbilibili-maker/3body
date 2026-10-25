@@ -65,41 +65,67 @@ const ACTIONS = [
   { id: 'queue', label: '去救济站排队', hint: '能领到口粮，也可能遇上骚乱' },
   { id: 'work', label: '去建设队搬砖', hint: '换两份口粮，很累' },
   { id: 'market', label: '去黑市碰运气', hint: '可能换到罐头，也可能被抓' },
+  { id: 'search', label: '翻找房间', hint: '也许还剩下点什么' },
   { id: 'rest', label: '躺着保存体力', hint: '饿得慢一些' },
   { id: 'read', label: '读一本旧书', hint: '让脑子离开地下城' },
 ] as const
+type ActionId = (typeof ACTIONS)[number]['id']
 
-function act(id: (typeof ACTIONS)[number]['id']) {
+/* 每个行动的几种结果：w 是权重（恢复并扩充了旧版大低谷的事件） */
+interface Outcome {
+  w: number
+  text: string
+  tone: Tone
+  d: Partial<Stats>
+}
+const OUTCOMES: Record<ActionId, Outcome[]> = {
+  queue: [
+    { w: 4, text: '队伍很长。你排了六个小时，领到一天的配给。', tone: 'good', d: { hunger: -45 } },
+    { w: 3, text: '救济站发生了骚乱。你被推倒，受了伤，但抢到了一碗粥。', tone: 'bad', d: { health: -12, hunger: -35, sanity: -8 } },
+    { w: 2, text: '排到你的时候，粥已经发完了。窗口拉下来的声音很响。', tone: 'bad', d: { sanity: -8 } },
+    { w: 1, text: '排在你前面的人说，太空军又征了一批人去造战舰。去的人每天有三顿饭。', tone: 'plain', d: { hunger: -30, sanity: -4 } },
+  ],
+  work: [
+    { w: 3, text: '建设队让你搬了一整天砖。腰快断了，但领到了两份口粮。', tone: 'plain', d: { health: -6, hunger: -50, sanity: 4 } },
+    { w: 1, text: '今天建设队多发了一份合成蛋白。这是几个月来唯一的好消息。', tone: 'good', d: { health: -4, hunger: -60, sanity: 8 } },
+    { w: 1, text: '脚手架塌了一截。你没事，旁边那个人没能站起来。', tone: 'bad', d: { health: -10, hunger: -40, sanity: -14 } },
+  ],
+  market: [
+    { w: 3, text: '你用最后一个零件换到一罐肉罐头。', tone: 'good', d: { hunger: -40 } },
+    { w: 3, text: '你被巡逻队撞见，东西被没收，还挨了一顿打。', tone: 'bad', d: { health: -16, sanity: -10 } },
+    { w: 1, text: '黑市上有人卖「地表的真土豆」。你买了一个，发现是用淀粉捏的。', tone: 'bad', d: { hunger: -10, sanity: -6 } },
+  ],
+  search: [
+    { w: 2, text: '你在床底找到一块过期的压缩饼干。它硬得像石头，你一点一点含化了。', tone: 'good', d: { hunger: -25 } },
+    { w: 3, text: '什么也没找到，只有灰尘，和一只死老鼠。', tone: 'plain', d: { sanity: -4 } },
+    { w: 1, text: '你翻出一张旧照片：大低谷之前，一家人在海边。你看了很久，又把它放了回去。', tone: 'plain', d: { sanity: 6 } },
+  ],
+  rest: [
+    { w: 3, text: '你睡了一整天，梦见了大低谷之前的世界：阳光，草地，没有配给。', tone: 'plain', d: { health: 5, hunger: -4, sanity: 2 } },
+    { w: 1, text: '你饿得睡不着，盯着天花板数裂缝，数到天亮。', tone: 'bad', d: { health: 2, sanity: -6 } },
+  ],
+  read: [
+    { w: 3, text: '你翻出一本旧书，读了一整天。有那么几个小时，你不在这里。', tone: 'plain', d: { sanity: 14, hunger: 4 } },
+    { w: 1, text: '书里写的是公元的一场饥荒。你合上书，发现自己并不比他们更有办法。', tone: 'plain', d: { sanity: 6, hunger: 4 } },
+  ],
+}
+function pickOutcome(list: Outcome[]): Outcome {
+  const total = list.reduce((a, o) => a + o.w, 0)
+  let r = Math.random() * total
+  for (const o of list) {
+    r -= o.w
+    if (r < 0) return o
+  }
+  return list[list.length - 1]
+}
+
+function act(id: ActionId) {
   if (ended.value || knock.value) return
   stats.value = { ...stats.value, day: stats.value.day + 1 }
   change({ hunger: 10 })
-  const r = Math.random()
-  if (id === 'queue') {
-    if (r < 0.4) {
-      write('救济站发生了骚乱。你被推倒，受了伤，但抢到了一碗粥。', 'bad')
-      change({ health: -12, hunger: -35, sanity: -8 })
-    } else {
-      write('队伍很长。你排了六个小时，领到一天的配给。', 'good')
-      change({ hunger: -45 })
-    }
-  } else if (id === 'work') {
-    write('建设队让你搬了一整天砖。腰快断了，但领到了两份口粮。', 'plain')
-    change({ health: -6, hunger: -50, sanity: 4 })
-  } else if (id === 'market') {
-    if (r < 0.45) {
-      write('你被巡逻队撞见，东西被没收，还挨了一顿打。', 'bad')
-      change({ health: -16, sanity: -10 })
-    } else {
-      write('你用最后一个零件换到一罐肉罐头。', 'good')
-      change({ hunger: -40 })
-    }
-  } else if (id === 'rest') {
-    write('你睡了一整天，梦见了大低谷之前的世界：阳光，草地，没有配给。', 'plain')
-    change({ health: 5, hunger: -4, sanity: 2 })
-  } else {
-    write('你翻出一本旧书，读了一整天。有那么几个小时，你不在这里。', 'plain')
-    change({ sanity: 14, hunger: 4 })
-  }
+  const o = pickOutcome(OUTCOMES[id])
+  write(o.text, o.tone)
+  change(o.d)
   milestone()
   if (!check() && Math.random() < 0.28) openKnock()
 }
@@ -107,10 +133,15 @@ function act(id: (typeof ACTIONS)[number]['id']) {
 function milestone() {
   const d = stats.value.day
   const lines: Record<number, [string, Tone]> = {
+    3: ['广播：地表农业已经全面停产，资源优先保障太空防御。', 'bad'],
     6: ['广播：本周配给再次削减。请市民保持秩序。', 'bad'],
+    9: ['你在救济站听到有人说，人口已经从八十亿跌到不足一半。', 'bad'],
     12: ['传闻第七区出了人吃人的事。你不敢多想。', 'bad'],
+    15: ['停暖了三天。走廊里有人一直在咳嗽。', 'bad'],
     18: ['救济站有人说，地表的农场又开始试种了。', 'good'],
+    21: ['广播里在读一份宣言：生存是第一位的，文明可以等一等。', 'plain'],
     24: ['广播里第一次提到「复兴」这个词。像一根很细的线。', 'good'],
+    27: ['有人在墙上写：技术复兴在望，再撑几年就好。没有人把它擦掉。', 'good'],
   }
   if (lines[d]) write(lines[d][0], lines[d][1])
 }
@@ -147,6 +178,18 @@ const KNOCKS: Knock[] = [
     ask: '隔壁的女人敲门：「我男人病了。你要是有多余的口粮，我用这件棉衣跟你换。」',
     share: { text: '你换了。那件棉衣让你在停暖的夜里活了下来。', tone: 'good', d: { hunger: 15, health: 10 } },
     refuse: { text: '你说你也没有。隔壁那夜很安静。', d: { sanity: -8 } },
+  },
+  {
+    who: '配给员',
+    ask: '配给员敲开门：「这一户的配给卡登记的是三个人。另外两个人呢？」',
+    share: { text: '你说了实话：他们不在了。配给员在本子上划掉了两个名字，什么也没说。', tone: 'plain', d: { sanity: -6 } },
+    refuse: { text: '你说他们去建设队了。配给员看了你很久，把三份口粮放在了门口。', d: { hunger: -20, sanity: -10 } },
+  },
+  {
+    who: '一个讲故事的人',
+    ask: '「我不要吃的。」门外的人说，「我在走廊里讲故事，换一个能睡觉的角落。」',
+    share: { text: '你让他进来。他讲了一个关于公元的故事，讲到一半睡着了。那天晚上屋里好像没那么冷。', tone: 'good', d: { sanity: 14, hunger: 4 } },
+    refuse: { text: '你没有开门。走廊里，他的声音讲给别人听了。', d: { sanity: -4 } },
   },
 ]
 function openKnock() {

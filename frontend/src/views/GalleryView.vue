@@ -67,6 +67,46 @@ function paint(id: SpecimenId): string {
     g.beginPath()
     g.ellipse(cx, cx, 105, 28, -0.3, 0, Math.PI)
     g.stroke()
+  } else if (id === 'starry') {
+    // 星月夜：漩涡状的夜空、明亮的星与新月、一株柏树的剪影（按档案馆的笔法重画，不是原画）
+    g.fillStyle = '#1c2f5c'
+    g.fillRect(0, 0, SIZE, SIZE)
+    for (let k = 0; k < 140; k++) {
+      const t = k / 140
+      const r = 20 + t * 110
+      const a0 = t * 9
+      g.strokeStyle = `rgba(${120 + (k % 3) * 30}, ${150 + (k % 5) * 15}, 220, 0.55)`
+      g.lineWidth = 3
+      g.beginPath()
+      g.arc(cx + 10, cx - 30, r, a0, a0 + 0.6)
+      g.stroke()
+    }
+    for (const [x, y, rr] of [[40, 50, 9], [95, 35, 7], [160, 70, 8], [210, 40, 7], [70, 110, 6], [190, 120, 6]]) {
+      const glow = g.createRadialGradient(x, y, 0, x, y, rr * 2.4)
+      glow.addColorStop(0, 'rgba(250, 230, 140, 1)')
+      glow.addColorStop(0.4, 'rgba(240, 210, 110, 0.75)')
+      glow.addColorStop(1, 'rgba(240, 210, 110, 0)')
+      g.fillStyle = glow
+      g.beginPath()
+      g.arc(x, y, rr * 2.4, 0, Math.PI * 2)
+      g.fill()
+    }
+    g.fillStyle = '#f3d978'
+    g.beginPath()
+    g.arc(225, 30, 16, 0, Math.PI * 2)
+    g.fill()
+    g.fillStyle = '#1c2f5c'
+    g.beginPath()
+    g.arc(231, 26, 14, 0, Math.PI * 2)
+    g.fill()
+    g.fillStyle = '#20263a'
+    g.fillRect(0, SIZE - 46, SIZE, 46)
+    g.fillStyle = '#141a14'
+    g.beginPath()
+    g.moveTo(40, SIZE)
+    g.bezierCurveTo(30, SIZE - 80, 55, SIZE - 160, 62, SIZE - 210)
+    g.bezierCurveTo(72, SIZE - 150, 88, SIZE - 80, 82, SIZE)
+    g.fill()
   } else {
     g.strokeStyle = '#9a9588'
     g.lineWidth = 3
