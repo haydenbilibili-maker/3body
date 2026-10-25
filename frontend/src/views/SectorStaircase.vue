@@ -473,12 +473,17 @@ onUnmounted(() => {
   cancelAnimationFrame(gameLoop)
 })
 
+
+/** 飞行状态的中文名（界面显示用） */
+function statusName(st: string): string {
+  const names: Record<string, string> = { READY: '待发射', FLYING: '飞行中', LOST: '失联', SUCCESS: '入轨' }
+  return names[st] ?? st
+}
 </script>
 
 <template>
   <div class="sector-s">
     <SectorHeader
-      code="SECTOR S · THE STAIRCASE"
       title="阶梯计划"
       subtitle="只送大脑——以及云天明的童话"
       goal="飞船经过核弹时按下「引爆」为它加速；冲过终点时速度达到 15.0% c 即成功入轨。"
@@ -488,7 +493,7 @@ onUnmounted(() => {
     <NTabs type="segment" v-model:value="activeTab" class="s-tabs">
       
       <!-- Tab 1: Trajectory -->
-      <NTabPane name="trajectory" tab="轨道计算 (TRAJECTORY)">
+      <NTabPane name="trajectory" tab="轨道计算">
         <div class="game-container">
           <div class="track">
             <!-- Sail/Brain Capsule -->
@@ -537,8 +542,8 @@ onUnmounted(() => {
           
           <div class="controls">
             <div class="status-panel">
-              <p>SPEED: {{ (gameState.speed * 10).toFixed(1) }}% c</p>
-              <p>STATUS: {{ gameState.status }}</p>
+              <p>速度：{{ (gameState.speed * 10).toFixed(1) }}% 光速</p>
+              <p>状态：{{ statusName(gameState.status) }}</p>
             </div>
             <button 
               class="detonate-btn" 
@@ -546,14 +551,13 @@ onUnmounted(() => {
               :disabled="!gameState.playing || gameState.status !== 'FLYING'"
             >
               <span class="detonate-zh">引爆</span>
-              <span class="detonate-en">DETONATE</span>
             </button>
             <button class="start-btn" @click="startGame" v-if="!gameState.playing">
-              {{ gameState.status === 'READY' ? 'LAUNCH' : 'RETRY' }}
+              {{ gameState.status === 'READY' ? '发射' : '再试一次' }}
             </button>
           </div>
           <div class="speed-hud">
-            <div class="speed-hud-title">速度曲线 HUD / VELOCITY TRACE</div>
+            <div class="speed-hud-title">速度曲线</div>
             <svg viewBox="0 0 360 100" class="speed-chart">
               <polyline
                 class="speed-line"
@@ -572,7 +576,7 @@ onUnmounted(() => {
       </NTabPane>
 
       <!-- Tab 2: Fairytales -->
-      <NTabPane name="fairytales" tab="童话解码 (DECODER)">
+      <NTabPane name="fairytales" tab="童话解码">
         <div class="decoder-layout">
           <!-- Story Selection -->
           <div class="story-nav">
@@ -610,7 +614,7 @@ onUnmounted(() => {
 
           <!-- Clue Sidebar -->
           <div class="clue-sidebar">
-            <h4>待解密线索 (CLUES)</h4>
+            <h4>待解密线索</h4>
             <div class="clue-list">
               <div 
                 v-for="(secret, k) in stories[activeStoryIndex].secrets" 
@@ -720,7 +724,7 @@ onUnmounted(() => {
       </NTabPane>
 
       <!-- Tab 3: The Star -->
-      <NTabPane name="star" tab="星星的礼物 (THE STAR)">
+      <NTabPane name="star" tab="星星的礼物">
         <div class="star-view">
           <div class="star-view-bg">
             <div class="starfield"></div>
@@ -745,7 +749,7 @@ onUnmounted(() => {
               <p class="star-meta">视星等 11.2 · 红矮星</p>
               <p class="star-owner">
                 <span v-if="!starGiven">尚未赠出</span>
-                <span v-else class="owner-name">程心 (Cheng Xin)</span>
+                <span v-else class="owner-name">程心</span>
               </p>
               <button class="gift-btn" @click="giveStar" :disabled="starGiven" :class="{ sent: starGiven }">
                 <span v-if="!starGiven">送出这颗星</span>
@@ -1525,4 +1529,18 @@ onUnmounted(() => {
 :deep(.n-tabs-nav) { background: #151525; }
 :deep(.n-tabs-tab) { color: #8888aa; }
 :deep(.n-tabs-tab--active) { color: var(--white); font-weight: bold; }
+/* ------------------------------------------------------------------
+ * 冥王星档案馆皮肤（视觉方案批次 2）：根节点透明、碑面面板；童话书保留纸本，但与原著阅读的「纸本」同一色调。
+ * ------------------------------------------------------------------ */
+.sector-s { background: transparent; color: var(--bone); padding: 2rem clamp(1rem, 4vw, 3rem) 3rem; max-width: 78rem; }
+.game-container { background: var(--slab); border: 1px solid var(--incision-soft); }
+.speed-hud { background: rgba(19, 20, 22, 0.85); border-color: var(--incision); }
+.speed-hud-title, .speed-hud-scale { font-family: var(--font-sans); color: var(--weathered); }
+.decoder-layout { background: #ece5d6; color: #2c2721; }
+.story-nav { background: #e3dac8; }
+.book-reader { background: #f1ebdf; color: #2c2721; }
+.start-btn { background: transparent; color: var(--bone); border: 1px solid var(--cherenkov); }
+.detonate-btn { background: var(--rust); }
+.star-name { font-family: var(--font-title); font-weight: 900; letter-spacing: 0.12em; }
+:deep(.s-tabs .n-tabs-tab) { font-family: var(--font-serif); font-size: 1rem; }
 </style>

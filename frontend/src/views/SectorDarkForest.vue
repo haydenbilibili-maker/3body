@@ -5,6 +5,7 @@
  */
 import { ref, onMounted, onUnmounted, reactive, watch, computed } from 'vue'
 import SectorHeader from '@/components/SectorHeader.vue'
+import { sectorByPath } from '@/data/sectors'
 import { useRouter } from 'vue-router'
 import { NInput, NButton, NModal, useMessage, NTabs, NTabPane, NProgress } from 'naive-ui'
 import { soundManager } from '@/utils/sound'
@@ -875,12 +876,13 @@ const axioms = [
   "生存是文明的第一需要。",
   "文明不断增长和扩张，但宇宙中的物质总量保持不变。"
 ]
+
+const dfQuestion = sectorByPath('/sector-e')?.question
 </script>
 
 <template>
   <div class="df-page">
     <SectorHeader
-      code="SECTOR E · DARK FOREST"
       title="黑暗森林广场"
       subtitle="宇宙是一座黑暗森林，每个文明都是带枪的猎人"
       goal="在暴露与沉默之间做选择：沙盒里观察文明如何互相清除，博弈中让你的文明活到最后。"
@@ -888,23 +890,23 @@ const axioms = [
 
     <NTabs v-model:value="activeTab" type="segment" class="df-tabs">
       <!-- Tab 1: Hunter Simulator -->
-      <NTabPane name="simulator" tab="宇宙沙盒 (SANDBOX)">
+      <NTabPane name="simulator" tab="宇宙沙盒">
         <div class="sim-container">
           <div class="hud-top">
             <div class="hud-item mode-switch">
-              <button :class="{ active: sandboxMode === 'OBSERVER' }" @click="sandboxMode = 'OBSERVER'">OBSERVER</button>
-              <button :class="{ active: sandboxMode === 'HUNTER' }" @click="sandboxMode = 'HUNTER'">HUNTER</button>
+              <button :class="{ active: sandboxMode === 'OBSERVER' }" @click="sandboxMode = 'OBSERVER'">旁观</button>
+              <button :class="{ active: sandboxMode === 'HUNTER' }" @click="sandboxMode = 'HUNTER'">做猎人</button>
             </div>
             <div class="hud-item">
-              <span class="label">CIVILIZATIONS</span>
+              <span class="label">存活文明</span>
               <span class="value text-green">{{ stars.filter(s => s.type === 'civ' && s.status === 'ALIVE').length }}</span>
             </div>
             <div class="hud-item">
-              <span class="label">DESTROYED</span>
+              <span class="label">已毁灭</span>
               <span class="value text-red">{{ stars.filter(s => s.type === 'dead' || s.status === 'DYING').length }}</span>
             </div>
             <div class="hud-item" v-if="sandboxMode === 'HUNTER'">
-              <span class="label">AMMO</span>
+              <span class="label">光粒</span>
               <span class="value">{{ hunter.ammo }}</span>
             </div>
     </div>
@@ -920,17 +922,17 @@ const axioms = [
             
             <div class="civ-tooltip" v-if="sandboxMode === 'OBSERVER' && hoveredStar" :style="{ left: hoveredStar.x + '%', top: hoveredStar.y + '%' }">
               <div class="tt-header">{{ hoveredStar.name }}</div>
-              <div class="tt-row">STATUS: <span :class="hoveredStar.status === 'ALIVE' ? 'text-green' : 'text-red'">{{ hoveredStar.status }}</span></div>
-              <div class="tt-row">TECH: {{ hoveredStar.tech.toFixed(2) }}</div>
-              <div class="tt-row">HIDING: {{ (hoveredStar.hiding * 100).toFixed(0) }}%</div>
-              <div class="tt-row">AGGRESSIVE: {{ hoveredStar.aggressive ? 'YES' : 'NO' }}</div>
+              <div class="tt-row">状态：<span :class="hoveredStar.status === 'ALIVE' ? 'text-green' : 'text-red'">{{ hoveredStar.status === 'ALIVE' ? '存活' : hoveredStar.status === 'DYING' ? '正在毁灭' : hoveredStar.status }}</span></div>
+              <div class="tt-row">技术：{{ hoveredStar.tech.toFixed(2) }}</div>
+              <div class="tt-row">隐藏程度：{{ (hoveredStar.hiding * 100).toFixed(0) }}%</div>
+              <div class="tt-row">会先开枪：{{ hoveredStar.aggressive ? '是' : '否' }}</div>
               <div class="tt-log" v-if="hoveredStar.lastAction">> {{ hoveredStar.lastAction }}</div>
       </div>
     </div>
 
           <!-- 跑马灯：沙盒结果不阻断浏览，底部单行滚动 -->
           <div class="sandbox-ticker" v-if="sandboxTickerLog.length > 0">
-            <div class="ticker-label">EVENT LOG</div>
+            <div class="ticker-label">事件</div>
             <div class="ticker-track">
               <div class="ticker-inner">
                 <span
@@ -947,8 +949,8 @@ const axioms = [
             <p class="hint" v-if="sandboxMode === 'HUNTER'">移动鼠标搜寻文明。点击发射光粒清除威胁。</p>
             <p class="hint" v-else>观察者模式：文明自动演化。点击重置宇宙。</p>
             <div class="observer-actions" v-if="sandboxMode === 'OBSERVER'">
-              <NButton size="small" @click="togglePause">{{ isPaused ? 'RESUME' : 'PAUSE' }}</NButton>
-              <NButton size="small" @click="initStars">BIG BANG (重置宇宙)</NButton>
+              <NButton size="small" @click="togglePause">{{ isPaused ? '继续' : '暂停' }}</NButton>
+              <NButton size="small" @click="initStars">重置宇宙</NButton>
             </div>
           </div>
         </div>
@@ -997,7 +999,7 @@ const axioms = [
             <NButton size="small" ghost type="success" @click="restoreWorldline">恢复</NButton>
             <NButton size="small" ghost type="error" @click="deleteWorldline">删除</NButton>
           </div>
-          <div v-if="worldlineDelta" class="diag-line reason">COMPARE | Epoch Δ={{ worldlineDelta.epochDiff }} | Alive Δ={{ worldlineDelta.aliveDiff }} | Epitaph Δ={{ worldlineDelta.epitaphDiff }}</div>
+          <div v-if="worldlineDelta" class="diag-line reason">对比：纪元差 {{ worldlineDelta.epochDiff }}，存活差 {{ worldlineDelta.aliveDiff }}，墓志铭差 {{ worldlineDelta.epitaphDiff }}</div>
           <div v-if="survivalCurve.length >= 2" class="curve-panel">
             <div class="reason">存活曲线（存活文明数 vs 纪元）</div>
             <svg viewBox="0 0 320 90" class="curve-svg">
@@ -1039,7 +1041,7 @@ const axioms = [
       </NTabPane>
 
       <!-- Tab 2: Sociology (Interactive Game Theory) -->
-      <NTabPane name="sociology" tab="博弈论 (GAME)">
+      <NTabPane name="sociology" tab="猜疑链">
         <div class="theory-panel">
           <div class="game-lab">
             <div class="lab-header">
@@ -1086,17 +1088,17 @@ const axioms = [
             <div class="lab-actions" v-if="gameStatus === 'ACTIVE'">
               <button class="action-btn silence" @click="chooseSilence">
                 <span class="icon">🤫</span>
-                <span class="label">沉默 (Silence)</span>
+                <span class="label">沉默</span>
                 <span class="desc">保持静默，观察发展</span>
               </button>
               <button class="action-btn communicate" @click="chooseCommunicate">
                 <span class="icon">📡</span>
-                <span class="label">交流 (Contact)</span>
+                <span class="label">交流</span>
                 <span class="desc">发送善意，暴露坐标</span>
               </button>
               <button class="action-btn strike" @click="chooseStrike">
                 <span class="icon">💥</span>
-                <span class="label">打击 (Strike)</span>
+                <span class="label">打击</span>
                 <span class="desc">清理威胁，确保生存</span>
               </button>
             </div>
@@ -1113,7 +1115,7 @@ const axioms = [
       </NTabPane>
 
       <!-- Tab 3: Swordholder System -->
-      <NTabPane name="swordholder" tab="执剑人 (SWORD)">
+      <NTabPane name="swordholder" tab="执剑人">
         <div class="swordholder-lab" @mousemove="handleSwordholderMouseMove">
           <!-- 1. Status Dashboard -->
           <div class="status-dash">
@@ -1129,7 +1131,7 @@ const axioms = [
                 <template #default>
                   <div class="meter-text">
                     <span class="val">{{ Math.floor(deterrence) }}%</span>
-                    <span class="label">DETERRENCE</span>
+                    <span class="label">威慑度</span>
                   </div>
       </template>
               </NProgress>
@@ -1143,7 +1145,7 @@ const axioms = [
                 <div class="scan-line"></div>
               </div>
               <div class="monitor-label">
-                PSYCH-WAVE // STABILITY: {{ Math.floor(stability) }}%
+                心理稳定度：{{ Math.floor(stability) }}%
               </div>
             </div>
           </div>
@@ -1151,8 +1153,8 @@ const axioms = [
           <!-- 2. Trisolaris Comms -->
           <div class="trisolaris-feed" :class="trisolarisStatus.toLowerCase()">
             <div class="feed-header">
-              <span class="source">SOURCE: TRISOLARIS // 4.22 LY</span>
-              <span class="status-indicator">STATUS: {{ trisolarisStatus }}</span>
+              <span class="source">来源：三体世界，4.22 光年</span>
+              <span class="status-indicator">状态：{{ ({ CALM: '平静', SUSPICIOUS: '起疑', PREPARING: '准备进攻', STRIKE: '进攻' })[trisolarisStatus] }}</span>
             </div>
             <div class="feed-content">
               <span class="cursor">></span>
@@ -1165,7 +1167,7 @@ const axioms = [
             <div class="switch-housing">
               <div class="safety-cover" :class="{ open: isButtonCoverOpen }" @click="toggleCover">
                 <div class="stripes"></div>
-                <span class="danger-text">危险 // 请勿开启 (DANGER)</span>
+                <span class="danger-text">危险：不要打开</span>
               </div>
               <button 
                 class="red-button" 
@@ -1175,7 +1177,7 @@ const axioms = [
               >
                 <div class="btn-face">
                   <span class="nuc-icon">☢</span>
-                  <span class="btn-label">广播 (BROADCAST)</span>
+                  <span class="btn-label">广播坐标</span>
                 </div>
               </button>
             </div>
@@ -1187,6 +1189,7 @@ const axioms = [
         </div>
       </NTabPane>
     </NTabs>
+    <p class="df-closing">{{ dfQuestion }}</p>
   </div>
 </template>
 
@@ -1850,4 +1853,14 @@ const axioms = [
 .log-item { margin-bottom: 0.5rem; font-size: 0.85rem; }
 .log-item p { margin: 0.2rem 0; }
 .stream-line { font-size: 0.75rem; color: #9ab5b5; margin-bottom: 0.2rem; font-family: var(--font-mono); }
+/* ------------------------------------------------------------------
+ * 冥王星档案馆皮肤（视觉方案批次 2）
+ * ------------------------------------------------------------------ */
+.df-page { background: transparent; color: var(--bone); padding: 2rem clamp(1rem, 4vw, 3rem) 3rem; }
+:deep(.n-tabs-nav) { background: transparent; border-bottom-color: var(--incision-soft); }
+:deep(.df-tabs .n-tabs-tab) { font-family: var(--font-serif); font-size: 1rem; }
+.swordholder-lab { background: var(--slab); border: 1px solid var(--incision-soft); }
+.lab-scene { background: var(--void); border: 1px solid var(--incision-soft); }
+.lab-header { border-bottom-color: var(--incision); }
+.df-closing { max-width: 40rem; margin: 2rem 0 0; padding-left: 1rem; border-left: 1px solid var(--cherenkov); font-family: var(--font-serif); font-size: 1.125rem; line-height: 1.8; color: var(--bone); }
 </style>

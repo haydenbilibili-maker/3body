@@ -22,30 +22,35 @@ const message = useMessage()
 
 const activeTab = ref<string>('tyler')
 
+/** 面壁者的中文名（界面显示用） */
+function cnName(id: string): string {
+  const names: Record<string, string> = { tyler: '泰勒', diaz: '雷迪亚兹', hines: '希恩斯', luoji: '罗辑' }
+  return names[id] ?? id
+}
+
 // --- Wallbreaker System ---
 const wallbreakers = {
   tyler: {
-    name: '冯·诺依曼 (Von Neumann)',
-    realName: '秦始皇 (Qin Shi Huang)', // ETO Codename
+    name: '泰勒的破壁人',
+    realName: '地球三体组织成员',
     desc: '你的每一层伪装，在我的逻辑里都是透明的。',
     reveal: '“泰勒，你的蚊群不是去攻击地球舰队的，而是去为他们送上量子宏原子的武器……或者说，变成武器。”'
   },
   diaz: {
-    name: '墨子 (Mozi)',
-    realName: '山杉惠子 (Keiko Yamasuki)', // Wait, Mozi's identity isn't Keiko. Keiko is Aristotle. Mozi is unknown/generic ETO.
-    // Correction: In the book, Mozi is the Wallbreaker for Diaz.
+    name: '雷迪亚兹的破壁人',
+    realName: '地球三体组织成员',
     desc: '这里的太阳真烈啊，就像你心中的那团火。',
     reveal: '“雷迪亚兹，你不想拯救水星，你想让它坠落。你要用整个太阳系的毁灭来要挟主。”'
   },
   hines: {
-    name: '亚里士多德 (Aristotle)',
-    realName: '山杉惠子 (Keiko Yamasuki)',
+    name: '山杉惠子',
+    realName: '希恩斯的妻子，也是他的破壁人',
     desc: '亲爱的，面壁者是不能有思想钢印的。',
     reveal: '“希恩斯，你在钢印里改了一个符号。你把‘必胜’改成了‘必败’。你是绝对失败主义者。”'
   },
   luoji: {
-    name: '智子 (Sophon)',
-    realName: '三体文明 (Trisolaris)',
+    name: '智子',
+    realName: '三体世界',
     desc: '你是一只虫子。但你很危险。',
     reveal: '“罗辑，这是为你准备的墓地。这次没有咒语，只有死亡。”'
   }
@@ -520,7 +525,7 @@ function generateWallbreakerReport() {
       newReport.inferredTruth = finalInferredTruth
       newReport.confidence = finalConfidence
       newReport.typing = false
-      message.warning(`破壁报告已生成：${target.toUpperCase()}`)
+      message.warning(`破壁报告已生成：${cnName(target)}`)
     }
   }, 50)
 }
@@ -827,7 +832,7 @@ onMounted(() => {
   <div class="sector-wallfacer">
     <div v-if="breachTriggered && !breachOverlayAck" class="breach-overlay">
       <div class="breach-overlay-inner">
-        <h2>WALLBREAKER OVERRIDE</h2>
+        <h2>破壁</h2>
         <p class="overlay-quote">主不在乎。但我是你的破壁人。</p>
         <p class="overlay-conclusion">你的真实计划是：{{ breachConclusion }}</p>
         <div class="breach-overlay-actions">
@@ -838,7 +843,6 @@ onMounted(() => {
     </div>
     <div class="bg-noise"></div>
     <SectorHeader
-      code="SECTOR F · WALLFACER PROJECT"
       title="面壁计划"
       subtitle="你的真实战略只存在于你的脑海中"
       goal="以面壁者身份下达资源指令，在破壁人的疑心值达到 90 之前，让尽量多的指令获批。"
@@ -848,9 +852,8 @@ onMounted(() => {
       @restart="resetWallfacerGame"
     >
       <template #meta>
-        <span class="status-item">UN: ACTIVE</span>
-        <span class="status-item">PDC: MONITORING</span>
-        <span class="status-item">ETO: LURKING</span>
+        <span class="status-item">联合国：运作中</span>
+        <span class="status-item">地球三体组织：潜伏</span>
       </template>
     </SectorHeader>
 
@@ -864,9 +867,10 @@ onMounted(() => {
           <div class="wb-dialog">
             <p class="wb-line" v-if="confrontationStep === 0">{{ activeWallbreaker.desc }}</p>
             <p class="wb-line reveal" v-if="confrontationStep === 1">{{ activeWallbreaker.reveal }}</p>
+            <p class="wb-note" v-if="confrontationStep === 1">破壁人的话为本馆转述，并非原著原文。</p>
           </div>
           <div class="wb-actions">
-            <NButton v-if="confrontationStep === 0" type="error" @click="nextConfrontationStep">面对真相 (FACE TRUTH)</NButton>
+            <NButton v-if="confrontationStep === 0" type="error" @click="nextConfrontationStep">面对真相</NButton>
             <NButton v-else @click="showConfrontation = false">结束会面</NButton>
           </div>
         </div>
@@ -875,23 +879,20 @@ onMounted(() => {
       <NTabs type="card" animated :value="activeTab" @update:value="onTabChange" class="wallfacer-tabs">
         
         <!-- 1. Frederick Tyler -->
-        <NTabPane name="tyler" tab="泰勒 (TYLER)">
+        <NTabPane name="tyler" tab="泰勒">
           <div 
             class="wallfacer-card tyler-theme holo-card" 
             ref="cardRef"
-            @mousemove="handleCardMove"
-            @mouseleave="resetCardTilt"
-            :style="{ transform: `perspective(1000px) rotateX(${cardTilt.x}deg) rotateY(${cardTilt.y}deg)` }"
           >
             <div class="card-header">
               <div class="header-main">
                 <div>
-                  <h2>FREDERICK TYLER</h2>
-                  <p class="subtitle">MOSQUITO SWARM // 蚊群计划</p>
+                  <h2>弗雷德里克·泰勒</h2>
+                  <p class="subtitle">蚊群计划</p>
                 </div>
                 <div class="wallbreaker-tag" @click.stop="startConfrontation('tyler')">
-                  <span class="wb-label">WALLBREAKER</span>
-                  <span class="wb-name">VON NEUMANN</span>
+                  <span class="wb-label">破壁人</span>
+                  <span class="wb-name">与他会面</span>
                 </div>
               </div>
             </div>
@@ -902,43 +903,40 @@ onMounted(() => {
                   <div v-if="tylerState.deployed" class="swarm-particles"></div>
                 </div>
                 <div class="radar-info">
-                  <p>SWARM COUNT: {{ tylerState.swarmCount }}</p>
-                  <p>TARGET STATUS: {{ tylerState.targetStatus }}</p>
+                  <p>蚊群数量：{{ tylerState.swarmCount }}</p>
+                  <p>目标：{{ tylerState.targetStatus === 'ACTIVE' ? '在列' : tylerState.targetStatus === 'QUANTUM_GHOST' ? '量子态' : tylerState.targetStatus }}</p>
                 </div>
               </div>
               <div class="controls">
                 <NButton ghost type="primary" @click="deploySwarm" :disabled="tylerState.deployed">
-                  DEPLOY MACRO-ATOMS (部署宏原子)
+                  部署宏原子
                 </NButton>
                 <NButton color="#ff0000" ghost @click="executeTylerPlan" :disabled="!tylerState.deployed || tylerState.targetStatus !== 'ACTIVE'">
-                  ATTACK (攻击)
+                  攻击
                 </NButton>
               </div>
               <p class="lore-text">
-                "妈妈，我将变成一只萤火虫。" —— 泰勒的遗言? <br/>
-                真相：利用球状闪电武器将地球舰队量子化，以此对抗三体？还是...
+                公开的计划：用球状闪电武装一支蚊群般的小型战机。<br/>
+                真正的意图只在他自己的脑子里——直到破壁人出现。
               </p>
             </div>
           </div>
         </NTabPane>
         
         <!-- 2. Manuel Rey Diaz -->
-        <NTabPane name="diaz" tab="雷迪亚兹 (DIAZ)">
+        <NTabPane name="diaz" tab="雷迪亚兹">
           <div 
             class="wallfacer-card diaz-theme holo-card"
-            @mousemove="handleCardMove"
-            @mouseleave="resetCardTilt"
-            :style="{ transform: `perspective(1000px) rotateX(${cardTilt.x}deg) rotateY(${cardTilt.y}deg)` }"
           >
             <div class="card-header">
               <div class="header-main">
                 <div>
-                  <h2>MANUEL REY DIAZ</h2>
-                  <p class="subtitle">STELLAR HYDROGEN BOMB // 摇篮计划</p>
+                  <h2>曼努尔·雷迪亚兹</h2>
+                  <p class="subtitle">水星计划</p>
                 </div>
                 <div class="wallbreaker-tag" @click.stop="startConfrontation('diaz')">
-                  <span class="wb-label">WALLBREAKER</span>
-                  <span class="wb-name">MOZI</span>
+                  <span class="wb-label">破壁人</span>
+                  <span class="wb-name">与他会面</span>
                 </div>
               </div>
             </div>
@@ -949,48 +947,45 @@ onMounted(() => {
               </div>
               <div class="bomb-controls">
                 <div class="control-row">
-                  <span>BOMB COUNT</span>
+                  <span>已埋设氢弹</span>
                   <NProgress type="line" :percentage="diazState.bombCount / 10" :show-indicator="false" processing />
                   <span>{{ diazState.bombCount }}/1000</span>
                 </div>
                 <div class="control-row">
-                  <span>YIELD (Mt)</span>
+                  <span>当量（百万吨）</span>
                   <NSlider v-model:value="diazState.yield" :step="10" :min="50" :max="500" />
                 </div>
                 <div class="buttons">
                   <NButton ghost type="warning" @click="placeBombs" :disabled="diazState.bombCount >= 1000">
-                    BURY BOMBS (埋设)
+                    埋设
                   </NButton>
                   <NButton color="#ff0000" class="detonate-btn" @click="detonateDiaz" :disabled="diazState.detonated">
-                    DETONATE (引爆信号)
+                    引爆
                   </NButton>
                 </div>
               </div>
               <p class="lore-text">
-                "我对人类的爱，在这一刻压倒了一切。" <br/>
-                以水星坠落太阳为筹码，要挟三体文明。
+                在水星埋下巨型氢弹，让它坠入太阳。<br/>
+                以整个太阳系为人质，要挟三体世界。
               </p>
             </div>
           </div>
         </NTabPane>
 
         <!-- 3. Bill Hines -->
-        <NTabPane name="hines" tab="希恩斯 (HINES)">
+        <NTabPane name="hines" tab="希恩斯">
           <div 
             class="wallfacer-card hines-theme holo-card"
-            @mousemove="handleCardMove"
-            @mouseleave="resetCardTilt"
-            :style="{ transform: `perspective(1000px) rotateX(${cardTilt.x}deg) rotateY(${cardTilt.y}deg)` }"
           >
             <div class="card-header">
               <div class="header-main">
                 <div>
-                  <h2>BILL HINES</h2>
-                  <p class="subtitle">MENTAL SEAL // 思想钢印</p>
+                  <h2>比尔·希恩斯</h2>
+                  <p class="subtitle">思想钢印</p>
                 </div>
                 <div class="wallbreaker-tag" @click.stop="startConfrontation('hines')">
-                  <span class="wb-label">WALLBREAKER</span>
-                  <span class="wb-name">ARISTOTLE</span>
+                  <span class="wb-label">破壁人</span>
+                  <span class="wb-name">与他会面</span>
                 </div>
               </div>
             </div>
@@ -1000,11 +995,11 @@ onMounted(() => {
               <div v-if="universe.mentalSeal" class="sealed-view">
                 <div class="seal-stamp-container">
                   <div class="seal-stamp">{{ universe.mentalSeal.seal_type }}</div>
-                  <div class="seal-watermark">APPROVED</div>
+                  <div class="seal-watermark">已固化</div>
                 </div>
                 <h3>思想钢印已固化</h3>
                 <p class="seal-desc">神经元网络重构完成。逻辑闭环已建立。</p>
-                <NButton class="mt-4" type="error" dashed @click="resetSeal">使用破壁锤 (RESET)</NButton>
+                <NButton class="mt-4" type="error" dashed @click="resetSeal">使用破壁锤</NButton>
               </div>
 
               <!-- Seal State: Selection & Animation -->
@@ -1013,7 +1008,7 @@ onMounted(() => {
                   <canvas ref="neuralCanvas" width="400" height="250"></canvas>
                   <div v-if="imprinting" class="imprint-overlay">
                     <div class="scanning-line"></div>
-                    <div class="imprint-status">REWRITING SYNAPSES... {{ Math.floor(imprintProgress) }}%</div>
+                    <div class="imprint-status">正在改写突触…… {{ Math.floor(imprintProgress) }}%</div>
                   </div>
                 </div>
 
@@ -1040,22 +1035,19 @@ onMounted(() => {
         </NTabPane>
 
         <!-- 4. Luo Ji -->
-        <NTabPane name="luoji" tab="罗辑 (LUO JI)">
+        <NTabPane name="luoji" tab="罗辑">
           <div 
             class="wallfacer-card luoji-theme holo-card"
-            @mousemove="handleCardMove"
-            @mouseleave="resetCardTilt"
-            :style="{ transform: `perspective(1000px) rotateX(${cardTilt.x}deg) rotateY(${cardTilt.y}deg)` }"
           >
             <div class="card-header">
               <div class="header-main">
                 <div>
-                  <h2>LUO JI</h2>
-                  <p class="subtitle">DARK FOREST // 执剑人</p>
+                  <h2>罗辑</h2>
+                  <p class="subtitle">咒语</p>
                 </div>
                 <div class="wallbreaker-tag danger" @click.stop="startConfrontation('luoji')">
-                  <span class="wb-label">THREAT</span>
-                  <span class="wb-name">TRISOLARIS</span>
+                  <span class="wb-label">对手</span>
+                  <span class="wb-name">三体世界</span>
                 </div>
               </div>
             </div>
@@ -1063,23 +1055,23 @@ onMounted(() => {
               <div class="logic-panel">
                  <!-- Spell Caster -->
                  <div class="spell-section">
-                    <h3>SPELL CASTER (咒语发射)</h3>
+                    <h3>发出咒语</h3>
                     <div class="spell-input-group">
                       <NInput v-model:value="luojiState.spell" placeholder="输入恒星坐标 (e.g. 187J3X1)" :disabled="luojiState.broadcasted"/>
                       <NButton type="primary" @click="castSpell" :disabled="!luojiState.spell || luojiState.broadcasted">
-                        BROADCAST (广播)
+                        广播
                       </NButton>
                     </div>
                  </div>
 
                  <!-- Deterrence System (Chat) -->
                  <div class="deterrence-section">
-                   <h3>WALLFACER vs BREAKER</h3>
+                   <h3>面壁者与破壁人</h3>
                    <div v-if="!session || session.status === 'abandoned'" class="setup-panel">
-                      <NInput v-model:value="planTitle" placeholder="Plan Codename" class="mb-2" />
-                      <NInput v-model:value="planContent" type="textarea" placeholder="Deceive the Trisolarans..." :rows="3" class="mb-2" />
+                      <NInput v-model:value="planTitle" placeholder="计划代号" class="mb-2" />
+                      <NInput v-model:value="planContent" type="textarea" placeholder="写下你要让三体世界相信的东西……" :rows="3" class="mb-2" />
                       <NButton type="primary" block :loading="loading" @click="startPlan" :disabled="!planTitle || !planContent">
-                        INITIATE PLAN
+                        开始
                       </NButton>
                     </div>
                     <div v-else class="chat-interface">
@@ -1101,7 +1093,7 @@ onMounted(() => {
 
                     <div class="wallbreaker-panel">
                       <div class="wb-head">
-                        <span>WALLBREAKER INFERENCE REPORT</span>
+                        <span>破壁人的推断</span>
                         <NButton size="small" type="error" ghost @click="generateWallbreakerReport">
                           生成破壁报告
                         </NButton>
@@ -1114,7 +1106,7 @@ onMounted(() => {
                           :class="{ active: wallbreakerTarget === t }"
                           @click="setWallbreakerTarget(t)"
                         >
-                          {{ t.toUpperCase() }}
+                          {{ cnName(t) }}
                         </button>
                       </div>
                       <div v-if="wallbreakerReports.length === 0" class="wb-empty">
@@ -1124,7 +1116,7 @@ onMounted(() => {
                         <div v-for="r in wallbreakerReports" :key="r.id" class="wb-item">
                           <div class="wb-row">
                             <span class="wb-time">[{{ r.time }}]</span>
-                            <span class="wb-tag">{{ r.target.toUpperCase() }}</span>
+                            <span class="wb-tag">{{ cnName(r.target) }}</span>
                             <span class="wb-threat" :class="r.threat.toLowerCase()">{{ r.threat }}</span>
                           </div>
                           <p class="wb-facade">表层计划：{{ r.facade }}</p>
@@ -1890,9 +1882,39 @@ onMounted(() => {
 
   .radar-info { width: 110px; padding: 0.75rem; }
   .header-main { flex-wrap: wrap; gap: 0.75rem; }
-  /* 操作按钮换行：「DEPLOY MACRO-ATOMS (部署宏原子)」与「ATTACK」并排时卡片被撑宽约 440px */
+  /* 操作按钮换行：「部署宏原子」与「ATTACK」并排时卡片被撑宽约 440px */
   .controls, .bomb-controls { flex-wrap: wrap; }
   .controls :deep(.n-button), .bomb-controls :deep(.n-button) { white-space: normal; height: auto; min-height: 34px; }
   .card-header h2 { font-size: 1.4rem; }
 }
+/* ------------------------------------------------------------------
+ * 冥王星档案馆皮肤（视觉方案批次 2）：碑面、刻痕、碑刻标题；去掉 3D 倾斜与霓虹描边。
+ * 放在最后，覆盖上面的旧样式；四位面壁者各保留一个低饱和的材料色。
+ * ------------------------------------------------------------------ */
+.sector-wallfacer { background: transparent; color: var(--bone); max-width: 76rem; padding: 2rem clamp(1rem, 4vw, 3rem) 3rem; }
+.bg-noise { display: none; }
+.main-content { max-width: none; margin: 0; }
+.wallfacer-card { background: var(--slab); border: 1px solid var(--incision-soft); transform: none !important; min-height: 0; }
+.holo-card:hover { box-shadow: none; border-color: var(--incision); }
+.card-header, .card-body, .controls, .bomb-controls, .neural-network, .logic-panel, .lore-text { transform: none; }
+.card-header { border-bottom-color: var(--incision); }
+.card-header h2 { font-family: var(--font-title); font-weight: 900; font-size: 2rem; letter-spacing: 0.08em; }
+.tyler-theme h2 { color: #a9c48a; }
+.diaz-theme h2 { color: #d4a46a; }
+.hines-theme h2 { color: #9fb8d8; }
+.luoji-theme h2 { color: #b9a3d6; }
+.subtitle { font-family: var(--font-serif); font-size: 1rem; color: var(--weathered); }
+.lore-text { font-style: normal; font-family: var(--font-serif); font-size: 1rem; line-height: 1.9; color: var(--gray-200); border-left: 1px solid var(--weathered); }
+.status-item { border-color: var(--incision); color: var(--weathered); font-size: 0.8125rem; border-radius: 2px; }
+.wallbreaker-tag { background: transparent; border-color: var(--incision); border-radius: 2px; }
+.wallbreaker-tag:hover { background: var(--slab-raised); border-color: var(--weathered); transform: none; }
+.wb-label { font-size: 0.8125rem; letter-spacing: 0.1em; color: var(--weathered); }
+.wb-name { font-family: var(--font-serif); font-size: 1rem; font-weight: 400; color: var(--bone); }
+.wb-line { font-family: var(--font-serif); font-size: 1.0625rem; line-height: 1.9; color: var(--gray-150); }
+.wb-note { margin: 0.5rem 0 0; font-size: 0.8125rem; color: var(--weathered); }
+.radar-info, .imprint-status { font-family: var(--font-sans); color: var(--gray-200); }
+.breach-overlay { background: rgba(12, 12, 14, 0.92); }
+.breach-overlay-inner h2 { font-family: var(--font-title); font-weight: 900; letter-spacing: 0.2em; color: var(--rust-bright); }
+.overlay-quote { font-style: normal; font-family: var(--font-serif); }
+:deep(.wallfacer-tabs .n-tabs-tab) { font-family: var(--font-serif); font-size: 1rem; }
 </style>
