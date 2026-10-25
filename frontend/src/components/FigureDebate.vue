@@ -114,7 +114,7 @@ function judge(v: 'a' | 'b' | 'none') {
       </button>
     </div>
 
-    <div class="stage">
+    <div class="arena">
       <p class="opener">{{ debate.opener }}</p>
       <div class="seats" aria-hidden="true">
         <span class="seat a">{{ debate.a.figure }}</span>
@@ -165,7 +165,7 @@ function judge(v: 'a' | 'b' | 'none') {
 .t-q { font-family: var(--font-serif); font-size: 1rem; }
 .t-who { font-size: 0.8125rem; color: var(--weathered); }
 
-.stage { padding: 1.25rem; background: var(--slab); border: 1px solid var(--incision-soft); }
+.arena { padding: 1.25rem; background: var(--slab); border: 1px solid var(--incision-soft); }
 .opener { margin: 0 0 1rem; font-family: var(--font-serif); font-size: 0.9375rem; line-height: 1.8; color: var(--weathered); }
 .seats { display: flex; justify-content: space-between; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--incision); font-family: var(--font-serif); font-size: 0.875rem; color: var(--weathered); }
 .seat.you { color: var(--cherenkov); }
@@ -179,7 +179,7 @@ function judge(v: 'a' | 'b' | 'none') {
 .ln.you .ln-who { color: var(--cherenkov); }
 .line { font-family: var(--font-serif); font-size: 1.0625rem; line-height: 1.9; color: var(--bone); }
 .ln.you .line { font-family: var(--font-sans); font-size: 0.9375rem; color: var(--gray-150); }
-.stage-text, .ln .stage { margin: 0.1rem 0; font-family: var(--font-serif); font-style: italic; font-size: 0.9375rem; color: var(--weathered); }
+.ln .stage { margin: 0.1rem 0; font-family: var(--font-serif); font-style: italic; font-size: 0.9375rem; color: var(--weathered); }
 
 .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; }
 .inter { flex: 1 1 16rem; min-width: 0; }
