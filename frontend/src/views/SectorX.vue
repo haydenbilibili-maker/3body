@@ -11,6 +11,7 @@ import { recordAnswer } from '@/data/answers'
 import SectorHeader from '@/components/SectorHeader.vue'
 import Vitrine from '@/components/Vitrine.vue'
 import HoldButton from '@/components/HoldButton.vue'
+import PageCosmos from '@/components/PageCosmos.vue'
 import { sectorByPath } from '@/data/sectors'
 import {
   ENDINGS,
@@ -66,8 +67,11 @@ function restart() {
 }
 
 /* ---------- 读者的档案 ---------- */
+/* 质量回来了：整页坍缩成一个点，再重新膨胀 */
+const cosmos = ref<InstanceType<typeof PageCosmos> | null>(null)
 watch(finished, (f) => {
   if (!f) return
+  if (ending(state.value) === 'restart') cosmos.value?.play('crunch')
   const mine = you.value.returned ? (you.value.bottle ? '归还了质量，留下一只漂流瓶' : '归还了全部质量') : '没有归还质量'
   recordAnswer('/sector-x', `${mine}；宇宙${end.value?.title === '重启' ? '重启了' : '没有重启'}`)
 })
@@ -75,6 +79,7 @@ watch(finished, (f) => {
 
 <template>
   <div class="sector-x">
+    <PageCosmos ref="cosmos" />
     <SectorHeader
       title="归零者"
       subtitle="无数文明把质量带进了自己的小宇宙，躲开时间与战争。大宇宙因此少了太多质量，再也不能坍缩、重新开始。"

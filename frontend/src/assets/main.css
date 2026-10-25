@@ -272,3 +272,54 @@ button, a, input, .card {
 @media (prefers-reduced-motion: reduce) {
   .page-flattening .app-header, .page-flattening .app-body, .page-flattening .app-footer { animation-duration: 0.01s; }
 }
+
+/* ---------- 大低谷：理智很低时，正文的字轻轻漂移 ---------- */
+.ravine-lost .app-main p {
+  animation: ravine-drift 6s ease-in-out infinite;
+}
+.ravine-lost .app-main p:nth-child(2n) { animation-delay: -2s; }
+.ravine-lost .app-main p:nth-child(3n) { animation-delay: -4s; }
+@keyframes ravine-drift {
+  0%, 100% { transform: translate(0, 0); letter-spacing: normal; }
+  50% { transform: translate(1.5px, -1px); letter-spacing: 0.02em; filter: blur(0.3px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ravine-lost .app-main p { animation: none; }
+}
+
+/* ---------- 三体摆：这一天的天气落在整页上 ---------- */
+.app-main { transition: filter 1.2s ease; }
+[data-room-env='heat'] .app-main { filter: url(#heat-haze) brightness(1.1) contrast(1.06) sepia(0.12); }
+[data-room-env='cold'] .app-main { filter: saturate(0.5) brightness(0.86) contrast(1.08); }
+[data-room-env='dry'] .app-main { filter: sepia(0.5) saturate(0.35) contrast(1.12) brightness(0.92); }
+@media (prefers-reduced-motion: reduce) {
+  [data-room-env='heat'] .app-main { filter: brightness(1.1) sepia(0.12); }
+}
+
+/* ---------- 归零者：大坍缩与重启 ---------- */
+.page-crunch body { overflow: hidden; }
+.page-crunch .app-header,
+.page-crunch .app-body,
+.page-crunch .app-footer {
+  transform-origin: 50vw 50vh;
+  animation: page-crunch 4.2s cubic-bezier(0.6, 0, 0.3, 1) forwards;
+}
+@keyframes page-crunch {
+  0% { transform: none; filter: none; opacity: 1; }
+  40% { transform: scale(0.002) rotate(70deg); filter: blur(6px) brightness(2); opacity: 0.9; }
+  48% { transform: scale(0.002) rotate(70deg); opacity: 0; }
+  56% { transform: scale(0.01) rotate(-20deg); opacity: 0; filter: blur(8px) brightness(3); }
+  100% { transform: none; filter: none; opacity: 1; }
+}
+
+/* ---------- 自然选择号：前进四 ---------- */
+.page-gforce .app-main > * {
+  transform-origin: 50% 20%;
+  animation: page-gforce 4.6s cubic-bezier(0.2, 0, 0.2, 1) forwards;
+}
+@keyframes page-gforce {
+  0% { transform: none; filter: none; }
+  12% { transform: perspective(900px) translateZ(-260px) translateY(30px); filter: blur(1.5px); }
+  70% { transform: perspective(900px) translateZ(-320px) translateY(40px); filter: blur(2px) brightness(0.85); }
+  100% { transform: none; filter: none; }
+}
