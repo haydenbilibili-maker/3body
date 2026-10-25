@@ -88,7 +88,7 @@ withDefaults(defineProps<{
 }
 .tech-card.variant-danger:hover {
   border-color: rgba(255, 42, 42, 0.5);
-  box-shadow: 0 0 20px rgba(255, 42, 42, 0.15);
+  box-shadow: none;
 }
 
 /* 四角装饰 */
@@ -131,7 +131,7 @@ withDefaults(defineProps<{
   letter-spacing: 0.1em;
   text-shadow: 0 0 5px rgba(var(--cherenkov-rgb), 0.5);
 }
-.variant-danger .tech-title { color: var(--holo-red); text-shadow: 0 0 5px rgba(255, 42, 42, 0.5); }
+.variant-danger .tech-title { color: var(--holo-red); text-shadow: none; }
 
 .tech-subtitle {
   font-family: var(--font-tech);
@@ -151,7 +151,7 @@ withDefaults(defineProps<{
   background: rgba(255, 255, 255, 0.1);
   border-radius: 50%;
 }
-.tech-card:hover .deco-dot:nth-child(1) { background: var(--holo-blue); box-shadow: 0 0 5px var(--holo-blue); }
+.tech-card:hover .deco-dot:nth-child(1) { background: var(--holo-blue); box-shadow: none; }
 .tech-card:hover .deco-dot:nth-child(2) { background: var(--holo-blue); animation: blink 1s infinite; }
 
 .tech-body {

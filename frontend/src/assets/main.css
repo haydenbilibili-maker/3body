@@ -19,7 +19,7 @@
   --font-title: 'Noto Serif SC', 'Songti SC', 'SimSun', serif;                                              /* 碑刻标题：宋体 900 */
   --font-title-classic: var(--font-title);                                                                  /* 旧名，已并入碑刻标题 */
   /* 兼容旧名 */
-  --font-tech: var(--font-mono);
+  --font-tech: var(--font-sans); /* 旧的「科技」字体角色并入界面字体；等宽只留给数值 */
   --font-display: var(--font-sans);
   
   /*
@@ -52,7 +52,7 @@
   --c-amber: #ffaa00;    /* 警告 */
   --c-yellow: #ffcc00;
   --c-gold: #d4af37;     /* 古典 / 荣誉 */
-  --c-magenta: #ff00ff;
+  --c-magenta: #a99cc4;
 
   /*
    * 冥王星档案馆 · 深时（docs：3body 视觉与交互总方案）
@@ -154,7 +154,7 @@ h1, h2, h3, .title {
 }
 
 .mono-data {
-  font-family: var(--font-tech);
+  font-family: var(--font-mono);
   letter-spacing: 0.05em;
   font-size: 0.85rem;
   opacity: 0.8;

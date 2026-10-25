@@ -526,9 +526,8 @@ function statusName(st: string): string {
               <div 
                 class="bomb-icon"
                 :class="{ active: i === gameState.activeBombIndex, used: i < gameState.activeBombIndex }"
-              >
-                ☢️
-              </div>
+                aria-hidden="true"
+              ></div>
             </div>
 
             <div
@@ -694,7 +693,7 @@ function statusName(st: string): string {
               <NInput v-model:value="decodeInput" type="textarea" :rows="2" placeholder="输入你的语义拆解，或从上方点击追加关键词" :disabled="!decodeTargetId" />
               <NButton ghost type="warning" @click="decodeFairytale" :loading="cLoading" :disabled="!decodeTargetId || !decodeInput.trim()">执行解密</NButton>
             </div>
-            <NProgress v-if="decodeScore !== null" type="line" :percentage="decodeScore" :color="decodeScore >= 80 ? '#00cc88' : '#ffcc00'" />
+            <NProgress v-if="decodeScore !== null" type="line" :percentage="decodeScore" :color="decodeScore >= 80 ? '#00cc88' : '#c9b48a'" />
             <NTag v-if="decodeScore !== null && decodeScore >= 80" type="success" class="decode-badge">执剑人候补：已达 80%</NTag>
           </div>
           <ModuleDiagPanel module-key="C" :status="diagC.status" :duration-ms="diagC.durationMs" :updated-at="diagC.updatedAt" :error="diagC.error" :history="diagHistC" />
@@ -821,13 +820,13 @@ function statusName(st: string): string {
   border-radius: 50%;
   transform: translateX(-50%);
   border: 2px solid var(--c-red);
-  box-shadow: 0 0 16px rgba(255, 80, 80, 0.7);
+  box-shadow: none;
   animation: pulse-ring 0.75s ease-out forwards;
 }
 
 .blast-pulse.perfect {
   border-color: #ffd54f;
-  box-shadow: 0 0 20px rgba(255, 213, 79, 0.85);
+  box-shadow: none;
 }
 
 .sail-capsule {
@@ -869,7 +868,7 @@ function statusName(st: string): string {
   border-radius: 50% 50% 0 0;
   transform: translateX(-50%) rotate(45deg);
   background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
-  box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+  box-shadow: none;
 }
 
 .engine-exhaust {
@@ -922,13 +921,17 @@ function statusName(st: string): string {
 
 .bomb-icon {
   position: absolute;
-  bottom: -15px;
-  font-size: 1.5rem;
+  bottom: -6px;
+  width: 12px;
+  height: 12px;
+  border: 1px solid var(--weathered);
+  border-radius: 50%;
+  background: var(--slab);
   transform: translateX(-50%);
   opacity: 0.5;
   transition: all 0.3s;
 }
-.bomb-icon.active { opacity: 1; transform: translateX(-50%) scale(1.2); color: var(--c-red); }
+.bomb-icon.active { opacity: 1; transform: translateX(-50%) scale(1.2); border-color: var(--rust-bright); background: var(--rust); }
 .bomb-icon.used { opacity: 0.2; transform: translateX(-50%) scale(0.8); }
 
 .controls {
@@ -962,7 +965,7 @@ function statusName(st: string): string {
 .speed-line {
   stroke: #6ce3ff;
   stroke-width: 2;
-  filter: drop-shadow(0 0 4px rgba(108, 227, 255, 0.7));
+  filter: none;
 }
 
 .speed-hud-scale {
@@ -994,7 +997,7 @@ function statusName(st: string): string {
   font-weight: bold;
   border: 4px solid #aa0000;
   cursor: pointer;
-  box-shadow: 0 0 20px rgba(255,0,0,0.3);
+  box-shadow: none;
 }
 .detonate-btn:active:not(:disabled) { transform: scale(0.95); }
 .detonate-btn:disabled { background: #553333; cursor: not-allowed; }
@@ -1264,13 +1267,13 @@ function statusName(st: string): string {
   height: 14px;
   background: var(--white);
   border-radius: 50%;
-  box-shadow: 0 0 20px var(--white), 0 0 40px rgba(255, 255, 255, 0.5);
+  box-shadow: none;
   animation: star-breathe 4s ease-in-out infinite;
 }
 
 .owned .star-core {
   background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
-  box-shadow: 0 0 25px #fdcb6e, 0 0 50px rgba(253, 203, 110, 0.4);
+  box-shadow: none;
   animation: star-breathe 3s ease-in-out infinite;
 }
 
@@ -1335,7 +1338,7 @@ function statusName(st: string): string {
 .planet {
   position: absolute;
   font-size: 1.1rem;
-  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.3));
+  filter: none;
   animation: orbit 8s linear infinite;
 }
 .planet.blue { top: 45px; left: 45px; animation-duration: 6s; }
@@ -1365,7 +1368,7 @@ function statusName(st: string): string {
   color: var(--white);
   margin: 0 0 0.25rem;
   letter-spacing: 0.1em;
-  text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+  text-shadow: none;
 }
 
 .star-meta {
@@ -1402,7 +1405,7 @@ function statusName(st: string): string {
   background: rgba(255, 220, 180, 0.15);
   border-color: rgba(255, 220, 180, 0.8);
   color: var(--white);
-  box-shadow: 0 0 24px rgba(255, 220, 180, 0.2);
+  box-shadow: none;
 }
 
 .gift-btn.sent {
@@ -1509,7 +1512,7 @@ function statusName(st: string): string {
   gap: 0.2rem;
 }
 .tale-card:hover { border-color: #3a6060; background: rgba(0, 35, 45, 0.45); }
-.tale-card.selected { border-color: #00d4ff; background: rgba(0, 60, 80, 0.25); box-shadow: 0 0 0 1px rgba(0, 212, 255, 0.3); }
+.tale-card.selected { border-color: var(--cherenkov); background: rgba(0, 60, 80, 0.25); box-shadow: 0 0 0 1px rgba(0, 212, 255, 0.3); }
 .tale-card-title { font-size: 0.9rem; font-weight: 600; color: #c8e0e0; }
 .tale-card-meta { font-size: 0.75rem; }
 .tale-progress { margin-top: 0.25rem; }
@@ -1520,7 +1523,7 @@ function statusName(st: string): string {
 .compare-pre { margin: 0; padding: 0.5rem; border: 1px solid var(--gray-800); background: var(--gray-950); color: #b7c6c6; white-space: pre-wrap; font-size: 0.85rem; max-height: 200px; overflow: auto; }
 .semantic-box { padding: 0.5rem; border: 1px solid var(--gray-800); background: var(--gray-950); color: #b7c6c6; font-size: 0.85rem; }
 .sem-empty { color: var(--gray-400); }
-.sem-hit-phrase { color: #00ff88; background: rgba(0, 255, 136, 0.15); }
+.sem-hit-phrase { color: #9fb39a; background: rgba(159, 179, 154, 0.15); }
 .sem-hit-char { color: #88ff88; }
 .sem-miss { color: var(--gray-400); }
 .sem-stats { margin-top: 0.5rem; }

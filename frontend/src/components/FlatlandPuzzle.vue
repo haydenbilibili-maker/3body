@@ -289,7 +289,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey))
   margin: 0 auto;
   background: #05030a;
   border: 1px solid rgba(169, 156, 196, 0.25);
-  box-shadow: 0 0 40px rgba(169, 156, 196, 0.1) inset;
+  box-shadow: none;
 }
 .fl-cell {
   position: relative;
@@ -309,7 +309,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey))
 .fl-cell.exit.visible::after { content: '出口'; font-size: 0.75rem; color: var(--holo-blue); opacity: 0.8; }
 
 /* 升维：墙退化成细线，所有内部一览无余 */
-.lifted .fl-board { box-shadow: 0 0 60px rgba(169, 156, 196, 0.25) inset; }
+.lifted .fl-board { box-shadow: none; }
 .lifted .fl-cell.visible { background: #1c1d20; }
 .lifted .fl-cell.visible.wall {
   background: #1c1d20;
@@ -319,7 +319,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey))
 .fl-item {
   color: var(--c-gold);
   font-size: 1.1rem;
-  text-shadow: 0 0 10px rgba(255, 204, 0, 0.7);
+  text-shadow: none;
   animation: pulse 2s ease-in-out infinite;
 }
 .fl-player {
@@ -328,7 +328,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey))
   height: 56%;
   border-radius: 50%;
   background: radial-gradient(circle at 35% 35%, #fff, var(--fl-accent));
-  box-shadow: 0 0 12px rgba(169, 156, 196, 0.8);
+  box-shadow: none;
   transition: transform 0.25s, box-shadow 0.25s;
   z-index: 2;
 }
@@ -380,7 +380,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey))
 .fl-meter-fill {
   height: 100%;
   background: linear-gradient(90deg, #6a3fbf, var(--fl-accent));
-  box-shadow: 0 0 12px var(--fl-accent);
+  box-shadow: none;
   transition: width 0.3s;
 }
 .fl-meter-note { margin: 0.4rem 0 0; font-size: 0.75rem; color: var(--text-muted); line-height: 1.5; }

@@ -7,6 +7,8 @@
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { NSlider } from 'naive-ui'
 import SectorHeader from '@/components/SectorHeader.vue'
+import HoldButton from '@/components/HoldButton.vue'
+import { sectorByPath } from '@/data/sectors'
 import { soundManager } from '@/utils/sound'
 import {
   MASS_LIMIT,
@@ -22,6 +24,7 @@ import {
 } from '@/sim/miniUniverse'
 
 const phase = ref<Phase>('garden')
+const question = sectorByPath('/sector-u')?.question
 const PHASES: { id: Phase | 'end'; label: string }[] = [
   { id: 'garden', label: '田园' },
   { id: 'broadcast', label: '广播' },
@@ -257,7 +260,6 @@ onUnmounted(() => {
 <template>
   <div class="sector-u" :class="`phase-${phase}`">
     <SectorHeader
-      code="SECTOR U · UNIVERSE 647"
       title="647 号小宇宙"
       subtitle="一千米见方的永恒"
       goal="照料这座小小的田园，直到外面的声音传进来。然后决定：留下五公斤，还是留下自己。"
@@ -399,7 +401,7 @@ onUnmounted(() => {
 
       <div class="u-row u-confirm">
         <button type="button" class="u-btn" @click="phase = 'broadcast'">再想想</button>
-        <button type="button" class="u-btn primary" @click="confirmReturn">归还其余 {{ returnedTons }} 吨</button>
+        <HoldButton :hold-ms="2200" @confirm="confirmReturn">按住，归还其余 {{ returnedTons }} 吨</HoldButton>
       </div>
     </section>
 
@@ -419,8 +421,9 @@ onUnmounted(() => {
           </p>
           <div class="u-row">
             <button type="button" class="u-btn" @click="resetAll">回到第一天</button>
-            <RouterLink to="/sector-x" class="u-btn primary">去见归零者 →</RouterLink>
+            <RouterLink to="/sector-x" class="u-btn primary">发出广播的人：归零者</RouterLink>
           </div>
+          <p class="u-q">{{ question }}</p>
         </div>
       </transition>
     </section>
@@ -443,6 +446,7 @@ onUnmounted(() => {
               <button type="button" class="u-btn primary" @click="goChoose">改变主意，归还质量</button>
               <button type="button" class="u-btn" @click="resetAll">回到第一天</button>
             </div>
+            <p class="u-q">{{ question }}</p>
           </div>
         </transition>
       </div>
@@ -593,7 +597,7 @@ onUnmounted(() => {
 .u-noise { display: flex; gap: 3px; height: 24px; align-items: flex-end; margin-bottom: 0.6rem; }
 .u-noise span { flex: 1; background: rgba(243, 230, 211, 0.25); animation: noise 0.9s steps(3) infinite alternate; height: 30%; }
 @keyframes noise { 0% { height: 20%; } 50% { height: 55%; } 100% { height: 35%; } }
-.u-receiver.live { border-color: rgba(150, 190, 255, 0.55); box-shadow: 0 0 24px rgba(150, 190, 255, 0.15); }
+.u-receiver.live { border-color: rgba(150, 190, 255, 0.55); box-shadow: none; }
 .u-receiver.live .u-noise span { background: rgba(150, 190, 255, 0.7); animation-duration: 0.35s; }
 
 /* 广播 */
@@ -712,4 +716,8 @@ onUnmounted(() => {
   .u-confirm .u-btn { flex: 1; }
   .u-broadcast-text p { font-size: 1.05rem; }
 }
+
+/* ---------- 档案馆外观 ---------- */
+.u-q { margin: 1.5rem 0 0; padding-left: 1rem; border-left: 1px solid #c9b48a; font-family: var(--font-serif); font-size: 1.0625rem; line-height: 1.8; color: var(--bone); text-align: left; }
+.u-question { color: var(--gray-150); font-family: var(--font-serif); }
 </style>
