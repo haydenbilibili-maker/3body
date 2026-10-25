@@ -32,13 +32,13 @@ function cnName(id: string): string {
 const wallbreakers = {
   tyler: {
     name: '泰勒的破壁人',
-    realName: '地球三体组织成员'
+    realName: '地球三体组织成员',
     desc: '你的每一层伪装，在我的逻辑里都是透明的。',
     reveal: '“泰勒，你的蚊群不是去攻击地球舰队的，而是去为他们送上量子宏原子的武器……或者说，变成武器。”'
   },
   diaz: {
     name: '雷迪亚兹的破壁人',
-    realName: '地球三体组织成员'
+    realName: '地球三体组织成员',
     desc: '这里的太阳真烈啊，就像你心中的那团火。',
     reveal: '“雷迪亚兹，你不想拯救水星，你想让它坠落。你要用整个太阳系的毁灭来要挟主。”'
   },
