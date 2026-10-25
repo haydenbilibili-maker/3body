@@ -131,6 +131,15 @@ async function snapshotRoute(browser, viewport, [slug, title]) {
           if (smallBodySamples.length < 3) smallBodySamples.push(`${style.fontSize} ${text.slice(0, 24)}`)
         }
       }
+      // 根节点裁切：页面根元素 overflow:hidden 且内容高于自身——下方内容被藏起来、无法滚动到
+      const root = main?.firstElementChild
+      let clippedY = 0
+      if (root) {
+        const st = getComputedStyle(root)
+        if (['hidden', 'clip'].includes(st.overflowY) && root.scrollHeight > root.clientHeight + 4) {
+          clippedY = root.scrollHeight - root.clientHeight
+        }
+      }
       // 溢出元凶：右边缘超出视口、而父元素没有超出的元素（即「第一个撑出屏幕」的元素）
       const vw = window.innerWidth
       const describe = (el) =>
@@ -157,6 +166,7 @@ async function snapshotRoute(browser, viewport, [slug, title]) {
         viewportHeight: main ? main.clientHeight : window.innerHeight,
         tinyText,
         smallBody,
+        clippedY,
         smallBodySamples,
         title: document.title,
         h1: document.querySelector('h1')?.textContent?.trim() ?? null,
@@ -415,6 +425,11 @@ async function main() {
   for (const r of results) {
     if ((r.overflowX ?? 0) > 0 && r.offenders?.length) {
       console.log(`::warning title=overflow::${r.viewport}/${r.slug} +${r.overflowX}px ← ${r.offenders.join(' ; ')}`.slice(0, 900))
+    }
+  }
+  for (const r of results) {
+    if ((r.clippedY ?? 0) > 0) {
+      console.log(`::warning title=clipped-root::${r.viewport}/${r.slug} 根节点 overflow:hidden 裁掉了 ${r.clippedY}px 内容`)
     }
   }
   const broken = results.filter((r) => r.navError || r.pageErrors.length)
