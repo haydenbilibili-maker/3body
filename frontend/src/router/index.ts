@@ -103,7 +103,7 @@ const router = createRouter({
       path: '/sector-x',
       name: 'sector-x',
       component: () => import('@/views/SectorX.vue'),
-      meta: { title: '未知区域', sector: 'x' },
+      meta: { title: '归零者', sector: 'x' },
     },
     {
       path: '/sector-pdc',

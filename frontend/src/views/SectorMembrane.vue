@@ -7,8 +7,11 @@
  */
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import SectorHeader from '@/components/SectorHeader.vue'
+import HoldButton from '@/components/HoldButton.vue'
+import { sectorByPath } from '@/data/sectors'
 import { PRESENT_INDEX, STAGES, formatDuration, formatLight, roundTripYears } from '@/sim/dimensions'
 
+const question = sectorByPath('/sector-m')?.question
 const index = ref(0)
 const stage = computed(() => STAGES[index.value])
 const atEnd = computed(() => index.value === STAGES.length - 1)
@@ -16,41 +19,13 @@ const rebooting = ref(false)
 const rebootedOnce = ref(false)
 const roundTrip = computed(() => formatDuration(roundTripYears(stage.value)))
 
-/* ---------- 按住折叠 ---------- */
-const HOLD_MS = 1100
-const holdProgress = ref(0)
-let holdStart = 0
-let holdRaf = 0
+/* ---------- 折叠（按住确认见 HoldButton） ---------- */
 let foldAt = 0 // 折叠动画起点（performance.now）
 
 function fold() {
   if (atEnd.value || rebooting.value) return
   index.value += 1
   foldAt = performance.now()
-}
-function holdTick(now: number) {
-  holdProgress.value = Math.min(1, (now - holdStart) / HOLD_MS)
-  if (holdProgress.value >= 1) {
-    holdProgress.value = 0
-    fold()
-    return
-  }
-  holdRaf = requestAnimationFrame(holdTick)
-}
-function holdDown(e: PointerEvent) {
-  if (e.button !== 0) return
-  ;(e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId)
-  holdStart = performance.now()
-  cancelAnimationFrame(holdRaf)
-  holdRaf = requestAnimationFrame(holdTick)
-}
-function holdUp() {
-  cancelAnimationFrame(holdRaf)
-  holdProgress.value = 0
-}
-/** 键盘激活（click 的 detail 为 0）直接折叠，保证无指针设备可用 */
-function onFoldClick(e: MouseEvent) {
-  if (e.detail === 0) fold()
 }
 
 function reboot() {
@@ -207,7 +182,6 @@ onMounted(() => {
 })
 onUnmounted(() => {
   cancelAnimationFrame(raf)
-  cancelAnimationFrame(holdRaf)
   ro?.disconnect()
 })
 </script>
@@ -219,9 +193,8 @@ onUnmounted(() => {
     <div class="m-layout">
       <div class="m-main">
         <SectorHeader
-          code="SECTOR M · THE PASTORAL AGE"
           title="田园时代"
-          subtitle="宇宙膜 · 维度与光速的往事"
+          subtitle="宇宙最初有十个维度，光几乎没有速度的上限。后来，维度和光速都变成了武器。"
           goal="从十维的田园时代出发，亲手把宇宙一维一维折叠下去，看看我们是怎么走到黑暗森林的。"
           accent="#e8d27a"
           compact
@@ -237,7 +210,7 @@ onUnmounted(() => {
               <span v-if="stage.imagined" class="m-tag">想象</span>
             </p>
             <p class="m-stage-text">{{ stage.text }}</p>
-            <RouterLink v-if="stage.link" :to="stage.link.to" class="m-link">{{ stage.link.label }} →</RouterLink>
+            <RouterLink v-if="stage.link" :to="stage.link.to" class="m-link">{{ stage.link.label }}</RouterLink>
           </article>
         </transition>
 
@@ -247,33 +220,20 @@ onUnmounted(() => {
         </dl>
 
         <div class="m-actions">
-          <button
-            v-if="!atEnd"
-            type="button"
-            class="m-fold"
-            :disabled="rebooting"
-            :style="{ '--p': holdProgress }"
-            @pointerdown="holdDown"
-            @pointerup="holdUp"
-            @pointercancel="holdUp"
-            @pointerleave="holdUp"
-            @click="onFoldClick"
-          >
-            <span class="m-fold-fill" aria-hidden="true"></span>
-            <span class="m-fold-label">按住，折叠一个维度</span>
-          </button>
+          <HoldButton v-if="!atEnd" class="m-fold" :hold-ms="1100" :disabled="rebooting" @confirm="fold">按住，折叠一个维度</HoldButton>
           <p v-if="!atEnd" class="m-warn">不可撤销。被用掉的维度不会再长回来。</p>
 
           <template v-else>
             <p class="m-end">宇宙已经没有维度可以再失去了。</p>
-            <button type="button" class="m-reboot" :disabled="rebooting" @click="reboot">
-              {{ rebooting ? '正在归还……' : '归零：把维度还回去' }}
-            </button>
+            <p v-if="rebooting" class="m-end">正在归还……</p>
+            <HoldButton v-else class="m-reboot" :hold-ms="2200" @confirm="reboot">按住，把维度还回去</HoldButton>
           </template>
 
           <p v-if="rebootedOnce && index === 0" class="m-dream">
             这就是回归运动的梦：所有文明放下武器，归还被拿走的维度与质量，让宇宙回到田园时代。<br />
-            <RouterLink to="/sector-x" class="m-link">去见归零者 →</RouterLink>
+            <RouterLink to="/sector-x" class="m-link">发出这个梦的人：归零者</RouterLink>
+          </p>
+          <p v-if="rebootedOnce && index === 0" class="m-q">{{ question }}
           </p>
         </div>
       </div>
@@ -284,7 +244,7 @@ onUnmounted(() => {
           :key="s.dim"
           :class="{ current: i === index, gone: i < index, present: i === PRESENT_INDEX }"
         >
-          <span class="m-ladder-dim">{{ s.dim }}D</span>
+          <span class="m-ladder-dim">{{ s.dim }} 维</span>
           <span class="m-ladder-name">{{ s.name }}</span>
         </li>
       </ol>
@@ -350,42 +310,8 @@ onUnmounted(() => {
 .m-stats dd { margin: 0.25rem 0 0; font-family: var(--font-mono); font-size: 1.05rem; color: #cfeeff; }
 
 .m-actions { display: flex; flex-direction: column; align-items: flex-start; gap: 0.6rem; }
-.m-fold {
-  position: relative;
-  overflow: hidden;
-  padding: 0.85rem 1.6rem;
-  font: inherit;
-  font-size: 1rem;
-  letter-spacing: 0.08em;
-  color: var(--m-gold);
-  background: rgba(232, 210, 122, 0.06);
-  border: 1px solid var(--m-gold);
-  cursor: pointer;
-  user-select: none;
-  touch-action: none;
-}
-.m-fold:disabled { opacity: 0.4; cursor: not-allowed; }
-.m-fold-fill {
-  position: absolute;
-  inset: 0;
-  transform-origin: left;
-  transform: scaleX(var(--p));
-  background: linear-gradient(90deg, rgba(232, 210, 122, 0.35), rgba(255, 255, 255, 0.55));
-}
-.m-fold-label { position: relative; }
-.m-fold:focus-visible, .m-reboot:focus-visible { outline: 2px solid var(--m-gold); outline-offset: 3px; }
-.m-warn { margin: 0; font-size: 0.8rem; color: var(--gray-350); }
+.m-warn { margin: 0; font-size: 0.8125rem; color: var(--weathered); }
 .m-end { margin: 0; font-family: var(--font-serif); font-size: 1.05rem; color: var(--gray-200); }
-.m-reboot {
-  padding: 0.85rem 1.6rem;
-  font: inherit;
-  font-size: 1rem;
-  font-weight: 600;
-  color: #050505;
-  background: var(--m-gold);
-  border: 0;
-  cursor: pointer;
-}
 .m-dream { margin: 0.5rem 0 0; font-family: var(--font-serif); font-size: 0.95rem; line-height: 1.9; color: var(--gray-150); }
 
 .m-ladder {
@@ -428,4 +354,6 @@ onUnmounted(() => {
   .m-stats { grid-template-columns: 1fr; }
   .m-dim-num { font-size: 2.4rem; }
 }
+
+.m-q { margin: 1rem 0 0; padding-left: 1rem; border-left: 1px solid var(--m-gold); font-family: var(--font-serif); font-size: 1.0625rem; line-height: 1.8; color: var(--bone); }
 </style>
