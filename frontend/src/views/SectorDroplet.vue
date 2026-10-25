@@ -525,9 +525,8 @@ watch(fleetDown, (d) => {
 }
 
 .waypoint-chip:hover {
-  border-color: var(--c-cyan);
-  color: var(--c-cyan);
-  background: rgba(var(--cherenkov-rgb), 0.08);
+  border-color: var(--weathered);
+  color: var(--bone);
 }
 
 .waypoint-chip.active {
