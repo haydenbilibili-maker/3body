@@ -1,488 +1,395 @@
 <script setup lang="ts">
 /**
- * Sector T: The Pendulum (三体摆)
- * 环境监测站 + 巨型单摆可视化 + 脱水控制台 + 人列计算机
+ * Sector T：三体摆
+ * 三颗恒星的真实混沌运动决定每一天是恒纪元、三日凌空还是严寒；
+ * 你决定文明浸泡（发展）还是脱水（熬过去）。历法预测来自一个带误差的副本——越远越不准。
+ * 物理见 sim/threeBody.ts，规则见 sim/pendulumGame.ts。
  */
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { computed, onMounted, onUnmounted, ref, shallowRef } from 'vue'
 import SectorHeader from '@/components/SectorHeader.vue'
-import { useRouter } from 'vue-router'
-import { useUniverseStore } from '@/stores/universe'
-import { useUserStore } from '@/stores/user'
-import { NButton, useMessage } from 'naive-ui'
+import Vitrine from '@/components/Vitrine.vue'
+import { sectorByPath } from '@/data/sectors'
+import { advanceDay, classify, createSystem, flux, forecast, type Env, type System } from '@/sim/threeBody'
+import { AGES, SWITCH_DAYS, ageOf, createCiv, liveDay, order, type CivState } from '@/sim/pendulumGame'
 
-const router = useRouter()
-const universe = useUniverseStore()
-const userStore = useUserStore()
-const message = useMessage()
+const question = sectorByPath('/sector-t')?.question
+const ENV_NAME: Record<Env, string> = { stable: '恒纪元', heat: '三日凌空', cold: '严寒' }
+const FORECAST_DAYS = 14
+
+const seed = ref(Math.floor(Math.random() * 1e6))
+const sys = shallowRef<System>(createSystem(seed.value))
+const civ = ref<CivState>(createCiv())
+const today = ref<Env>(classify(flux(sys.value)))
+const prediction = ref<Env[]>(forecast(sys.value, FORECAST_DAYS, 0.1, 1))
+const history = ref<Env[]>([])
+const running = ref(false)
+const speed = ref(1)
+const trails: { x: number; y: number }[][] = [[], [], []]
+
+const ageIndex = computed(() => AGES.indexOf(ageOf(civ.value.progress)))
+const pendingText = computed(() => {
+  const p = civ.value.pending
+  if (!p) return ''
+  return `${p.to ? '浸泡复苏' : '脱水'}还需 ${p.days} 天`
+})
+
+function nextDay() {
+  advanceDay(sys.value)
+  today.value = classify(flux(sys.value))
+  civ.value = liveDay(civ.value, today.value)
+  history.value = [...history.value.slice(-89), today.value]
+  // 历法每天重算一次，误差也重新抽取：近处的预测稳定，远处的预测摇摆
+  prediction.value = forecast(sys.value, FORECAST_DAYS, 0.1, civ.value.day + 1)
+  if (civ.value.won) running.value = false
+}
+
+function setHydrated(h: boolean) {
+  civ.value = order(civ.value, h)
+}
+
+function restart() {
+  seed.value = Math.floor(Math.random() * 1e6)
+  sys.value = createSystem(seed.value)
+  civ.value = createCiv()
+  today.value = classify(flux(sys.value))
+  prediction.value = forecast(sys.value, FORECAST_DAYS, 0.1, 1)
+  history.value = []
+  trails.forEach((t) => (t.length = 0))
+  running.value = false
+}
+
+/* ---------- 画布：俯视三体系统 ---------- */
 const canvasRef = ref<HTMLCanvasElement | null>(null)
-const civNumber = ref(184) // Start from 184
-const doomProgress = ref(0)
-const eraHistory = ref<number[]>([]) // 0: Stable, 1: Chaos
-const lastDisaster = ref('')
+let raf = 0
+let last = 0
+let acc = 0
+const DAY_MS = 1100
 
-// Local Simulation State
-const simEnv = ref<'stable' | 'heat' | 'cold'>('stable')
-const nextEraTimer = ref(500)
+function draw() {
+  const c = canvasRef.value
+  const ctx = c?.getContext('2d')
+  if (!c || !ctx) return
+  const dpr = window.devicePixelRatio || 1
+  const W = c.width
+  const H = c.height
+  const scale = Math.min(W, H) / 9.5
+  const X = (x: number) => W / 2 + x * scale
+  const Y = (y: number) => H / 2 + y * scale
+  ctx.fillStyle = '#121214'
+  ctx.fillRect(0, 0, W, H)
 
-// 脱水状态：恒纪元时可浸泡，乱纪元时建议脱水
-const isChaotic = computed(() => simEnv.value !== 'stable')
+  // 行星轨道
+  ctx.strokeStyle = 'rgba(220, 214, 200, 0.14)'
+  ctx.lineWidth = 1 * dpr
+  ctx.setLineDash([3 * dpr, 5 * dpr])
+  ctx.beginPath()
+  ctx.arc(W / 2, H / 2, 2 * scale, 0, Math.PI * 2)
+  ctx.stroke()
+  ctx.setLineDash([])
 
-// Civilization Logic
-function updateSimulation() {
-  // Era Change Logic
-  nextEraTimer.value--
-  if (nextEraTimer.value <= 0) {
-    // Change Era
-    const rand = Math.random()
-    if (simEnv.value === 'stable') {
-      // Stable -> Chaos (High probability)
-      simEnv.value = rand > 0.5 ? 'heat' : 'cold'
-      nextEraTimer.value = Math.floor(Math.random() * 300 + 100)
-      message.warning(simEnv.value === 'heat' ? '乱纪元降临！三日凌空！' : '乱纪元降临！严寒！')
-    } else {
-      // Chaos -> Stable (Low probability)
-      if (rand < 0.3) {
-        simEnv.value = 'stable'
-        nextEraTimer.value = Math.floor(Math.random() * 800 + 400)
-        message.success('恒纪元到来！文明复苏。')
-        // if (universe.dehydrated) universe.toggleDehydrate()
-      } else {
-        // Chaos -> Chaos
-        simEnv.value = simEnv.value === 'heat' ? 'cold' : 'heat'
-        nextEraTimer.value = Math.floor(Math.random() * 300 + 100)
-      }
-    }
-  }
-
-  // Record History
-  if (eraHistory.value.length > 50) eraHistory.value.shift()
-  eraHistory.value.push(simEnv.value !== 'stable' ? 1 : 0)
-
-  // Civ Logic
-  if (simEnv.value === 'stable') {
-    // Recovery
-    if (doomProgress.value > 0) doomProgress.value -= 0.1
-  } else {
-    // Damage
-    const damage = universe.dehydrated ? 0.02 : 0.1
-    doomProgress.value += damage
-    
-    if (doomProgress.value >= 100) {
-      destroyCivilization()
-    }
-  }
-}
-
-function destroyCivilization() {
-  const cause = simEnv.value === 'heat' ? '三日凌空 (THREE SUNS)' : '严寒 (EXTREME COLD)'
-  lastDisaster.value = `No.${civNumber.value} 毁灭于 ${cause}`
-  message.error(`第 ${civNumber.value} 号文明在 ${cause} 中毁灭了。`)
-  
-  civNumber.value++
-  doomProgress.value = 0
-  if (!universe.dehydrated) universe.toggleDehydrate() 
-}
-
-
-// 人列计算机相关变量已移除
-
-
-// 模拟单摆物理
-let animationId: number
-let angle = 0
-let velocity = 0
-let length = 300
-const gravity = ref(0.5) // Base gravity (Interactive)
-
-function modifyGravity() {
-  if (!userStore.checkPermission(1, '修改初始参数 (N-Body Config)')) return
-  gravity.value = gravity.value === 0.5 ? 0.1 : (gravity.value === 0.1 ? 2.0 : 0.5)
-  message.success(`引力常数已重置: ${gravity.value} G`)
-}
-
-// Particle System
-interface Particle {
-  x: number; y: number; vx: number; vy: number; life: number; size: number; color: string;
-}
-const particles: Particle[] = []
-
-function updateParticles(width: number, height: number) {
-  // Spawn
-  if (particles.length < 200) {
-    if (simEnv.value === 'cold') {
-      // Snow
-      particles.push({
-        x: Math.random() * width,
-        y: -10,
-        vx: (Math.random() - 0.5) * 1,
-        vy: Math.random() * 2 + 1,
-        life: 1,
-        size: Math.random() * 2 + 1,
-        color: `rgba(200, 230, 255, ${Math.random() * 0.5 + 0.3})`
-      })
-    } else if (simEnv.value === 'heat') {
-      // Embers / Heat rising
-      particles.push({
-        x: Math.random() * width,
-        y: height + 10,
-        vx: (Math.random() - 0.5) * 0.5,
-        vy: -(Math.random() * 2 + 1),
-        life: 1,
-        size: Math.random() * 3 + 1,
-        color: `rgba(255, ${Math.floor(Math.random() * 100)}, 0, ${Math.random() * 0.5})`
-      })
-    } else {
-      // Dust (Stable)
-      if (Math.random() < 0.1) {
-        particles.push({
-          x: Math.random() * width,
-          y: Math.random() * height,
-          vx: (Math.random() - 0.5) * 0.2,
-          vy: (Math.random() - 0.5) * 0.2,
-          life: 1,
-          size: Math.random() * 1.5,
-          color: `rgba(255, 255, 255, ${Math.random() * 0.2})`
-        })
-      }
-    }
-  }
-
-  // Update & Draw
-  const canvas = canvasRef.value
-  const ctx = canvas?.getContext('2d')
-  if (!ctx) return
-
-  for (let i = particles.length - 1; i >= 0; i--) {
-    const p = particles[i]
-    p.x += p.vx
-    p.y += p.vy
-    p.life -= 0.005
-    
-    if (simEnv.value === 'heat') p.size *= 0.99 // Shrink embers
-    
-    // Draw
+  // 恒星轨迹与本体
+  sys.value.suns.forEach((s, i) => {
+    const tr = trails[i]
+    ctx.strokeStyle = 'rgba(231, 180, 106, 0.22)'
+    ctx.lineWidth = 1 * dpr
     ctx.beginPath()
-    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
-    ctx.fillStyle = p.color
+    tr.forEach((p, k) => (k === 0 ? ctx.moveTo(X(p.x), Y(p.y)) : ctx.lineTo(X(p.x), Y(p.y))))
+    ctx.stroke()
+    const r = (5 + s.m * 4) * dpr
+    const g = ctx.createRadialGradient(X(s.x), Y(s.y), 0, X(s.x), Y(s.y), r * 4)
+    g.addColorStop(0, 'rgba(255, 236, 200, 1)')
+    g.addColorStop(0.25, 'rgba(240, 170, 90, 0.9)')
+    g.addColorStop(1, 'rgba(240, 170, 90, 0)')
+    ctx.fillStyle = g
+    ctx.beginPath()
+    ctx.arc(X(s.x), Y(s.y), r * 4, 0, Math.PI * 2)
     ctx.fill()
-    
-    // Remove dead or out of bounds
-    if (p.life <= 0 || p.y > height + 20 || p.y < -20) {
-      particles.splice(i, 1)
+  })
+
+  // 行星：光环颜色反映当天的纪元
+  const p = sys.value.planet
+  const halo = today.value === 'heat' ? 'rgba(240, 120, 60, 0.55)' : today.value === 'cold' ? 'rgba(170, 200, 255, 0.45)' : 'rgba(125, 184, 255, 0.5)'
+  ctx.fillStyle = halo
+  ctx.beginPath()
+  ctx.arc(X(p.x), Y(p.y), 9 * dpr, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.fillStyle = '#dcd6c8'
+  ctx.beginPath()
+  ctx.arc(X(p.x), Y(p.y), 4 * dpr, 0, Math.PI * 2)
+  ctx.fill()
+}
+
+function loop(now: number) {
+  const dt = last ? now - last : 0
+  last = now
+  if (running.value) {
+    acc += dt * speed.value
+    while (acc >= DAY_MS) {
+      acc -= DAY_MS
+      nextDay()
+      sys.value.suns.forEach((s, i) => {
+        trails[i].push({ x: s.x, y: s.y })
+        if (trails[i].length > 160) trails[i].shift()
+      })
     }
   }
+  draw()
+  raf = requestAnimationFrame(loop)
 }
 
-function drawPendulum() {
-  updateSimulation() // Run Logic
-
-  const canvas = canvasRef.value
-  if (!canvas) return
-  const ctx = canvas.getContext('2d')
-  if (!ctx) return
-
-  const width = canvas.width
-  const height = canvas.height
-  const originX = width / 2
-  const originY = 50
-
-  // 物理模拟 (简化版)
-  // 乱纪元引力波动
-  const envG = simEnv.value === 'stable' ? 1.0 : (simEnv.value === 'heat' ? 0.5 : 2.0)
-  const chaos = simEnv.value === 'stable' ? 0 : (Math.random() - 0.5) * 0.2
-  const force = -1 * (gravity.value * envG) * Math.sin(angle)
-  
-  velocity += force + chaos
-  velocity *= 0.995 // Damping
-  angle += velocity
-
-  // Draw
-  ctx.clearRect(0, 0, width, height)
-  
-  // Draw Particles Background
-  updateParticles(width, height)
-  
-  // Cord
-  const bobX = originX + length * Math.sin(angle)
-  const bobY = originY + length * Math.cos(angle)
-  
-  ctx.beginPath()
-  ctx.moveTo(originX, originY)
-  ctx.lineTo(bobX, bobY)
-  ctx.strokeStyle = simEnv.value === 'heat' ? '#ff3333' : simEnv.value === 'cold' ? '#88ccff' : '#00ffff'
-  ctx.lineWidth = 2
-  ctx.stroke()
-  
-  // Bob
-  ctx.beginPath()
-  ctx.arc(bobX, bobY, 20, 0, Math.PI * 2)
-  ctx.fillStyle = '#000'
-  ctx.fill()
-  ctx.strokeStyle = ctx.strokeStyle
-  ctx.lineWidth = 2
-  ctx.stroke()
-  
-  // Glow
-  ctx.shadowBlur = 15
-  ctx.shadowColor = ctx.strokeStyle
-  
-  animationId = requestAnimationFrame(drawPendulum)
+function resize() {
+  const c = canvasRef.value
+  if (!c) return
+  const dpr = window.devicePixelRatio || 1
+  c.width = Math.max(1, c.clientWidth * dpr)
+  c.height = Math.max(1, c.clientHeight * dpr)
 }
-
+let ro: ResizeObserver | undefined
+function onKey(e: KeyboardEvent) {
+  const t = e.target as HTMLElement | null
+  if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return
+  if (e.code === 'Space') {
+    e.preventDefault()
+    const target = civ.value.pending ? civ.value.pending.to : civ.value.hydrated
+    setHydrated(!target)
+  }
+}
 onMounted(() => {
-  const canvas = canvasRef.value
-  if (canvas) {
-    canvas.width = window.innerWidth
-    canvas.height = window.innerHeight * 0.8
-    drawPendulum()
-  }
+  resize()
+  ro = new ResizeObserver(resize)
+  if (canvasRef.value) ro.observe(canvasRef.value)
+  raf = requestAnimationFrame(loop)
+  window.addEventListener('keydown', onKey)
+})
+onUnmounted(() => {
+  cancelAnimationFrame(raf)
+  ro?.disconnect()
+  window.removeEventListener('keydown', onKey)
 })
 
-onUnmounted(() => cancelAnimationFrame(animationId))
-
-const envText = computed(() => {
-  switch (simEnv.value) {
-    case 'stable': return '恒纪元 (STABLE ERA)'
-    case 'cold': return '乱纪元 · 严寒 (CHAOTIC COLD)'
-    case 'heat': return '乱纪元 · 酷热 (CHAOTIC HEAT)'
-    default: return 'UNKNOWN'
-  }
-})
+const targetHydrated = computed(() => (civ.value.pending ? civ.value.pending.to : civ.value.hydrated))
 </script>
 
 <template>
-  <div class="sector-pendulum">
-    <div class="monitor-overlay">
-      <SectorHeader
-        compact
-        code="SECTOR T · THE PENDULUM"
-        title="三体摆"
-        goal="乱纪元来临时及时脱水、恒纪元时浸泡复苏，别让毁灭进度涨到 100%。"
-        accent="#ff6b9a"
-      />
-      <div class="status-panel">
-        <div class="metric highlight-civ">
-          <span class="label">CIVILIZATION</span>
-          <span class="value">No. {{ civNumber }}</span>
-        </div>
-        <div class="metric">
-          <span class="label">ENVIRONMENT</span>
-          <span class="value" :class="simEnv">{{ envText }}</span>
-        </div>
-        <div class="metric">
-          <span class="label">DOOMSDAY CLOCK</span>
-          <div class="progress-bar">
-            <div class="progress-fill" :style="{ width: doomProgress + '%', backgroundColor: simEnv === 'stable' ? '#00ff41' : '#ff3333' }"></div>
-          </div>
-          <span class="sub-value">{{ doomProgress.toFixed(1) }}% TO DESTRUCTION</span>
-        </div>
-        <div class="metric">
-          <span class="label">STATE</span>
-          <span class="value" :class="{ dehydrated: universe.dehydrated }">
-            {{ universe.dehydrated ? '干纤维形态 (DEHYDRATED)' : '常态 (ACTIVE)' }}
-          </span>
-        </div>
-        <div class="metric">
-          <span class="label">TEMPERATURE</span>
-          <span class="value">{{ universe.temperature }} K</span>
-        </div>
-        <div class="metric">
-          <span class="label">GRAVITY</span>
-          <span class="value">{{ universe.gravity }} G</span>
-        </div>
-      </div>
-      
-      <div class="action-panel">
-        <NButton 
-          size="large" 
-          :type="universe.dehydrated ? 'primary' : 'warning'" 
-          ghost 
-          @click="universe.toggleDehydrate"
-        >
-          {{ universe.dehydrated ? '浸泡 (REHYDRATE)' : '脱水 (DEHYDRATE)' }}
-        </NButton>
-        <p class="hint lore" v-if="universe.dehydrated">
-          恒纪元到来后可执行浸泡复苏。代谢趋近于零，可度过乱纪元。
-        </p>
-        <p class="hint warn" v-else-if="isChaotic">
-          警告：乱纪元生存需消耗大量资源，建议脱水。
-        </p>
-        <p class="hint" v-else>脱水后代谢趋近于零，可在乱纪元中保存生命。</p>
+  <div class="sector-t">
+    <SectorHeader
+      title="三体摆"
+      subtitle="三颗太阳，一颗行星。没有任何历法能算准明天。"
+      goal="文明从脱水状态开始。每天决定浸泡还是脱水：浸泡才会发展，但遇上乱纪元就会毁灭。切换需要两天。发展到信息时代即可。"
+      accent="#e7b46a"
+      :show-restart="civ.day > 0"
+      restart-label="换一片星空"
+      @restart="restart"
+    />
 
-        <!-- Dehydration Visual -->
-        <div class="granary" :class="{ active: universe.dehydrated }">
-          <div class="granary-label">干仓 (STORAGE)</div>
-          <div class="granary-slots">
-            <div 
-              class="roll" 
-              v-for="i in 5" 
-              :key="i"
-              :class="{ filled: universe.dehydrated }"
-              :style="{ animationDelay: `${i * 0.1}s` }"
-            >
-              📜
+    <Vitrine flush>
+      <div class="board">
+        <div class="sky">
+          <canvas ref="canvasRef" class="sky-canvas" aria-label="三颗恒星与行星的俯视图"></canvas>
+          <p class="sky-day">第 <span class="num">{{ civ.day }}</span> 天</p>
+        </div>
+
+        <div class="panel">
+          <div class="today" :class="today">
+            <span class="today-label">今天</span>
+            <span class="today-env">{{ ENV_NAME[today] }}</span>
+          </div>
+
+          <div class="civ">
+            <div class="civ-head">
+              <span>第 <span class="num">{{ civ.civ }}</span> 号文明</span>
+              <span class="civ-age">{{ ageOf(civ.progress) }}</span>
             </div>
+            <ol class="ages" aria-label="文明进程">
+              <li v-for="(a, i) in AGES" :key="a" :class="{ reached: i <= ageIndex }" :title="a"></li>
+            </ol>
+          </div>
+
+          <div class="decide" role="group" aria-label="浸泡或脱水">
+            <button type="button" :aria-pressed="targetHydrated" :class="{ on: targetHydrated }" @click="setHydrated(true)">
+              浸泡<span>发展，但怕乱纪元</span>
+            </button>
+            <button type="button" :aria-pressed="!targetHydrated" :class="{ on: !targetHydrated }" @click="setHydrated(false)">
+              脱水<span>熬过一切，时间白费</span>
+            </button>
+          </div>
+          <p class="state">
+            此刻{{ civ.hydrated ? '浸泡中' : '已脱水' }}<template v-if="pendingText">，{{ pendingText }}</template>。空格键切换。
+          </p>
+
+          <div class="forecast">
+            <div class="forecast-head">
+              <span>历法预测</span>
+              <span class="muted">越远越不可信，每天都会重算</span>
+            </div>
+            <ol class="days">
+              <li
+                v-for="(e, i) in prediction"
+                :key="i"
+                :class="e"
+                :style="{ opacity: 1 - i / (FORECAST_DAYS + 4) }"
+                :title="`${i + 1} 天后：${ENV_NAME[e]}`"
+              ></li>
+            </ol>
+            <div class="forecast-scale"><span>明天</span><span>两周后</span></div>
+          </div>
+
+          <div class="controls">
+            <button type="button" class="plain-btn" :class="{ primary: civ.day === 0 && !running }" @click="running = !running">
+              {{ running ? '暂停' : civ.day === 0 ? '开始第一天' : '继续' }}
+            </button>
+            <button type="button" class="plain-btn" @click="speed = speed === 1 ? 3 : 1">{{ speed === 1 ? '加速' : '正常速度' }}</button>
           </div>
         </div>
-        
-        <NButton 
-          class="mt-4" 
-          block 
-          ghost 
-          type="warning"
-          @click="modifyGravity"
-        >
-          修改引力参数 (MODIFY G)
-        </NButton>
-
-        <NButton 
-          class="mt-4" 
-          block 
-          ghost 
-          type="info"
-          @click="router.push('/sector-v')"
-        >
-          前往人列计算机 (VON NEUMANN)
-        </NButton>
       </div>
+    </Vitrine>
+
+    <div class="below">
+      <section class="record">
+        <h2 class="section-title">过去 90 天</h2>
+        <ol class="history" aria-label="过去的纪元">
+          <li v-for="(e, i) in history" :key="i" :class="e"></li>
+        </ol>
+        <p class="legend"><span class="sw stable"></span>恒纪元<span class="sw heat"></span>三日凌空<span class="sw cold"></span>严寒</p>
+      </section>
+
+      <section class="fallen">
+        <h2 class="section-title">毁灭的文明</h2>
+        <p v-if="!civ.fallen.length" class="muted">还没有。</p>
+        <ol v-else class="fallen-list">
+          <li v-for="f in [...civ.fallen].reverse().slice(0, 8)" :key="f.civ">
+            第 <span class="num">{{ f.civ }}</span> 号文明，发展到{{ f.age }}，毁于{{ ENV_NAME[f.cause] }}。
+          </li>
+        </ol>
+      </section>
     </div>
-    
-    <canvas ref="canvasRef" class="pendulum-canvas"></canvas>
+
+    <transition name="fade">
+      <div v-if="civ.won" class="won" role="dialog" aria-label="通关">
+        <div class="won-box">
+          <h2>第 {{ civ.civ }} 号文明进入了信息时代</h2>
+          <p>在它之前，有 {{ civ.fallen.length }} 个文明毁于乱纪元。</p>
+          <p>它终于算清楚了一件事：三颗太阳的运动没有解析解，任何历法都只是暂时的运气。它决定离开这里。</p>
+          <p class="won-question">{{ question }}</p>
+          <div class="won-actions">
+            <button type="button" class="plain-btn" @click="restart">换一片星空</button>
+            <RouterLink to="/sector-v" class="plain-btn">他们曾用三千万人去计算它</RouterLink>
+          </div>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
 <style scoped>
-.sector-pendulum {
+.sector-t {
+  --heat: #e8814f;
+  --cold: #b9d0f5;
+  --stable: var(--cherenkov);
   position: relative;
-  /* 叠在画布上的监测面板是绝对定位的，不会撑高根节点：给出足够的最小高度，避免被裁切 */
-  min-height: 48rem;
-  background: var(--black);
-  overflow: hidden;
+  padding: 2rem clamp(1rem, 4vw, 3rem) 3rem;
+  max-width: 78rem;
 }
-.pendulum-canvas {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.muted { color: var(--weathered); }
 
-.monitor-overlay {
-  position: absolute;
-  top: 2rem;
-  left: 2rem;
-  z-index: 10;
-  pointer-events: auto;
-  max-width: 320px;
-  max-height: calc(100vh - 4rem);
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(var(--cherenkov-rgb), 0.3) rgba(0, 0, 0, 0.5);
-}
+.board { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(17rem, 1fr); }
+.sky { position: relative; min-height: 26rem; border-right: 1px solid var(--incision-soft); }
+.sky-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.sky-day { position: absolute; left: 1rem; top: 0.8rem; margin: 0; font-size: 0.875rem; color: var(--weathered); }
+.sky-day .num { color: var(--bone); font-size: 1.125rem; }
 
-.monitor-overlay::-webkit-scrollbar {
-  width: 4px;
-}
-.monitor-overlay::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.5);
-}
-.monitor-overlay::-webkit-scrollbar-thumb {
-  background: rgba(var(--cherenkov-rgb), 0.3);
+.panel { display: flex; flex-direction: column; gap: 1.25rem; padding: 1.5rem; }
+.today { display: flex; flex-direction: column; gap: 0.2rem; }
+.today-label { font-size: 0.8125rem; color: var(--weathered); }
+.today-env { font-family: var(--font-title); font-weight: 900; font-size: 2.25rem; letter-spacing: 0.1em; transition: color 0.4s; }
+.today.stable .today-env { color: var(--bone); }
+.today.heat .today-env { color: var(--heat); }
+.today.cold .today-env { color: var(--cold); }
+
+.civ-head { display: flex; justify-content: space-between; align-items: baseline; font-size: 0.9375rem; color: var(--gray-200); }
+.civ-age { font-family: var(--font-serif); color: var(--bone); }
+.ages { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; list-style: none; margin: 0.5rem 0 0; padding: 0; }
+.ages li { height: 6px; background: var(--incision-soft); }
+.ages li.reached { background: #e7b46a; }
+
+.decide { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+.decide button {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.75rem 0.9rem;
+  font: inherit;
+  font-family: var(--font-serif);
+  font-size: 1.125rem;
+  text-align: left;
+  color: var(--gray-200);
+  background: transparent;
+  border: 1px solid var(--incision);
   border-radius: 2px;
+  cursor: pointer;
 }
+.decide button span { font-family: var(--font-sans); font-size: 0.8125rem; color: var(--weathered); }
+.decide button.on { color: var(--bone); border-color: var(--cherenkov); background: rgba(var(--cherenkov-rgb), 0.07); }
+.state { margin: -0.6rem 0 0; font-size: 0.8125rem; color: var(--weathered); }
 
-.status-panel {
-  margin-top: 2rem;
+.forecast-head { display: flex; justify-content: space-between; gap: 0.5rem; font-size: 0.875rem; margin-bottom: 0.5rem; }
+.forecast-head .muted { font-size: 0.75rem; }
+.days { display: grid; grid-template-columns: repeat(14, 1fr); gap: 2px; list-style: none; margin: 0; padding: 0; }
+.days li { height: 22px; }
+.days li.stable, .history li.stable, .sw.stable { background: rgba(var(--cherenkov-rgb), 0.55); }
+.days li.heat, .history li.heat, .sw.heat { background: var(--heat); }
+.days li.cold, .history li.cold, .sw.cold { background: var(--cold); }
+.forecast-scale { display: flex; justify-content: space-between; margin-top: 0.3rem; font-size: 0.75rem; color: var(--weathered); }
+
+.controls { display: flex; gap: 0.5rem; margin-top: auto; }
+.plain-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  font: inherit;
+  font-size: 0.875rem;
+  color: var(--bone);
+  background: transparent;
+  border: 1px solid var(--incision);
+  border-radius: 2px;
+  cursor: pointer;
+  text-decoration: none;
+}
+.plain-btn:hover { border-color: var(--weathered); }
+.plain-btn.primary { border-color: var(--cherenkov); color: var(--cherenkov); }
+
+.below { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem; }
+.section-title { margin: 0 0 0.75rem; font-family: var(--font-serif); font-size: 1.0625rem; font-weight: 600; letter-spacing: 0.08em; color: var(--bone); }
+.history { display: flex; flex-wrap: wrap; gap: 2px; list-style: none; margin: 0; padding: 0; }
+.history li { width: 8px; height: 18px; }
+.legend { display: flex; align-items: center; gap: 0.4rem; margin: 0.6rem 0 0; font-size: 0.8125rem; color: var(--weathered); }
+.sw { width: 10px; height: 10px; margin-left: 0.6rem; }
+.sw:first-child { margin-left: 0; }
+.fallen-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.4rem; }
+.fallen-list li { font-family: var(--font-serif); font-size: 0.9375rem; line-height: 1.7; color: var(--gray-200); }
+
+.won {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
   display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  background: rgba(var(--cherenkov-rgb), 0.05);
+  align-items: center;
+  justify-content: center;
   padding: 1.5rem;
-  border: 1px solid rgba(var(--cherenkov-rgb), 0.2);
-  backdrop-filter: blur(5px);
+  background: rgba(10, 10, 12, 0.86);
 }
-.metric {
-  display: flex;
-  flex-direction: column;
-}
-.label {
-  font-size: 0.75rem;
-  color: var(--gray-400);
-  font-family: var(--font-mono);
-}
-.value {
-  font-size: 1.2rem;
-  font-family: var(--font-mono);
-  color: var(--c-cyan);
-}
-.value.stable { color: var(--holo-green); }
-.value.cold { color: #88ccff; text-shadow: 0 0 10px #88ccff; }
-.value.heat { color: var(--c-red); text-shadow: 0 0 10px var(--c-red); }
-.value.rip { color: var(--c-magenta); animation: shake 0.1s infinite; }
-.value.dehydrated { color: #b8860b; }
+.won-box { max-width: 36rem; padding: 2rem; background: var(--slab); border: 1px solid var(--incision); }
+.won-box h2 { margin: 0 0 1rem; font-family: var(--font-title); font-weight: 900; font-size: 1.75rem; letter-spacing: 0.06em; color: var(--bone); }
+.won-box p { margin: 0 0 0.75rem; font-family: var(--font-serif); font-size: 1.0625rem; line-height: 1.9; color: var(--gray-150); }
+.won-question { margin-top: 1.25rem !important; padding-left: 1rem; border-left: 1px solid #e7b46a; color: var(--bone) !important; }
+.won-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1.5rem; }
+.fade-enter-active { transition: opacity 0.8s; }
+.fade-enter-from { opacity: 0; }
 
-.metric.highlight-civ .value {
-  color: #b8860b;
-  text-shadow: 0 0 10px #b8860b;
+@media (max-width: 900px) {
+  .board { grid-template-columns: 1fr; }
+  .sky { min-height: 20rem; border-right: 0; border-bottom: 1px solid var(--incision-soft); }
+  .below { grid-template-columns: 1fr; }
 }
-
-.progress-bar {
-  width: 100%;
-  height: 4px;
-  background: var(--gray-700);
-  margin: 0.5rem 0;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  transition: width 0.1s linear, background-color 0.5s;
-}
-
-.sub-value {
-  font-size: 0.75rem;
-  font-family: var(--font-mono);
-  color: var(--gray-400);
-}
-
-.action-panel {
-  margin-top: 2rem;
-}
-.hint {
-  margin-top: 0.5rem;
-  font-size: 0.8rem;
-  color: var(--gray-400);
-}
-.hint.warn { color: #f59e0b; }
-.hint.lore { color: var(--c-cyan); opacity: 0.9; }
-
-/* Granary Visual */
-.granary {
-  margin-top: 1.5rem;
-  padding: 1rem;
-  border: 1px dashed var(--gray-600);
-  background: rgba(0,0,0,0.5);
-  opacity: 0.5;
-  transition: opacity 0.3s;
-}
-.granary.active { opacity: 1; border-color: #b8860b; }
-.granary-label { font-size: 0.75rem; color: var(--gray-400); margin-bottom: 0.5rem; font-family: var(--font-mono); }
-.granary-slots { display: flex; gap: 0.5rem; justify-content: center; }
-.roll {
-  font-size: 1.5rem;
-  opacity: 0.1;
-  transform: scaleY(0);
-  transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-.roll.filled {
-  opacity: 1;
-  transform: scaleY(1);
-}
-
-/* Computer Styles Removed */
-
-@keyframes shake {
-  0% { transform: translate(0, 0); }
-  50% { transform: translate(2px, -2px); }
-  100% { transform: translate(-2px, 2px); }
-}
-
 </style>

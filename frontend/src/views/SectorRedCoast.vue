@@ -1,856 +1,402 @@
 <script setup lang="ts">
 /**
- * Sector R: Red Coast Base (红岸基地)
- * 1970s Retro-Futurism Console
- * 核心功能：天线校准、太阳增益、信号监听、发射授权
- * 特性：中英文系统切换 (CN/EN Toggle)
+ * Sector R：红岸基地（1971）
+ * 第一幕 发射：对准太阳、打开太阳增益、按住发射（不可撤销）
+ * 第二幕 等待：信号以光速往返半人马座 α，八年压缩成十几秒
+ * 第三幕 回答：收到「不要回答」，由你决定
+ * 逻辑与文本见 sim/redCoast.ts。
  */
-import { ref, reactive, onMounted, computed, onUnmounted } from 'vue'
-import { API, apiUrl } from '@/constants'
-import { NSlider, NSwitch, NProgress, useMessage } from 'naive-ui'
-import type { Signal } from '@/types/red_coast'
+import { computed, onUnmounted, reactive, ref } from 'vue'
+import { NSlider, NSwitch } from 'naive-ui'
+import SectorHeader from '@/components/SectorHeader.vue'
+import Vitrine from '@/components/Vitrine.vue'
+import HoldButton from '@/components/HoldButton.vue'
 import ETOAssembly from '@/components/ETOAssembly.vue'
+import { sectorByPath } from '@/data/sectors'
+import {
+  ALIGNED_AT,
+  ALPHA_CEN_LY,
+  BEFORE_CHOICE,
+  ENDINGS,
+  REPLY_LINES,
+  alignment,
+  beatsUntil,
+  transmit,
+  travelAt,
+  type Phase,
+} from '@/sim/redCoast'
 
-const message = useMessage()
-const viewMode = ref<'CONSOLE' | 'ETO'>('CONSOLE')
+const phase = ref<Phase>('calibrate')
+const question = sectorByPath('/sector-r')?.question
 
-// --- I18n System ---
-type Lang = 'CN' | 'EN'
-const lang = ref<Lang>('CN')
-
-const i18n = {
-  CN: {
-    TITLE: '红岸基地 // 中央控制系统',
-    STATUS: '系统状态',
-    ONLINE: '在线',
-    TX: '发射中',
-    ALERT: '警报',
-    ANTENNA_ALIGNMENT: '天线姿态校准',
-    AZIMUTH: '方位角',
-    ELEVATION: '仰角',
-    SIGNAL_GAIN: '信号增益',
-    AUTO_TRACKING: '自动追踪',
-    MANUAL_MODE: '手动模式',
-    MONITOR: '主监视器',
-    WARNING: '警告',
-    ACKNOWLEDGE: '确认',
-    TRANSMISSION_CONTROL: '发射控制',
-    FREQUENCY: '发射频率',
-    OUTPUT_POWER: '输出功率',
-    SOLAR_AMP: '太阳增益',
-    CHARGE_CAPACITORS: '电容充能',
-    CHARGING: '充能中...',
-    AUTH_CODE: '授权码',
-    BROADCAST: '发射广播',
-    // Logs
-    LOG_BOOT: '系统启动序列初始化...',
-    LOG_PERIPHERALS: '检查外设... 完成',
-    LOG_DRIVERS: '加载天线驱动... 完成',
-    LOG_UPLINK: '建立上行链路... 等待中',
-    LOG_READY: '就绪。等待指令。',
-    LOG_AUTH_HINT: '注意：A级安全权限。发射需授权码（提示：首次发射年份）',
-    LOG_TRACKING_ON: '自动追踪已开启。正在校准至太阳目标...',
-    LOG_TARGET_LOCKED: '目标锁定：太阳',
-    LOG_MANUAL_OVERRIDE: '手动接管。追踪已解除。',
-    LOG_CHARGE_START: '电容充能序列启动...',
-    LOG_CHARGE_COMPLETE: '电容满载。随时可以发射。',
-    LOG_ERR_CHARGE: '错误：能量不足',
-    LOG_ERR_AUTH: '错误：授权码无效。拒绝访问。',
-    LOG_TX_START: '发射中... 频率:{freq}MHz 功率:{power}MW',
-    LOG_SOLAR_WARN: '警告：检测到日凌干扰。信号增益已确认。',
-    LOG_TX_COMPLETE: '发射完成。系统冷却中。',
-    LOG_STANDBY: '系统待机。',
-    LOG_ANOMALY: '警告：检测到异常信号。',
-    LOG_DECODED: '消息已解码。优先级：ALPHA。',
-    LOG_BUFFER_CLEARED: '缓冲区已清除。恢复监听。',
-    MSG_DO_NOT_ANSWER: '不要回答！不要回答！不要回答！'
-  },
-  EN: {
-    TITLE: 'RED COAST BASE // CONTROL SYSTEM',
-    STATUS: 'STATUS',
-    ONLINE: 'ONLINE',
-    TX: 'TX',
-    ALERT: 'ALERT',
-    ANTENNA_ALIGNMENT: 'ANTENNA ALIGNMENT',
-    AZIMUTH: 'AZIMUTH',
-    ELEVATION: 'ELEVATION',
-    SIGNAL_GAIN: 'SIGNAL GAIN',
-    AUTO_TRACKING: 'AUTO TRACKING',
-    MANUAL_MODE: 'MANUAL MODE',
-    MONITOR: 'MONITOR',
-    WARNING: 'WARNING',
-    ACKNOWLEDGE: 'ACKNOWLEDGE',
-    TRANSMISSION_CONTROL: 'TRANSMISSION CONTROL',
-    FREQUENCY: 'FREQUENCY',
-    OUTPUT_POWER: 'OUTPUT POWER',
-    SOLAR_AMP: 'SOLAR AMP',
-    CHARGE_CAPACITORS: 'CHARGE CAPACITORS',
-    CHARGING: 'CHARGING...',
-    AUTH_CODE: 'AUTH CODE',
-    BROADCAST: 'BROADCAST',
-    // Logs
-    LOG_BOOT: 'SYSTEM_BOOT_SEQUENCE_INITIATED...',
-    LOG_PERIPHERALS: 'CHECKING_PERIPHERALS... OK',
-    LOG_DRIVERS: 'LOADING_ANTENNA_DRIVERS... OK',
-    LOG_UPLINK: 'ESTABLISHING_UPLINK... WAITING',
-    LOG_READY: 'READY_FOR_INPUT.',
-    LOG_AUTH_HINT: 'NOTICE: SECURITY_LEVEL_A. AUTH_CODE_REQUIRED_FOR_TX (HINT: FIRST_TRANSMISSION_YEAR)',
-    LOG_TRACKING_ON: 'AUTO_TRACKING_ENGAGED. ALIGNING TO SOLAR TARGET...',
-    LOG_TARGET_LOCKED: 'TARGET_LOCKED: SOL',
-    LOG_MANUAL_OVERRIDE: 'MANUAL_OVERRIDE. TRACKING_DISENGAGED.',
-    LOG_CHARGE_START: 'CAPACITOR_CHARGING_STARTED...',
-    LOG_CHARGE_COMPLETE: 'CAPACITORS_FULL. READY_TO_FIRE.',
-    LOG_ERR_CHARGE: 'ERROR: INSUFFICIENT_CHARGE',
-    LOG_ERR_AUTH: 'ERROR: AUTH_CODE_INVALID. PERMISSION_DENIED.',
-    LOG_TX_START: 'TRANSMITTING... FREQ:{freq}MHz POWER:{power}MW',
-    LOG_SOLAR_WARN: 'CRITICAL: SOLAR_AMPLIFICATION_ACTIVE. SIGNAL_BOOST_CONFIRMED.',
-    LOG_TX_COMPLETE: 'TRANSMISSION_COMPLETE. SYSTEM_COOLING.',
-    LOG_STANDBY: 'SYSTEM_STANDBY.',
-    LOG_ANOMALY: 'WARNING: ANOMALOUS_SIGNAL_DETECTED.',
-    LOG_DECODED: 'MESSAGE_DECODED. PRIORITY: ALPHA.',
-    LOG_BUFFER_CLEARED: 'BUFFER_CLEARED. RESUMING_MONITOR.',
-    MSG_DO_NOT_ANSWER: 'DO NOT ANSWER! DO NOT ANSWER! DO NOT ANSWER!'
-  }
-}
-
-function t(key: string, params: Record<string, any> = {}) {
-  let text = i18n[lang.value][key as keyof typeof i18n['CN']] || key
-  for (const [k, v] of Object.entries(params)) {
-    text = text.replace(`{${k}}`, String(v))
-  }
-  return text
-}
-
-function toggleLang() {
-  lang.value = lang.value === 'CN' ? 'EN' : 'CN'
-}
-
-// --- State Management ---
-/** 控制台时钟：本地时间 YYYY-MM-DD HH:MM:SS（此前直接显示 ISO 字符串 2026-10-22T01:54:42.290Z） */
-function formatConsoleTime(d: Date): string {
-  const p = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`
-}
-const systemTime = ref(formatConsoleTime(new Date()))
-const timeInterval = setInterval(() => {
-  systemTime.value = formatConsoleTime(new Date())
-}, 1000)
-
-interface LogEntry {
-  key: string
-  params?: Record<string, any>
-  time: string
-}
-
-const rawLogs = ref<LogEntry[]>([
-  { key: 'LOG_BOOT', time: new Date().toLocaleTimeString() },
-  { key: 'LOG_PERIPHERALS', time: new Date().toLocaleTimeString() },
-  { key: 'LOG_DRIVERS', time: new Date().toLocaleTimeString() },
-  { key: 'LOG_UPLINK', time: new Date().toLocaleTimeString() },
-  { key: 'LOG_READY', time: new Date().toLocaleTimeString() },
-  { key: 'LOG_AUTH_HINT', time: new Date().toLocaleTimeString() }
-])
-
-const terminalLogs = computed(() => {
-  return rawLogs.value.map(log => {
-    return `[${log.time}] ${t(log.key, log.params)}`
-  })
-})
-
-function addLog(key: string, params: Record<string, any> = {}) {
-  rawLogs.value.push({
-    key,
-    params,
-    time: new Date().toLocaleTimeString()
-  })
-  if (rawLogs.value.length > 15) rawLogs.value.shift()
-}
-
-// Antenna State
-const antenna = reactive({
-  azimuth: 120, // 0-360
-  elevation: 45, // 0-90
-  targetAzimuth: 180, // Sun position (simulated)
-  targetElevation: 60,
-  aligned: false,
-  tracking: false
-})
-
-// Transmission State
-const tx = reactive({
-  powerLevel: 15, // MW
-  frequency: 12000, // MHz
-  charging: false,
-  chargeProgress: 0,
-  ready: false,
-  transmitting: false,
-  cooling: false,
-  sunAmplified: false,
-  authCode: ''
-})
-
-// Incoming State
-const rx = reactive({
-  listening: true,
-  signalStrength: 10,
-  noiseLevel: 5,
-  detectedMessage: null as string | null,
-  decoding: false,
-  decodeProgress: 0
-})
-
-// --- Computed ---
-const alignmentQuality = computed(() => {
-  const azDiff = Math.abs(antenna.azimuth - antenna.targetAzimuth)
-  const elDiff = Math.abs(antenna.elevation - antenna.targetElevation)
-  const totalDiff = Math.sqrt(azDiff * azDiff + elDiff * elDiff)
-  return Math.max(0, 100 - totalDiff * 5) // 0-100%
-})
-
-const isAligned = computed(() => alignmentQuality.value > 95)
-
-const outputPower = computed(() => {
-  let base = tx.powerLevel
-  if (tx.sunAmplified && isAligned.value) {
-    return base * 10000 // Sun amplification factor
-  }
-  return base
-})
-
-// --- Methods ---
+/* ---------- 第一幕：天线 ---------- */
+const SUN = { az: 216, el: 38 }
+const antenna = reactive({ az: 140, el: 20, tracking: false })
+const solarGain = ref(false)
+const quality = computed(() => alignment(antenna.az, antenna.el, SUN.az, SUN.el))
+const aligned = computed(() => quality.value >= ALIGNED_AT)
+let trackTimer: ReturnType<typeof setInterval> | undefined
 
 function toggleTracking() {
   antenna.tracking = !antenna.tracking
-  if (antenna.tracking) {
-    addLog('LOG_TRACKING_ON')
-    // Simulate auto-alignment
-    const interval = setInterval(() => {
-      if (!antenna.tracking) {
-        clearInterval(interval)
-        return
-      }
-      
-      if (antenna.azimuth < antenna.targetAzimuth) antenna.azimuth += 1
-      else if (antenna.azimuth > antenna.targetAzimuth) antenna.azimuth -= 1
-      
-      if (antenna.elevation < antenna.targetElevation) antenna.elevation += 1
-      else if (antenna.elevation > antenna.targetElevation) antenna.elevation -= 1
-      
-      if (Math.abs(antenna.azimuth - antenna.targetAzimuth) < 2 && Math.abs(antenna.elevation - antenna.targetElevation) < 2) {
-        antenna.azimuth = antenna.targetAzimuth
-        antenna.elevation = antenna.targetElevation
-        addLog('LOG_TARGET_LOCKED')
-        clearInterval(interval)
-      }
-    }, 50)
-  } else {
-    addLog('LOG_MANUAL_OVERRIDE')
-  }
-}
-
-function startCharge() {
-  if (tx.charging || tx.ready || tx.transmitting) return
-  
-  tx.charging = true
-  addLog('LOG_CHARGE_START')
-  
-  const interval = setInterval(() => {
-    tx.chargeProgress += 2
-    if (tx.chargeProgress >= 100) {
-      tx.chargeProgress = 100
-      tx.charging = false
-      tx.ready = true
-      clearInterval(interval)
-      addLog('LOG_CHARGE_COMPLETE')
+  clearInterval(trackTimer)
+  if (!antenna.tracking) return
+  trackTimer = setInterval(() => {
+    antenna.az += Math.sign(SUN.az - antenna.az) * Math.min(1.5, Math.abs(SUN.az - antenna.az))
+    antenna.el += Math.sign(SUN.el - antenna.el) * Math.min(1, Math.abs(SUN.el - antenna.el))
+    if (antenna.az === SUN.az && antenna.el === SUN.el) {
+      antenna.tracking = false
+      clearInterval(trackTimer)
     }
-  }, 50)
+  }, 40)
 }
 
-function broadcast() {
-  if (!tx.ready) {
-    addLog('LOG_ERR_CHARGE')
+/** 天穹图坐标：方位 0–360 映射到宽，仰角 0–90 映射到高 */
+const px = (az: number) => (az / 360) * 100
+const py = (el: number) => 100 - (el / 90) * 100
+
+function fire() {
+  if (transmit(aligned.value, solarGain.value) === 'fades') {
+    phase.value = 'faded'
     return
   }
-  if (tx.authCode !== '1971') {
-    addLog('LOG_ERR_AUTH')
-    return
-  }
-  
-  tx.transmitting = true
-  tx.ready = false
-  tx.chargeProgress = 0
-  
-  addLog('LOG_TX_START', { freq: tx.frequency, power: outputPower.value.toFixed(1) })
-  
-  if (tx.sunAmplified && isAligned.value) {
-    addLog('LOG_SOLAR_WARN')
-  }
-
-  // Simulate API Call
-  setTimeout(() => {
-    tx.transmitting = false
-    tx.cooling = true
-    addLog('LOG_TX_COMPLETE')
-    setTimeout(() => {
-      tx.cooling = false
-      addLog('LOG_STANDBY')
-    }, 3000)
-    
-    // Check for "Do Not Answer" event
-    checkForResponse()
-  }, 2000)
+  startTravel()
 }
 
-function checkForResponse() {
-  // Easter egg probability
-  if (Math.random() > 0.5) {
-    setTimeout(() => {
-      triggerIncomingSignal()
-    }, 5000)
+/* ---------- 第二幕：等待 ---------- */
+const TRAVEL_MS = 16000
+const progress = ref(0)
+let travelRaf = 0
+let travelStart = 0
+function startTravel() {
+  phase.value = 'travel'
+  progress.value = 0
+  const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+  travelStart = performance.now()
+  const step = (now: number) => {
+    progress.value = reduce ? 1 : Math.min(1, (now - travelStart) / TRAVEL_MS)
+    if (progress.value < 1) travelRaf = requestAnimationFrame(step)
+    else setTimeout(openReply, 900)
   }
+  travelRaf = requestAnimationFrame(step)
 }
-
-function triggerIncomingSignal() {
-  rx.listening = false // Interrupted
-  addLog('LOG_ANOMALY')
-  rx.decoding = true
-  
-  let p = 0
-  const interval = setInterval(() => {
-    p += 1
-    rx.decodeProgress = p
-    if (p >= 100) {
-      clearInterval(interval)
-      rx.decoding = false
-      rx.detectedMessage = "MSG_DO_NOT_ANSWER" // Key
-      addLog('LOG_DECODED')
-    }
-  }, 100)
+function skipTravel() {
+  cancelAnimationFrame(travelRaf)
+  progress.value = 1
+  openReply()
 }
+const travel = computed(() => travelAt(progress.value))
+const beats = computed(() => beatsUntil(progress.value))
 
-function resetSystem() {
-  rx.detectedMessage = null
-  rx.decodeProgress = 0
-  rx.listening = true
-  addLog('LOG_BUFFER_CLEARED')
+/* ---------- 第三幕：回答 ---------- */
+const replyShown = ref(0)
+let replyTimer: ReturnType<typeof setInterval> | undefined
+function openReply() {
+  if (phase.value === 'reply') return
+  phase.value = 'reply'
+  replyShown.value = 0
+  clearInterval(replyTimer)
+  replyTimer = setInterval(() => {
+    replyShown.value += 1
+    if (replyShown.value >= REPLY_LINES.length + 1) clearInterval(replyTimer)
+  }, 1500)
+}
+const choiceReady = computed(() => replyShown.value > REPLY_LINES.length)
+
+const showEto = ref(false)
+const ending = computed(() =>
+  phase.value === 'answered' || phase.value === 'silent' || phase.value === 'faded' ? ENDINGS[phase.value] : null,
+)
+
+function restart() {
+  cancelAnimationFrame(travelRaf)
+  clearInterval(replyTimer)
+  clearInterval(trackTimer)
+  Object.assign(antenna, { az: 140, el: 20, tracking: false })
+  solarGain.value = false
+  progress.value = 0
+  showEto.value = false
+  phase.value = 'calibrate'
 }
 
 onUnmounted(() => {
-  clearInterval(timeInterval)
+  cancelAnimationFrame(travelRaf)
+  clearInterval(replyTimer)
+  clearInterval(trackTimer)
 })
 
+const ACTS = [
+  { id: 'send', label: '发射' },
+  { id: 'wait', label: '等待' },
+  { id: 'answer', label: '回答' },
+]
+const actIndex = computed(() =>
+  phase.value === 'calibrate' || phase.value === 'faded' ? 0 : phase.value === 'travel' ? 1 : 2,
+)
 </script>
 
 <template>
-  <div class="sector-r-console">
-    <!-- Overlay Effects -->
-    <div class="crt-lines"></div>
-    <div class="vignette"></div>
+  <div class="sector-r">
+    <SectorHeader
+      title="红岸基地"
+      subtitle="1971 年，大兴安岭，雷达峰。一座被当作秘密武器研究的巨型天线。"
+      goal="把天线对准太阳，借太阳把信号放大，发向宇宙。然后等待。"
+      accent="#d2553f"
+      :show-restart="phase !== 'calibrate'"
+      restart-label="回到 1971 年"
+      @restart="restart"
+    />
 
-    <!-- Top Bar -->
-    <header class="top-bar">
-      <div class="brand">
-        <span class="logo-icon">📡</span>
-        <span class="logo-text">{{ t('TITLE') }}</span>
-      </div>
-      <div class="sys-controls">
-        <button class="lang-btn" @click="viewMode = viewMode === 'CONSOLE' ? 'ETO' : 'CONSOLE'" :class="{ active: viewMode === 'ETO' }">
-          {{ viewMode === 'CONSOLE' ? 'ETO_NET' : 'RED_COAST' }}
-        </button>
-        <button class="lang-btn" @click="toggleLang">{{ lang }}</button>
-        <div class="sys-info">
-          <span>{{ t('STATUS') }}: {{ rx.detectedMessage ? t('ALERT') : tx.transmitting ? t('TX') : t('ONLINE') }}</span>
-          <span>{{ systemTime }}</span>
-        </div>
-      </div>
-    </header>
+    <ol class="acts" aria-label="三幕">
+      <li v-for="(a, i) in ACTS" :key="a.id" :class="{ done: i < actIndex, current: i === actIndex }">
+        <span class="act-no">第{{ ['一', '二', '三'][i] }}幕</span>{{ a.label }}
+      </li>
+    </ol>
 
-    <!-- ETO Assembly View -->
-    <div v-if="viewMode === 'ETO'" class="eto-wrapper">
-      <ETOAssembly />
-    </div>
-
-    <!-- Red Coast Console View -->
-    <div v-else class="console-grid">
-      
-      <!-- Left: Antenna Control -->
-      <div class="panel antenna-panel">
-        <h3 class="panel-title">{{ t('ANTENNA_ALIGNMENT') }}</h3>
-        
-        <div class="radar-scope">
-          <div class="scope-grid"></div>
-          <div class="sun-target" 
-               :style="{ 
-                 left: `${(antenna.targetAzimuth / 360) * 100}%`, 
-                 top: `${100 - (antenna.targetElevation / 90) * 100}%` 
-               }">
-             ☀
-          </div>
-          <div class="current-aim"
-               :style="{ 
-                 left: `${(antenna.azimuth / 360) * 100}%`, 
-                 top: `${100 - (antenna.elevation / 90) * 100}%` 
-               }">
-             ✛
-          </div>
+    <!-- 第一幕：发射 -->
+    <Vitrine v-if="phase === 'calibrate'" caption="太阳表层能把特定频率的电波放大成千上万倍。用太阳作天线，信号就能抵达其他恒星——前提是先对准它。">
+      <div class="calibrate">
+        <div class="sky" role="img" :aria-label="`天线与太阳的吻合度 ${quality}%`">
+          <div class="sky-grid" aria-hidden="true"></div>
+          <span class="sky-label h">方位</span>
+          <span class="sky-label v">仰角</span>
+          <span class="sun" :class="{ locked: aligned }" :style="{ left: px(SUN.az) + '%', top: py(SUN.el) + '%' }"></span>
+          <span class="aim" :class="{ locked: aligned }" :style="{ left: px(antenna.az) + '%', top: py(antenna.el) + '%' }"></span>
         </div>
 
         <div class="controls">
-          <div class="control-group">
-            <label>{{ t('AZIMUTH') }} ({{ antenna.azimuth.toFixed(1) }}°)</label>
-            <NSlider v-model:value="antenna.azimuth" :min="0" :max="360" :step="0.1" :disabled="antenna.tracking" />
-          </div>
-          <div class="control-group">
-            <label>{{ t('ELEVATION') }} ({{ antenna.elevation.toFixed(1) }}°)</label>
-            <NSlider v-model:value="antenna.elevation" :min="0" :max="90" :step="0.1" :disabled="antenna.tracking" />
-          </div>
-          
-          <div class="alignment-meter">
-             <label>{{ t('SIGNAL_GAIN') }}</label>
-             <NProgress 
-               type="line" 
-               :percentage="alignmentQuality" 
-               :color="isAligned ? '#00ff41' : '#ff0000'"
-               :show-indicator="false"
-               processing
-             />
-          </div>
-
-          <button class="retro-btn" :class="{ active: antenna.tracking }" @click="toggleTracking">
-            {{ antenna.tracking ? t('AUTO_TRACKING') : t('MANUAL_MODE') }}
+          <label class="ctrl">
+            <span>方位角 <b class="num">{{ antenna.az.toFixed(1) }}°</b></span>
+            <NSlider v-model:value="antenna.az" :min="0" :max="360" :step="0.5" :disabled="antenna.tracking" :tooltip="false" />
+          </label>
+          <label class="ctrl">
+            <span>仰角 <b class="num">{{ antenna.el.toFixed(1) }}°</b></span>
+            <NSlider v-model:value="antenna.el" :min="0" :max="90" :step="0.5" :disabled="antenna.tracking" :tooltip="false" />
+          </label>
+          <button type="button" class="plain-btn" :aria-pressed="antenna.tracking" @click="toggleTracking">
+            {{ antenna.tracking ? '停止追踪' : '自动追踪太阳' }}
           </button>
+
+          <dl class="readouts">
+            <div><dt>吻合度</dt><dd class="num" :class="{ ok: aligned }">{{ quality }}%</dd></div>
+            <div><dt>发射机功率</dt><dd><span class="num">15</span> 兆瓦</dd></div>
+          </dl>
+
+          <label class="gain">
+            <NSwitch v-model:value="solarGain" />
+            <span>太阳增益<em>{{ solarGain ? '已打开：以太阳为放大器' : '关闭：信号只靠发射机本身' }}</em></span>
+          </label>
+
+          <HoldButton tone="rust" :hold-ms="1600" class="fire" @confirm="fire">按住，向太阳发射</HoldButton>
+          <p class="note">发出去的信号收不回来。</p>
         </div>
       </div>
+    </Vitrine>
 
-      <!-- Center: Monitor -->
-      <div class="panel monitor-panel">
-        <div class="screen-content">
-          <div v-if="rx.detectedMessage" class="alert-message">
-            <h1>{{ t('WARNING') }}</h1>
-            <p class="blink">{{ t(rx.detectedMessage) }}</p>
-            <button class="retro-btn small" @click="resetSystem">{{ t('ACKNOWLEDGE') }}</button>
-          </div>
-          <div v-else class="waterfall-display">
-            <!-- Simulated Waveform -->
-            <div class="waveform" :class="{ active: tx.transmitting }"></div>
-            <div class="logs">
-              <div v-for="(log, i) in terminalLogs" :key="i" class="log-line">{{ log }}</div>
+    <!-- 第二幕：等待 -->
+    <Vitrine v-else-if="phase === 'travel'" caption="信号与回信都以光速前进。八年在这里被压缩成十几秒。">
+      <div class="travel">
+        <p class="year"><span class="num">{{ Math.floor(travel.year) }}</span> 年</p>
+        <div class="track" aria-hidden="true">
+          <span class="body sol">太阳</span>
+          <span class="body cen">半人马座 α</span>
+          <span class="track-line"></span>
+          <span class="pulse" :class="{ back: travel.returning }" :style="{ left: travel.position * 100 + '%' }"></span>
+          <span class="distance">{{ ALPHA_CEN_LY }} 光年</span>
+        </div>
+        <transition-group name="beat" tag="ol" class="beats">
+          <li v-for="b in beats" :key="b.at">{{ b.text }}</li>
+        </transition-group>
+        <button type="button" class="link-btn" @click="skipTravel">跳过等待</button>
+      </div>
+    </Vitrine>
+
+    <!-- 第三幕：回答 -->
+    <Vitrine v-else-if="phase === 'reply'">
+      <div class="reply">
+        <p class="reply-head">1979 年。接收器里出现了一段有规律的信号，来源是半人马座 α。</p>
+        <transition-group name="beat" tag="div" class="reply-lines">
+          <p v-for="(line, i) in REPLY_LINES.slice(0, replyShown)" :key="i" :class="{ warn: line.includes('不要回答') }">
+            {{ line }}
+          </p>
+        </transition-group>
+        <transition name="beat">
+          <div v-if="choiceReady" class="choice">
+            <p class="before">{{ BEFORE_CHOICE }}</p>
+            <div class="choice-actions">
+              <HoldButton tone="rust" :hold-ms="2400" @confirm="phase = 'answered'">按住，回答它</HoldButton>
+              <button type="button" class="plain-btn" @click="phase = 'silent'">不回答</button>
             </div>
           </div>
-        </div>
-        <div class="scan-line"></div>
+        </transition>
       </div>
+    </Vitrine>
 
-      <!-- Right: Transmission -->
-      <div class="panel tx-panel">
-        <h3 class="panel-title">{{ t('TRANSMISSION_CONTROL') }}</h3>
-        
-        <div class="control-group">
-          <label>{{ t('FREQUENCY') }} (MHz)</label>
-          <div class="digital-readout">{{ tx.frequency }}</div>
+    <!-- 结局 -->
+    <Vitrine v-else-if="ending">
+      <div class="ending">
+        <h2 class="ending-title">{{ ending.title }}</h2>
+        <p v-for="(l, i) in ending.lines" :key="i" class="ending-line">{{ l }}</p>
+        <p v-if="phase !== 'faded'" class="ending-question">{{ question }}</p>
+        <div class="ending-actions">
+          <button type="button" class="plain-btn" @click="restart">回到 1971 年</button>
+          <template v-if="phase === 'answered'">
+            <RouterLink to="/sector-pdc" class="plain-btn">进入危机纪元</RouterLink>
+            <button type="button" class="plain-btn" :aria-expanded="showEto" @click="showEto = !showEto">
+              {{ showEto ? '收起' : '你回答之后，地球三体组织' }}
+            </button>
+          </template>
+          <RouterLink v-else-if="phase === 'silent'" to="/sector-e" class="plain-btn">沉默的另一面：黑暗森林</RouterLink>
         </div>
-
-        <div class="control-group">
-          <label>{{ t('OUTPUT_POWER') }} (MW)</label>
-          <div class="digital-readout danger">{{ outputPower.toFixed(2) }}</div>
-        </div>
-
-        <div class="switch-row">
-          <label>{{ t('SOLAR_AMP') }}</label>
-          <NSwitch v-model:value="tx.sunAmplified" />
-        </div>
-
-        <div class="charge-section">
-          <div class="charge-bar">
-            <div class="fill" :style="{ width: `${tx.chargeProgress}%` }"></div>
-          </div>
-          <button class="retro-btn" @click="startCharge" :disabled="tx.charging || tx.ready">
-            {{ tx.charging ? t('CHARGING') : t('CHARGE_CAPACITORS') }}
-          </button>
-        </div>
-
-        <div class="auth-section">
-          <input v-model="tx.authCode" :placeholder="t('AUTH_CODE')" class="auth-input" maxlength="4" />
-        </div>
-
-        <button 
-          class="big-red-button" 
-          :class="{ disabled: !tx.ready || tx.transmitting }"
-          @click="broadcast"
-        >
-          <div class="cover"></div>
-          <span>{{ t('BROADCAST') }}</span>
-        </button>
       </div>
+    </Vitrine>
 
+    <div v-if="showEto && phase === 'answered'" class="eto">
+      <ETOAssembly />
     </div>
   </div>
 </template>
 
 <style scoped>
-.sector-r-console {
-  min-height: 0;
-  background-color: var(--gray-950);
-  color: var(--holo-green);
-  font-family: var(--font-mono);
-  padding: 1rem;
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
+.sector-r {
+  --r-rust: #d2553f;
+  padding: 2rem clamp(1rem, 4vw, 3rem) 3rem;
+  max-width: 76rem;
 }
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 
-/* CRT Effects Enhanced */
-.crt-lines {
-  position: fixed;
-  inset: 0;
-  background: linear-gradient(
-    rgba(18, 16, 16, 0) 50%,
-    rgba(0, 0, 0, 0.25) 50%
-  ),
-  linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-  background-size: 100% 4px, 3px 100%;
-  pointer-events: none;
-  z-index: 100;
-  opacity: 0.6;
-  animation: crt-flicker 0.15s infinite;
-}
+.acts { display: flex; gap: 2rem; list-style: none; margin: 0 0 1.25rem; padding: 0; font-family: var(--font-serif); font-size: 0.9375rem; color: var(--weathered); }
+.acts li { display: flex; align-items: baseline; gap: 0.5rem; }
+.act-no { font-size: 0.8125rem; }
+.acts .current { color: var(--bone); }
+.acts .current .act-no { color: var(--r-rust); }
+.acts .done { color: var(--gray-300); }
 
-.crt-lines::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 5px;
-  background-color: rgba(0, 255, 0, 0.2);
-  box-shadow: 0 0 10px rgba(0, 255, 0, 0.4);
-  animation: scanline 6s linear infinite;
-  opacity: 0.3;
-}
-
-.vignette {
-  position: fixed;
-  inset: 0;
-  background: radial-gradient(circle, transparent 60%, rgba(0, 20, 0, 0.4) 90%, rgba(0,0,0,0.9) 100%);
-  pointer-events: none;
-  z-index: 101;
-  box-shadow: inset 0 0 50px rgba(0,0,0,0.7);
-}
-
-@keyframes scanline {
-  0% { top: -5%; }
-  100% { top: 105%; }
-}
-
-@keyframes crt-flicker {
-  0% { opacity: 0.58; }
-  5% { opacity: 0.62; }
-  10% { opacity: 0.59; }
-  15% { opacity: 0.63; }
-  20% { opacity: 0.58; }
-  25% { opacity: 0.6; }
-  30% { opacity: 0.61; }
-  35% { opacity: 0.59; }
-  40% { opacity: 0.62; }
-  45% { opacity: 0.58; }
-  50% { opacity: 0.6; }
-  55% { opacity: 0.61; }
-  60% { opacity: 0.59; }
-  65% { opacity: 0.62; }
-  70% { opacity: 0.6; }
-  75% { opacity: 0.58; }
-  80% { opacity: 0.61; }
-  85% { opacity: 0.59; }
-  90% { opacity: 0.62; }
-  95% { opacity: 0.6; }
-  100% { opacity: 0.58; }
-}
-
-.sector-r-console {
-  min-height: 0;
-  background-color: var(--gray-950);
-  color: var(--holo-green);
-  font-family: var(--font-mono);
-  padding: 1rem;
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  text-shadow: 0 0 2px var(--holo-green), 0 0 5px rgba(0, 255, 0, 0.5); /* Glow */
-}
-
-.sys-controls {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.lang-btn {
-  background: #003300;
-  border: 1px solid var(--holo-green);
-  color: var(--holo-green);
-  font-family: inherit;
-  cursor: pointer;
-  padding: 0 0.5rem;
-  transition: all 0.2s;
-}
-
-.lang-btn:hover, .lang-btn.active {
-  background: var(--holo-green);
-  color: var(--black);
-}
-
-
-.sys-info {
-  display: flex;
-  gap: 1rem;
-}
-
-.eto-wrapper {
-  flex: 1;
-  min-height: 0;
-  border: 1px solid var(--gray-700);
-}
-
-.console-grid {
-  flex: 1;
-  display: grid;
-  grid-template-columns: 300px 1fr 300px;
-  gap: 1rem;
-  min-height: 0;
-}
-
-.panel {
-  border: 1px solid #005500;
-  background: rgba(0, 20, 0, 0.3);
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.panel-title {
-  margin: 0;
-  border-bottom: 1px dashed var(--holo-green);
-  padding-bottom: 0.5rem;
-  font-size: 1.2rem;
-  color: var(--holo-green);
-}
-
-/* Antenna Panel */
-.radar-scope {
-  width: 100%;
-  aspect-ratio: 1;
-  background: #001100;
-  border: 1px solid var(--holo-green);
-  position: relative;
-  border-radius: 50%;
-  overflow: hidden;
-}
-
-.scope-grid {
-  position: absolute;
-  inset: 0;
-  background-image: 
-    linear-gradient(#003300 1px, transparent 1px),
-    linear-gradient(90deg, #003300 1px, transparent 1px);
-  background-size: 20px 20px;
-  border-radius: 50%;
-}
-
-.sun-target {
-  position: absolute;
-  color: #ff0;
-  font-size: 1.5rem;
-  transform: translate(-50%, -50%);
-  text-shadow: 0 0 10px #ff0;
-}
-
-.current-aim {
-  position: absolute;
-  color: var(--holo-green);
-  font-size: 1.5rem;
-  transform: translate(-50%, -50%);
-  transition: all 0.1s;
-}
-
-/* Monitor Panel */
-.monitor-panel {
-  position: relative;
-  background: var(--black);
-  border: 2px solid var(--holo-green);
-  box-shadow: 0 0 15px rgba(0, 255, 0, 0.2);
-}
-
-.screen-content {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  padding: 1rem;
-}
-
-.logs {
-  font-size: 0.9rem;
-  line-height: 1.4;
-  opacity: 0.8;
-}
-
-.alert-message {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
+.plain-btn {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(50, 0, 0, 0.9);
-  color: var(--c-red);
-  z-index: 10;
-}
-
-.blink {
-  animation: blink 0.5s infinite;
-  font-size: 1.5rem;
-  font-weight: bold;
-}
-
-/* Tx Panel */
-.digital-readout {
-  background: var(--black);
-  border: 1px inset var(--holo-green);
-  padding: 0.5rem;
-  font-size: 1.2rem;
-  text-align: right;
-  color: var(--holo-green);
-}
-
-.digital-readout.danger {
-  color: var(--c-amber);
-  border-color: var(--c-amber);
-}
-
-.charge-bar {
-  height: 20px;
-  background: var(--gray-900);
-  border: 1px solid var(--gray-550);
-  margin-bottom: 0.5rem;
-}
-
-.fill {
-  height: 100%;
-  background: repeating-linear-gradient(
-    45deg,
-    var(--c-amber),
-    var(--c-amber) 10px,
-    #cc7a00 10px,
-    #cc7a00 20px
-  );
-  transition: width 0.1s linear;
-}
-
-.auth-input {
-  background: var(--black);
-  border: 1px solid var(--holo-green);
-  color: var(--holo-green);
-  padding: 0.5rem;
-  width: 100%;
-  font-family: inherit;
-  font-size: 1.2rem;
-  text-align: center;
-  letter-spacing: 5px;
-}
-
-.big-red-button {
-  height: 80px;
-  background: #a00;
-  border: none;
-  color: white;
-  font-weight: bold;
-  font-size: 1.2rem;
+  padding: 0.6rem 1.2rem;
+  font: inherit;
+  font-size: 0.9375rem;
+  color: var(--bone);
+  background: transparent;
+  border: 1px solid var(--incision);
+  border-radius: 2px;
   cursor: pointer;
+  text-decoration: none;
+  transition: border-color 0.2s;
+}
+.plain-btn:hover { border-color: var(--weathered); }
+.plain-btn[aria-pressed='true'] { border-color: var(--cherenkov); color: var(--cherenkov); }
+.link-btn { margin-top: 1rem; padding: 0; font: inherit; font-size: 0.875rem; color: var(--weathered); background: none; border: 0; text-decoration: underline; cursor: pointer; }
+
+/* 第一幕 */
+.calibrate { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(16rem, 1fr); gap: 2rem; align-items: start; }
+.sky {
   position: relative;
-  box-shadow: 0 5px #500;
-  margin-top: 1rem;
+  aspect-ratio: 2 / 1;
+  background:
+    radial-gradient(ellipse at 60% 110%, rgba(210, 85, 63, 0.12), transparent 60%),
+    linear-gradient(180deg, #17181b, #1f1d1c);
+  border: 1px solid var(--incision-soft);
+  overflow: hidden;
 }
+.sky-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, rgba(220, 214, 200, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(220, 214, 200, 0.06) 1px, transparent 1px);
+  background-size: 8.333% 25%;
+}
+.sky-label { position: absolute; font-size: 0.75rem; color: var(--weathered); }
+.sky-label.h { right: 0.6rem; bottom: 0.4rem; }
+.sky-label.v { left: 0.6rem; top: 0.4rem; }
+.sun, .aim { position: absolute; transform: translate(-50%, -50%); }
+.sun {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffe2a8 0%, #e89a4e 55%, rgba(232, 154, 78, 0) 72%);
+}
+.sun.locked { box-shadow: 0 0 0 10px rgba(232, 154, 78, 0.12), 0 0 40px rgba(232, 154, 78, 0.5); }
+.aim {
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--bone);
+  border-radius: 50%;
+  transition: border-color 0.3s;
+}
+.aim::before, .aim::after { content: ''; position: absolute; background: var(--bone); }
+.aim::before { left: 50%; top: -8px; bottom: -8px; width: 1px; }
+.aim::after { top: 50%; left: -8px; right: -8px; height: 1px; }
+.aim.locked { border-color: var(--cherenkov); }
+.aim.locked::before, .aim.locked::after { background: var(--cherenkov); }
 
-.big-red-button:active {
-  transform: translateY(2px);
-  box-shadow: 0 3px #500;
-}
+.controls { display: flex; flex-direction: column; gap: 0.9rem; }
+.ctrl > span { display: flex; justify-content: space-between; font-size: 0.875rem; color: var(--weathered); }
+.ctrl b { font-weight: 400; color: var(--bone); }
+.readouts { display: flex; gap: 2rem; margin: 0.25rem 0 0; }
+.readouts dt { font-size: 0.8125rem; color: var(--weathered); }
+.readouts dd { margin: 0.15rem 0 0; font-size: 1.125rem; color: var(--bone); }
+.readouts dd.ok { color: var(--cherenkov); }
+.gain { display: flex; align-items: flex-start; gap: 0.75rem; cursor: pointer; }
+.gain span { display: flex; flex-direction: column; font-size: 0.9375rem; color: var(--bone); }
+.gain em { font-style: normal; font-size: 0.8125rem; color: var(--weathered); }
+.fire { margin-top: 0.5rem; width: 100%; }
+.note { margin: -0.4rem 0 0; font-size: 0.8125rem; color: var(--weathered); }
 
-.big-red-button.disabled {
-  background: var(--gray-700);
-  color: var(--gray-400);
-  box-shadow: none;
-  cursor: not-allowed;
+/* 第二幕 */
+.travel { padding: 1rem 0 0.5rem; }
+.year { margin: 0 0 1.5rem; font-family: var(--font-serif); font-size: 1.25rem; color: var(--weathered); }
+.year .num { font-size: clamp(3rem, 7vw, 4.5rem); color: var(--bone); margin-right: 0.25rem; }
+.track { position: relative; height: 4.5rem; margin: 0 1.5rem 1.5rem; }
+.track-line { position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: var(--incision); }
+.body { position: absolute; top: 0; font-family: var(--font-serif); font-size: 0.875rem; color: var(--gray-200); }
+.body::after { content: ''; position: absolute; top: calc(2.25rem - 5px); width: 10px; height: 10px; border-radius: 50%; background: #e7b46a; }
+.body.sol { left: 0; transform: translateX(-50%); }
+.body.sol::after { left: calc(50% - 5px); }
+.body.cen { right: 0; transform: translateX(50%); }
+.body.cen::after { left: calc(50% - 5px); background: var(--bone); }
+.distance { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); font-size: 0.8125rem; color: var(--weathered); }
+.pulse {
+  position: absolute;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
+  border-radius: 50%;
+  background: var(--cherenkov);
+  box-shadow: 0 0 14px rgba(var(--cherenkov-rgb), 0.9), 0 0 0 6px rgba(var(--cherenkov-rgb), 0.12);
 }
+.pulse.back { background: var(--bone); box-shadow: 0 0 14px rgba(220, 214, 200, 0.7); }
+.beats { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.6rem; max-width: 38rem; }
+.beats li { font-family: var(--font-serif); font-size: 1.0625rem; line-height: 1.85; color: var(--gray-150); }
 
-.retro-btn {
-  background: #003300;
-  border: 1px solid var(--holo-green);
-  color: var(--holo-green);
-  padding: 0.5rem 1rem;
-  cursor: pointer;
-  font-family: inherit;
-  transition: all 0.2s;
-}
+/* 第三幕 */
+.reply { max-width: 40rem; }
+.reply-head { margin: 0 0 1.5rem; font-size: 0.9375rem; color: var(--weathered); }
+.reply-lines p { margin: 0 0 1rem; font-family: var(--font-serif); font-size: 1.125rem; line-height: 1.9; color: var(--gray-150); }
+.reply-lines p.warn { font-size: clamp(1.4rem, 2.6vw, 1.9rem); font-weight: 900; letter-spacing: 0.08em; color: var(--r-rust); }
+.choice { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--incision); }
+.before { margin: 0 0 1.25rem; font-family: var(--font-serif); font-size: 1.0625rem; line-height: 1.9; color: var(--bone); }
+.choice-actions { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
 
-.retro-btn:hover {
-  background: var(--holo-green);
-  color: var(--black);
-}
+/* 结局 */
+.ending { max-width: 40rem; padding: 0.5rem 0; }
+.ending-title { margin: 0 0 1rem; font-family: var(--font-title); font-weight: 900; font-size: 2rem; letter-spacing: 0.1em; color: var(--bone); }
+.ending-line { margin: 0 0 0.75rem; font-family: var(--font-serif); font-size: 1.0625rem; line-height: 1.9; color: var(--gray-150); }
+.ending-question { margin: 1.5rem 0 0; padding-left: 1rem; border-left: 1px solid var(--r-rust); font-family: var(--font-serif); font-size: 1.125rem; line-height: 1.8; color: var(--bone); }
+.ending-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1.75rem; }
+.eto { margin-top: 1.5rem; }
 
-.retro-btn.active {
-  background: var(--holo-green);
-  color: var(--black);
-}
+.beat-enter-active { transition: opacity 1.2s, filter 1.2s; }
+.beat-enter-from { opacity: 0; filter: blur(4px); }
 
-@keyframes blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
-}
-
-/* Custom Scrollbar */
-::-webkit-scrollbar { width: 8px; }
-::-webkit-scrollbar-track { background: var(--black); }
-::-webkit-scrollbar-thumb { background: #005500; }
-
-/* Naive UI Overrides */
-:deep(.n-slider .n-slider-rail) {
-  background-color: #003300;
-}
-:deep(.n-slider .n-slider-rail .n-slider-rail__fill) {
-  background-color: var(--holo-green);
-}
-:deep(.n-slider .n-slider-handle) {
-  background-color: var(--black);
-  border: 2px solid var(--holo-green);
-  box-shadow: 0 0 5px var(--holo-green);
-}
-:deep(.n-switch.n-switch--active .n-switch__rail) {
-  background-color: var(--holo-green);
-}
-:deep(.n-switch__rail) {
-  background-color: #003300;
-  border: 1px solid var(--holo-green);
-}
-:deep(.n-progress .n-progress-graph-line-rail) {
-  background-color: #003300;
-}
-:deep(.n-progress .n-progress-graph-line-fill) {
-  background-color: var(--holo-green);
-  box-shadow: 0 0 5px var(--holo-green);
-}
-
-
-/* 小屏：顶栏换行，状态与时钟不再被挤成逐字竖排 */
-@media (max-width: 768px) {
-  .top-bar { flex-wrap: wrap; gap: 0.5rem; }
-  .sys-controls { flex-wrap: wrap; gap: 0.5rem; }
-  .sys-info { flex-wrap: wrap; gap: 0.25rem 0.75rem; }
-  .sys-info span { white-space: nowrap; }
-  /* 三栏（300px / 自适应 / 300px）在手机上改为单栏堆叠，中间日志栏不再被挤成一条 */
-  .console-grid { grid-template-columns: 1fr; }
+@media (max-width: 900px) {
+  .calibrate { grid-template-columns: 1fr; }
+  .acts { gap: 1rem; font-size: 0.875rem; }
+  .track { margin: 0 2.5rem 1.5rem; }
 }
 </style>
