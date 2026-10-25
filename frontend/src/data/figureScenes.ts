@@ -347,3 +347,35 @@ export function touchedKeys(scene: FigureScene, userLines: string[]): Set<string
   const all = userLines.join('\n')
   return new Set(scene.keys.filter((k) => k.match.some((m) => all.includes(m))).map((k) => k.word))
 }
+
+/**
+ * 信物：访客可以把一样东西放在人物面前。放下时，消息里会写明这个动作；
+ * 对的信物会直接打开它对应的那一格心防（opens 写的是 keys 里的 word）。
+ */
+export interface Token {
+  id: string
+  name: string
+  /** 放下它时的动作描写 */
+  act: string
+  /** 对哪些场景、打开哪一格心防 */
+  opens: Record<string, string>
+}
+
+export const TOKENS: Token[] = [
+  { id: 'star', name: '一张星星的产权证书', act: '把一张星星的产权证书放在桌上', opens: { 'yun-star': '星星', 'yun-tale': '星星', 'cheng-handover': '爱' } },
+  { id: 'photo', name: '一张杨冬的照片', act: '把一张杨冬的照片推到对方面前', opens: { 'ye-grave': '女儿', 'ding-droplet': '舰队' } },
+  { id: 'telegraph', name: '一张写着「前进四」的纸条', act: '把一张写着「前进四」的纸条放在车钟旁边', opens: { 'zhang-ns': '车钟', 'zhang-navy': '逃亡' } },
+  { id: 'soap', name: '一小块肥皂', act: '把一小块肥皂放在桌上', opens: { 'yun-tale': '故事', 'wade-halo': '光速' } },
+  { id: 'cigarette', name: '一支烟', act: '递过去一支烟', opens: { 'shi-guzheng': '办法', 'luoji-grave': '公理' } },
+  { id: 'switch', name: '一枚引力波发射器的钥匙', act: '把一枚引力波发射器的钥匙放在面前', opens: { 'luoji-sword': '按下', 'cheng-handover': '按下', 'sophon-tea': '威慑' } },
+]
+
+/** 心防：对话里碰到的话题，加上放下过的信物打开的那几格 */
+export function openedKeys(scene: FigureScene, userLines: string[], tokens: string[]): Set<string> {
+  const set = touchedKeys(scene, userLines)
+  for (const id of tokens) {
+    const w = TOKENS.find((t) => t.id === id)?.opens[scene.id]
+    if (w) set.add(w)
+  }
+  return set
+}
