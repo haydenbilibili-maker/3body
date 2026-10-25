@@ -1,590 +1,647 @@
 <script setup lang="ts">
 /**
- * Sector C: Galaxy Archives (银河档案馆)
- * 功能：原著阅读 (Novel Reader)
- * 风格：沉浸式、全量目录、长文本阅读
+ * 原著阅读：在本机打开 TXT 与 EPUB。
+ * - 文件只在浏览器里解析，存进本机的 IndexedDB 书架，不上传。
+ * - TXT 自动识别 UTF-8 / GB18030（GBK）/ Big5 / UTF-16；识别有误时可手动换编码重新解码。
+ * - EPUB 2 / 3：按阅读顺序取章节，目录标题取自 nav 或 NCX，章节按各自声明的编码解码。
+ * 解析见 src/reader/。
  */
-import { ref, reactive, computed } from 'vue'
-import { useRouter } from 'vue-router'
-import { NScrollbar, useMessage, NSlider, NPopover, NButton } from 'naive-ui'
+import { computed, nextTick, onMounted, onUnmounted, ref, shallowRef, watch } from 'vue'
+import SectorHeader from '@/components/SectorHeader.vue'
+import Vitrine from '@/components/Vitrine.vue'
+import { ENCODING_LABELS, type TextEncodingName } from '@/reader/encoding'
+import { importFile, ImportError, MAX_BYTES } from '@/reader/importer'
+import { EpubError } from '@/reader/epub'
+import {
+  allProgress,
+  deleteBook,
+  listBooks,
+  loadBook,
+  loadProgress,
+  saveBook,
+  saveProgress,
+  type ShelfItem,
+} from '@/reader/library'
+import { searchBook, type Hit } from '@/reader/search'
+import type { Progress, StoredBook } from '@/reader/types'
 
-const message = useMessage()
-const router = useRouter()
+/* ---------- 书架 ---------- */
+const shelf = ref<ShelfItem[]>([])
+const progressMap = ref<Map<string, Progress>>(new Map())
+async function refreshShelf() {
+  shelf.value = await listBooks()
+  progressMap.value = await allProgress()
+}
+function progressOf(item: ShelfItem): number {
+  const p = progressMap.value.get(item.id)
+  if (!p || !item.chapterCount) return 0
+  return Math.round(((p.chapter + p.ratio) / item.chapterCount) * 100)
+}
+const wan = (n: number) => (n >= 10000 ? `约 ${(n / 10000).toFixed(n >= 100000 ? 0 : 1)} 万字` : `${n} 字`)
 
-// --- Imported Book Data ---
-const importedBook = reactive<{ id: string, title: string, chapters: { id: string, title: string, content: string }[] }>({
-  id: '',
-  title: '',
-  chapters: []
-})
+/* ---------- 导入 ---------- */
 const fileInput = ref<HTMLInputElement | null>(null)
+const busy = ref(false)
+const error = ref('')
+const notice = ref('')
+const dragging = ref(false)
 
-// --- Reading Settings ---
-const fontSize = ref(18)
-const lineHeight = ref(1.8)
-const theme = ref<'dark' | 'light' | 'sepia'>('dark')
-
-// --- Novel Reader Data ---
-const books = reactive([
-  { id: '3body1', title: '三体 I: 地球往事', color: '#8c3b3b', sub: 'The Three-Body Problem' },
-  { id: '3body2', title: '三体 II: 黑暗森林', color: '#2c5d63', sub: 'The Dark Forest' },
-  { id: '3body3', title: '三体 III: 死神永生', color: '#4a4a4a', sub: 'Death\'s End' }
-])
-
-const selectedBookId = ref('3body1')
-const selectedChapterId = ref('1')
-
-// Mock Full Chapter List (Structure based on original novel)
-const book1Chapters = [
-  { id: '1', title: '第一章 疯狂年代' },
-  { id: '2', title: '第二章 寂静的春天' },
-  { id: '3', title: '第三章 红岸之一' },
-  { id: '4', title: '第四章 科学边界' },
-  { id: '5', title: '第五章 台球' },
-  { id: '6', title: '第六章 射手和农场主' },
-  { id: '7', title: '第七章 三体、周文王、长夜' },
-  { id: '8', title: '第八章 叶文洁' },
-  { id: '9', title: '第九章 宇宙闪烁' },
-  { id: '10', title: '第十章 大史' },
-  { id: '11', title: '第十一章 三体、墨子、烈焰' },
-  { id: '12', title: '第十二章 红岸之二' },
-  { id: '13', title: '第十三章 红岸之三' },
-  { id: '14', title: '第十四章 红岸之四' },
-  { id: '15', title: '第十五章 三体、哥白尼、宇宙橄榄球、三日凌空' },
-  { id: '16', title: '第十六章 三体问题' },
-  { id: '17', title: '第十七章 三体、牛顿、冯·诺伊曼、秦始皇、三日连珠' },
-  { id: '18', title: '第十八章 聚会' },
-  { id: '19', title: '第十九章 三体、爱因斯坦、单摆、大撕裂' },
-  { id: '20', title: '第二十章 三体、远征' },
-  { id: '21', title: '第二十一章 地球叛军' },
-  { id: '22', title: '第二十二章 红岸之五' },
-  { id: '23', title: '第二十三章 红岸之六' },
-  { id: '24', title: '第二十四章 叛乱' },
-  { id: '25', title: '第二十五章 雷志成、杨卫宁之死' },
-  { id: '26', title: '第二十六章 无人忏悔' },
-  { id: '27', title: '第二十七章 伊文斯' },
-  { id: '28', title: '第二十八章 第二红岸基地' },
-  { id: '29', title: '第二十九章 地球三体运动' },
-  { id: '30', title: '第三十章 两个质子' },
-  { id: '31', title: '第三十一章 古筝行动' },
-  { id: '32', title: '第三十二章 监听员' },
-  { id: '33', title: '第三十三章 智子' },
-  { id: '34', title: '第三十四章 虫子' },
-  { id: '35', title: '尾声 遗址' }
-]
-
-const book2Chapters = [
-  { id: '1', title: '序章 褐蚁之墓' },
-  { id: '2', title: '上部 面壁者 - 第一章' },
-  { id: '3', title: '上部 面壁者 - 第二章' },
-  { id: '4', title: '上部 面壁者 - 第三章' },
-  { id: '5', title: '中部 咒语 - 第一章' },
-  { id: '6', title: '中部 咒语 - 第二章' },
-  { id: '7', title: '中部 咒语 - 第三章' },
-  { id: '8', title: '下部 黑暗森林 - 第一章' },
-  { id: '9', title: '下部 黑暗森林 - 第二章' },
-  { id: '10', title: '下部 黑暗森林 - 第三章' },
-  { id: '11', title: '尾声' }
-]
-
-const book3Chapters = [
-  { id: '1', title: '第一部 阶梯计划 - 第一章' },
-  { id: '2', title: '第一部 阶梯计划 - 第二章' },
-  { id: '3', title: '第一部 阶梯计划 - 第三章' },
-  { id: '4', title: '第二部 威慑纪年 - 第一章' },
-  { id: '5', title: '第二部 威慑纪年 - 第二章' },
-  { id: '6', title: '第三部 广播纪元 - 第一章' },
-  { id: '7', title: '第三部 广播纪元 - 第二章' },
-  { id: '8', title: '第四部 掩体纪元 - 第一章' },
-  { id: '9', title: '第四部 掩体纪元 - 第二章' },
-  { id: '10', title: '第五部 银河纪元' },
-  { id: '11', title: '第六部 647号小宇宙' }
-]
-
-const chapters = computed(() => {
-  if (selectedBookId.value === '3body1') return book1Chapters
-  if (selectedBookId.value === '3body2') return book2Chapters
-  if (selectedBookId.value === '3body3') return book3Chapters
-  if (selectedBookId.value === 'local' && importedBook.chapters.length > 0) return importedBook.chapters
-  return []
-})
-
-// Real Content Mapping (Partial due to copyright, but representative)
-const contentMap: Record<string, string> = {
-  '3body1-1': `
-    <h2>第一章 疯狂年代</h2>
-    <p>中国，1967年。</p>
-    <p>“红色联合”对“四二八兵团”总部大楼的攻击已持续了两天，他们的旗帜在大楼顶上躁动地飘扬，仿佛渴望干柴的火种。</p>
-    <p>大楼周围的树木早已被战火烧光，只剩下焦黑的树干，像一只只指向天空的黑手。</p>
-    <p>叶文洁透过窗户看着外面。她只有十五岁，但眼神中却透着一种与年龄不符的冷漠。她的父亲，物理学家叶哲泰，正在楼下的操场上接受批斗。</p>
-    <div class="chapter-end">—— 本章完 ——</div>
-  `,
-  '3body2-8': `
-    <h2>下部 黑暗森林 - 第一章</h2>
-    <p>罗辑在黑暗中睁开眼睛。他感到了寒冷，那种深入骨髓的寒冷。这是冬眠后的后遗症。</p>
-    <p>“这里是哪里？”他问。</p>
-    <p>“这里是未来，罗辑博士。”一个护士温柔地说，“现在是危机纪元 205 年。”</p>
-    <p>两百年过去了。世界变成了什么样？三体人来了吗？</p>
-    <p>罗辑坐起来，透过窗户，他看到了一座地下的城市。巨大的树状建筑支撑着穹顶，无数飞车在其中穿梭。</p>
-    <p>这是人类的黄金时代。但罗辑知道，这只是虚假的繁荣。</p>
-    <div class="chapter-end">—— 本章完 ——</div>
-  `,
-  '3body2-10': `
-    <h2>下部 黑暗森林 - 第三章</h2>
-    <p>“傻孩子们，快跑啊！”大史喊道。</p>
-    <p>水滴。那个看起来完美无瑕、像镜子一样的探测器，静静地悬浮在太空中。</p>
-    <p>丁仪轻轻地敲了敲它。清脆的声音在真空中无法传播，但在接触的瞬间，他感受到了某种极致的恐怖。</p>
-    <p>“它不是探测器... 它是武器。”</p>
-    <p>下一秒，水滴启动了。它像上帝的笔尖，在太空中画出了一条死亡的直线。人类引以为傲的恒星级舰队，在它面前像纸糊的一样脆弱。</p>
-    <p>两千艘战舰，瞬间化为火球。</p>
-    <div class="chapter-end">—— 本章完 ——</div>
-  `,
-  '3body3-6': `
-    <h2>第三部 广播纪元 - 第一章</h2>
-    <p>引力波天线启动了。</p>
-    <p>在这个寂静的瞬间，那个坐标被发送到了宇宙的每一个角落。</p>
-    <p>三体世界暴露了。地球也暴露了。</p>
-    <p>威慑纪元结束了。两个文明的命运，此刻被紧紧地绑在了一起，滑向深渊。</p>
-    <p>程心看着星空，泪流满面。她知道，自己做出了一个选择，一个也许会毁灭两个世界的选择。但在那一刻，她只是遵循了自己的良心。</p>
-    <div class="chapter-end">—— 本章完 ——</div>
-  `,
-  '3body3-8': `
-    <h2>第四部 掩体纪元 - 第一章</h2>
-    <p>歌者哼着古老的歌谣，随手清理了一片星域。</p>
-    <p>“这个坐标... 嗯，有点意思。”他看到了那个被广播的坐标，那个遥远的、只有三颗恒星的星系。</p>
-    <p>“用光粒太慢了。”他想，“那个星系有死角。用二向箔吧。”</p>
-    <p>他从封装场中取出了一片二向箔。那是一片晶莹剔透的小纸片，看起来人畜无害。但它蕴含着宇宙中最可怕的规律武器。</p>
-    <p>他随手一扔，像扔掉一片垃圾。</p>
-    <div class="chapter-end">—— 本章完 ——</div>
-  `,
-  '3body1-2': `
-    <h2>第二章 寂静的春天</h2>
-    <p>两年以后，大兴安岭。</p>
-    <p>叶文洁正在读《寂静的春天》。这本书是她从那个叫白沐霖的记者手里借来的。书页已经发黄，但上面的字句却像闪电一样击中了她。</p>
-    <p>“人类正在对大自然进行一场战争，而自己注定是输家。”</p>
-    <p>她抬起头，看着眼前这片正在被疯狂砍伐的森林。巨大的落叶松倒下的轰鸣声不绝于耳，像是一声声惨叫。</p>
-    <p>这就是人类文明吗？通过毁灭来生存？</p>
-    <p>（注：由于版权限制，此处仅展示章节开篇。请使用“导入”功能阅读全文。）</p>
-  `,
-  '3body1-3': `
-    <h2>第三章 红岸之一</h2>
-    <p>雷志成政委站在吉普车旁，看着叶文洁。</p>
-    <p>“叶文洁，你是由于什么原因来到这里的，你自己清楚。”他的声音冷冰冰的，像这里冬天的风，“这里是红岸基地，是国防重地。把你调来，是因为我们需要你的专业知识，但这并不意味着你的政治问题已经解决了。”</p>
-    <p>叶文洁点点头，没有说话。她看着远处那座巨大的抛物面天线。它耸立在雷达峰顶，像一只巨大的耳朵，聆听着宇宙的声音。</p>
-    <p>“去吧，杨卫宁总工程师在等你。”</p>
-    <p>吉普车沿着盘山公路向上开去。天线越来越大，最终占据了整个视野。叶文洁感觉到一种莫名的压抑，又有一种莫名的期待。</p>
-    <p>这就是红岸。这就是她命运的转折点。</p>
-  `,
-  '3body1-4': `
-    <h2>第四章 科学边界</h2>
-    <p>汪淼觉得，来找他的这两个人有些古怪。</p>
-    <p>这时还是暂时的宁静。汪淼转头看看窗外，城市的高楼大厦在灰蒙蒙的雾霭中若隐若现，像是一些巨大的墓碑。</p>
-    <p>“我们想了解一下，你最近和‘科学边界’学会的成员有过接触吗？”那名年轻些的军官问，他叫史强，长得五大三粗，一脸横肉，穿着一件脏兮兮的皮夹克，渾身烟味，说话声音很大。</p>
-    <p>汪淼皱了皱眉，“‘科学边界’是一个合法的学术交流组织，我和里面的几位学者确实有来往。怎么，这犯法吗？”</p>
-    <p>“不犯法。”史强咧嘴一笑，露出一口黄牙，“但有人死了。很多物理学家自杀了。你知道吗？”</p>
-  `,
-  '3body1-31': `
-    <h2>第三十一章 古筝行动</h2>
-    <p>巴拿马运河，盖拉德水道。</p>
-    <p>史强把嘴里的烟头吐到地上，用脚狠狠地踩灭。“这玩意儿真能行？”他指着河两岸那两根毫不起眼的柱子。</p>
-    <p>汪淼点点头，手心里全是汗。“这是‘飞刃’，纳米材料。只有头发丝的十分之一细，但强度是钢铁的一百倍。它切断钢铁，就像切豆腐一样。”</p>
-    <p>“审判日”号巨轮正在缓缓驶来。它像一座移动的城堡，庞大而沉默。伊文斯就在里面，还有那个巨大的秘密。</p>
-    <p>“来了。”斯坦顿上校低声说。</p>
-    <p>巨轮撞上了“死亡之琴”。没有声音，只有金属断裂的轻微咔嚓声。船体像被一只无形的巨手切成了片，一层层地滑动、错位。</p>
-  `,
-  '3body2-1': `
-    <h2>序章 褐蚁之墓</h2>
-    <p>褐蚁已经忘记了这里曾是它的家。这段时光对它来说太漫长了，漫长到足以让它忘记很多事情。</p>
-    <p>它在一块孤立的岩石上爬行。这块岩石像墓碑一样耸立着，上面刻着两个字：叶文洁。</p>
-    <p>这时，它感觉到了大地的震动。一个巨大的阴影笼罩了它。</p>
-    <p>罗辑躺在墓碑旁的草地上，嘴里叼着一根草茎，看着天空。他不知道，自己即将成为两个世界博弈的棋子。</p>
-    <p>“这是计划的一部分。”他对虚空说道。</p>
-  `
-}
-
-function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;')
-}
-
-const currentContent = computed(() => {
-  // Check imported book first
-  if (selectedBookId.value === 'local') {
-    const chapter = importedBook.chapters.find(c => c.id === selectedChapterId.value)
-    if (chapter) {
-      // 用户导入的本地文本：必须先转义再拼 HTML（v-html 渲染，未转义即 XSS）
-      const htmlContent = chapter.content
-        .split(/\n\s*\n/) // Split by double newline for paragraphs
-        .map(para => `<p>${escapeHtml(para.trim())}</p>`)
-        .join('')
-
-      return `<h2>${escapeHtml(chapter.title)}</h2>${htmlContent}<div class="chapter-end">—— 本章完 ——</div>`
-    }
-  }
-
-  const key = `${selectedBookId.value}-${selectedChapterId.value}`
-  const chapter = chapters.value.find(c => c.id === selectedChapterId.value)
-  
-  if (contentMap[key]) {
-    return contentMap[key] + `<div class="chapter-end">—— 本章完（预览结束） ——</div>`
-  }
-  
-  // For other chapters, show a generic but better structured summary
-  return `
-    <h2>${chapter?.title}</h2>
-    <p class="placeholder-text">【原著内容预览模式】</p>
-    <p>您正在阅读的是《${books.find(b=>b.id===selectedBookId.value)?.title}》的章节预览。</p>
-    <p>本章节讲述了人类在面对三体危机时，从恐慌、迷茫到寻找希望的过程。无数像大史、汪淼、罗辑这样的人物，在历史的洪流中做出了自己的选择。</p>
-    <p>“给岁月以文明，而不是给文明以岁月。”</p>
-    <p>（注：由于版权保护，本应用无法内置全书 90 万字的正文。请点击右上角“设置”按钮，选择“导入本地文件”以加载您的 EPUB 或 TXT 格式电子书进行完整阅读。）</p>
-    <div class="chapter-end">—— 请导入正文 ——</div>
-  `
-})
-
-function handleScroll() {
-  // Can implement scroll progress saving here
-}
-
-function prevChapter() {
-  const idx = chapters.value.findIndex(c => c.id === selectedChapterId.value)
-  if (idx > 0) selectedChapterId.value = chapters.value[idx - 1].id
-}
-
-function nextChapter() {
-  const idx = chapters.value.findIndex(c => c.id === selectedChapterId.value)
-  if (idx < chapters.value.length - 1) selectedChapterId.value = chapters.value[idx + 1].id
-}
-
-function handleImport() {
-  fileInput.value?.click()
-}
-
-function handleFileUpload(event: Event) {
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-  if (!file) return
-
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    const text = e.target?.result as string
-    parseBook(file.name, text)
-  }
-  reader.readAsText(file, 'UTF-8')
-}
-
-function parseBook(filename: string, text: string) {
+async function importBytes(name: string, bytes: Uint8Array, forced?: TextEncodingName) {
+  busy.value = true
+  error.value = ''
+  notice.value = ''
   try {
-    const title = filename.replace(/\.(txt|epub)$/i, '')
-    
-    // Regex for Chinese Novel Chapters: "第X章" or "Chapter X"
-    const chapterRegex = /(?:^|\n)\s*(第[零一二三四五六七八九十百千]+章|Chapter\s*\d+|^\d+\.|^\d+\s+).*/g
-    
-    const matches = [...text.matchAll(chapterRegex)]
-    const parsedChapters = []
-
-    if (matches.length === 0) {
-      // Fallback: One big chapter
-      parsedChapters.push({ id: '1', title: '全文', content: text })
-    } else {
-      // Add "Prolog" if text exists before first chapter
-      if (matches[0].index! > 0) {
-        parsedChapters.push({
-          id: '0',
-          title: '序章 / 前言',
-          content: text.substring(0, matches[0].index!)
-        })
-      }
-      
-      for (let i = 0; i < matches.length; i++) {
-        const match = matches[i]
-        const start = match.index!
-        const end = i < matches.length - 1 ? matches[i+1].index! : text.length
-        
-        const headerLine = match[0].trim()
-        const content = text.substring(start + match[0].length, end).trim()
-        
-        parsedChapters.push({
-          id: (i + 1).toString(),
-          title: headerLine,
-          content: content
-        })
-      }
-    }
-    
-    // Update State
-    importedBook.id = 'local'
-    importedBook.title = title
-    importedBook.chapters = parsedChapters
-
-    // Update Books List
-    const existingIdx = books.findIndex(b => b.id === 'local')
-    if (existingIdx === -1) {
-      books.push({
-        id: 'local',
-        title: `[本地] ${title}`,
-        color: '#555',
-        sub: 'Local Import'
-      })
-    } else {
-      books[existingIdx].title = `[本地] ${title}`
-    }
-    
-    // Switch View
-    selectedBookId.value = 'local'
-    selectedChapterId.value = parsedChapters[0].id
-    message.success(`成功导入《${title}》，共 ${parsedChapters.length} 章`)
-    
-  } catch (err) {
-    console.error(err)
-    message.error('解析失败，请确保文件为 UTF-8 编码的 TXT')
+    const result = await importFile(name, bytes, forced)
+    const saved = await saveBook(result.book)
+    await refreshShelf()
+    const enc = result.detection
+      ? `编码 ${ENCODING_LABELS[result.detection.encoding]}${forced ? '（手动选择）' : '（自动识别）'}，`
+      : ''
+    notice.value = `已放入书架：《${result.book.title}》，${enc}${result.book.chapters.length} 章，${wan(result.book.chars)}。${saved ? '' : '本机存储不可用，关闭页面后不会保留。'}`
+    await openBook(result.book.id, result.book, result.garble)
+  } catch (e) {
+    error.value = e instanceof ImportError || e instanceof EpubError ? e.message : '解析失败：文件可能已损坏，或不是 TXT / EPUB'
   } finally {
-    if (fileInput.value) fileInput.value.value = ''
+    busy.value = false
   }
 }
+
+async function handleFiles(files: FileList | null | undefined) {
+  const file = files?.[0]
+  if (!file) return
+  if (file.size > MAX_BYTES) {
+    error.value = '文件超过 60 MB，暂不支持'
+    return
+  }
+  await importBytes(file.name, new Uint8Array(await file.arrayBuffer()))
+  if (fileInput.value) fileInput.value.value = ''
+}
+function onDrop(e: DragEvent) {
+  dragging.value = false
+  handleFiles(e.dataTransfer?.files)
+}
+
+const pendingDelete = ref<string | null>(null)
+async function removeBook(id: string) {
+  if (pendingDelete.value !== id) {
+    pendingDelete.value = id
+    return
+  }
+  pendingDelete.value = null
+  await deleteBook(id)
+  await refreshShelf()
+}
+
+/* ---------- 阅读 ---------- */
+const book = shallowRef<StoredBook | null>(null)
+const chapterIndex = ref(0)
+const chapter = computed(() => book.value?.chapters[chapterIndex.value])
+const garble = ref(0)
+const showToc = ref(false)
+const showSettings = ref(false)
+const tocFilter = ref('')
+const searchQuery = ref('')
+const hits = ref<Hit[]>([])
+const flashPara = ref<number | null>(null)
+
+const filteredToc = computed(() => {
+  const chs = book.value?.chapters ?? []
+  const q = tocFilter.value.trim()
+  return chs.map((c, i) => ({ title: c.title, i })).filter((c) => !q || c.title.includes(q))
+})
+const bookPercent = computed(() => {
+  if (!book.value) return 0
+  return Math.min(100, Math.round(((chapterIndex.value + scrollRatio.value) / book.value.chapters.length) * 100))
+})
+
+function scroller(): HTMLElement | null {
+  return document.querySelector('.app-main')
+}
+const scrollRatio = ref(0)
+let saveTimer: ReturnType<typeof setTimeout> | undefined
+function onScroll() {
+  const el = scroller()
+  if (!el || !book.value) return
+  const max = el.scrollHeight - el.clientHeight
+  scrollRatio.value = max > 0 ? Math.min(1, el.scrollTop / max) : 0
+  clearTimeout(saveTimer)
+  saveTimer = setTimeout(persistProgress, 400)
+}
+function persistProgress() {
+  if (!book.value) return
+  saveProgress({ bookId: book.value.id, chapter: chapterIndex.value, ratio: scrollRatio.value, updatedAt: Date.now() })
+}
+
+async function openBook(id: string, preloaded?: StoredBook, garbleRatio = 0) {
+  const b = preloaded ?? (await loadBook(id))
+  if (!b) {
+    error.value = '这本书已不在本机书架里，请重新导入'
+    await refreshShelf()
+    return
+  }
+  book.value = b
+  garble.value = garbleRatio
+  showToc.value = false
+  searchQuery.value = ''
+  hits.value = []
+  const p = preloaded ? undefined : await loadProgress(id)
+  await goChapter(p ? Math.min(p.chapter, b.chapters.length - 1) : 0, p?.ratio ?? 0)
+}
+function closeBook() {
+  persistProgress()
+  book.value = null
+  refreshShelf()
+  nextTick(() => scroller()?.scrollTo({ top: 0 }))
+}
+
+async function goChapter(i: number, ratio = 0) {
+  if (!book.value) return
+  chapterIndex.value = Math.max(0, Math.min(book.value.chapters.length - 1, i))
+  showToc.value = false
+  await nextTick()
+  const el = scroller()
+  if (el) el.scrollTop = ratio * Math.max(0, el.scrollHeight - el.clientHeight)
+  scrollRatio.value = ratio
+  persistProgress()
+}
+
+async function jumpToHit(h: Hit) {
+  await goChapter(h.chapter)
+  await nextTick()
+  document.getElementById(`para-${h.paragraph}`)?.scrollIntoView({ block: 'center' })
+  flashPara.value = h.paragraph
+  setTimeout(() => (flashPara.value = null), 2000)
+}
+watch(searchQuery, (q) => {
+  hits.value = book.value && q.trim().length >= 1 ? searchBook(book.value, q) : []
+})
+
+/** 换一种编码重新解码（仅 TXT，原始字节保存在书架里） */
+const ENCODINGS: TextEncodingName[] = ['utf-8', 'gb18030', 'big5', 'utf-16le', 'utf-16be']
+async function redecode(enc: TextEncodingName) {
+  const b = book.value
+  if (!b?.raw) return
+  await importBytes(b.fileName, b.raw, enc)
+}
+
+/* ---------- 阅读设置（每位读者自己的偏好，存在本机浏览器） ---------- */
+type Theme = 'basalt' | 'paper' | 'night'
+interface Prefs {
+  size: number
+  leading: number
+  width: 'narrow' | 'medium' | 'wide'
+  theme: Theme
+  face: 'serif' | 'sans'
+}
+const PREFS_KEY = '3body:reader-prefs'
+function readPrefs(): Prefs {
+  const d: Prefs = { size: 19, leading: 1.95, width: 'medium', theme: 'basalt', face: 'serif' }
+  try {
+    return { ...d, ...JSON.parse(localStorage.getItem(PREFS_KEY) ?? '{}') }
+  } catch {
+    return d
+  }
+}
+const prefs = ref<Prefs>(readPrefs())
+watch(
+  prefs,
+  (v) => {
+    try {
+      localStorage.setItem(PREFS_KEY, JSON.stringify(v))
+    } catch {
+      /* 存储不可用时只在本次生效 */
+    }
+  },
+  { deep: true },
+)
+const THEMES: { id: Theme; name: string }[] = [
+  { id: 'basalt', name: '玄武' },
+  { id: 'paper', name: '纸本' },
+  { id: 'night', name: '墨夜' },
+]
+const WIDTHS = { narrow: '30em', medium: '36em', wide: '44em' }
+const WIDTH_OPTS: { id: Prefs['width']; name: string }[] = [
+  { id: 'narrow', name: '窄' },
+  { id: 'medium', name: '中' },
+  { id: 'wide', name: '宽' },
+]
+
+function onKey(e: KeyboardEvent) {
+  if (!book.value) return
+  const t = e.target as HTMLElement | null
+  if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return
+  if (e.key === 'ArrowRight') goChapter(chapterIndex.value + 1)
+  else if (e.key === 'ArrowLeft') goChapter(chapterIndex.value - 1)
+  else if (e.key === 'Escape') {
+    showToc.value = false
+    showSettings.value = false
+  }
+}
+
+onMounted(() => {
+  refreshShelf()
+  window.addEventListener('keydown', onKey)
+  scroller()?.addEventListener('scroll', onScroll, { passive: true })
+})
+onUnmounted(() => {
+  persistProgress()
+  window.removeEventListener('keydown', onKey)
+  scroller()?.removeEventListener('scroll', onScroll)
+  clearTimeout(saveTimer)
+})
 </script>
 
 <template>
-  <div class="sector-library" :class="theme">
-    <input 
-      type="file" 
-      ref="fileInput" 
-      style="display: none" 
-      accept=".txt" 
-      @change="handleFileUpload"
-    >
-    <!-- Header -->
-    <header class="library-header">
-      <div class="brand">
-        <h1>GALAXY ARCHIVES</h1>
-        <span class="sub">银河档案馆 · 原著阅读</span>
+  <div
+    class="reading-room"
+    :data-theme="book ? prefs.theme : 'basalt'"
+    @dragover.prevent="dragging = true"
+    @dragleave.self="dragging = false"
+    @drop.prevent="onDrop"
+  >
+    <input ref="fileInput" type="file" accept=".txt,.epub,text/plain,application/epub+zip" class="hidden-input" @change="handleFiles(($event.target as HTMLInputElement).files)" />
+
+    <!-- ========== 书架 ========== -->
+    <template v-if="!book">
+      <SectorHeader
+        title="原著阅读"
+        subtitle="把你手里的 TXT 或 EPUB 放进档案馆。文件只在这台设备上解析与保存，不会上传。"
+        goal="拖入或选择一个文件。书会留在本机的书架上，下次从上次读到的地方继续。"
+        accent="var(--cherenkov)"
+      />
+
+      <Vitrine>
+        <button type="button" class="drop" :class="{ over: dragging, busy }" :disabled="busy" @click="fileInput?.click()">
+          <span class="drop-title">{{ busy ? '正在解析……' : dragging ? '松开，放进书架' : '把文件拖到这里，或点击选择' }}</span>
+          <span class="drop-sub">TXT：自动识别 UTF-8、GBK / GB18030、Big5、UTF-16　·　EPUB：2.0 与 3.0</span>
+        </button>
+        <p v-if="error" class="msg err" role="alert">{{ error }}</p>
+        <p v-else-if="notice" class="msg ok" role="status">{{ notice }}</p>
+      </Vitrine>
+
+      <section class="shelf" aria-label="书架">
+        <h2 class="shelf-title">书架</h2>
+        <p v-if="!shelf.length" class="shelf-empty">还没有书。导入之后，它会一直留在这台设备上。</p>
+        <ul v-else class="shelf-list">
+          <li v-for="item in shelf" :key="item.id" class="book-row">
+            <button type="button" class="book-open" @click="openBook(item.id)">
+              <span class="book-title">{{ item.title }}</span>
+              <span class="book-meta">
+                <span v-if="item.author">{{ item.author }}</span>
+                <span>{{ item.format === 'epub' ? 'EPUB' : 'TXT' }}</span>
+                <span>{{ item.chapterCount }} 章</span>
+                <span>{{ wan(item.chars) }}</span>
+              </span>
+              <span class="book-progress" aria-hidden="true"><span :style="{ width: progressOf(item) + '%' }"></span></span>
+              <span class="book-progress-text">{{ progressOf(item) ? `读到 ${progressOf(item)}%` : '未开始' }}</span>
+            </button>
+            <button type="button" class="book-delete" :class="{ armed: pendingDelete === item.id }" @click="removeBook(item.id)" @blur="pendingDelete = null">
+              {{ pendingDelete === item.id ? '再点一次，从书架删除' : '删除' }}
+            </button>
+          </li>
+        </ul>
+      </section>
+    </template>
+
+    <!-- ========== 阅读 ========== -->
+    <template v-else>
+      <header class="bar">
+        <button type="button" class="bar-btn" @click="closeBook">书架</button>
+        <div class="bar-title">
+          <span class="bar-book">{{ book.title }}</span>
+          <span class="bar-chapter">{{ chapter?.title }}</span>
+        </div>
+        <span class="bar-pct num">{{ bookPercent }}%</span>
+        <button type="button" class="bar-btn" :aria-expanded="showToc" @click="showToc = !showToc; showSettings = false">目录与搜索</button>
+        <button type="button" class="bar-btn" :aria-expanded="showSettings" @click="showSettings = !showSettings; showToc = false">版式</button>
+      </header>
+
+      <div v-if="garble > 0.01 && book.raw" class="garble" role="alert">
+        <span>文字看起来像乱码？换一种编码重新解码：</span>
+        <button v-for="enc in ENCODINGS" :key="enc" type="button" :class="{ on: book.encoding === enc }" @click="redecode(enc)">
+          {{ ENCODING_LABELS[enc] }}
+        </button>
       </div>
-      <div class="controls">
-        <NPopover trigger="click" placement="bottom-end">
-          <template #trigger>
-            <button class="icon-btn">Aa</button>
+
+      <transition name="panel">
+        <aside v-if="showSettings" class="panel settings" aria-label="版式">
+          <label class="set">
+            <span>字号 <b class="num">{{ prefs.size }}</b></span>
+            <input v-model.number="prefs.size" type="range" min="15" max="26" step="1" />
+          </label>
+          <label class="set">
+            <span>行距 <b class="num">{{ prefs.leading.toFixed(2) }}</b></span>
+            <input v-model.number="prefs.leading" type="range" min="1.5" max="2.4" step="0.05" />
+          </label>
+          <div class="set">
+            <span>版心</span>
+            <div class="seg">
+              <button v-for="w in WIDTH_OPTS" :key="w.id" type="button" :class="{ on: prefs.width === w.id }" @click="prefs.width = w.id">{{ w.name }}</button>
+            </div>
+          </div>
+          <div class="set">
+            <span>字体</span>
+            <div class="seg">
+              <button type="button" :class="{ on: prefs.face === 'serif' }" @click="prefs.face = 'serif'">宋体</button>
+              <button type="button" :class="{ on: prefs.face === 'sans' }" @click="prefs.face = 'sans'">黑体</button>
+            </div>
+          </div>
+          <div class="set">
+            <span>底色</span>
+            <div class="seg">
+              <button v-for="t in THEMES" :key="t.id" type="button" :class="{ on: prefs.theme === t.id }" @click="prefs.theme = t.id">{{ t.name }}</button>
+            </div>
+          </div>
+          <div v-if="book.raw" class="set">
+            <span>编码 <b>{{ ENCODING_LABELS[book.encoding as TextEncodingName] ?? book.encoding }}</b></span>
+            <div class="seg wrap">
+              <button v-for="enc in ENCODINGS" :key="enc" type="button" :class="{ on: book.encoding === enc }" @click="redecode(enc)">{{ ENCODING_LABELS[enc] }}</button>
+            </div>
+          </div>
+        </aside>
+      </transition>
+
+      <transition name="panel">
+        <aside v-if="showToc" class="panel toc" aria-label="目录与搜索">
+          <input v-model="searchQuery" type="search" class="field" placeholder="在全书中搜索" aria-label="在全书中搜索" />
+          <ul v-if="searchQuery.trim()" class="hits">
+            <li v-if="!hits.length" class="muted">没有找到。</li>
+            <li v-for="(h, k) in hits" :key="k">
+              <button type="button" @click="jumpToHit(h)">
+                <span class="hit-ch">{{ book.chapters[h.chapter].title }}</span>
+                <span class="hit-text">…{{ h.before }}<mark>{{ h.match }}</mark>{{ h.after }}…</span>
+              </button>
+            </li>
+          </ul>
+          <template v-else>
+            <input v-if="book.chapters.length > 12" v-model="tocFilter" type="search" class="field" placeholder="筛选章节" aria-label="筛选章节" />
+            <ol class="toc-list">
+              <li v-for="c in filteredToc" :key="c.i">
+                <button type="button" :class="{ current: c.i === chapterIndex }" :aria-current="c.i === chapterIndex ? 'true' : undefined" @click="goChapter(c.i)">
+                  {{ c.title }}
+                </button>
+              </li>
+            </ol>
           </template>
-          <div class="settings-panel">
-            <div class="setting-row">
-              <label>字号</label>
-              <NSlider v-model:value="fontSize" :min="14" :max="24" :step="1" />
-            </div>
-            <div class="setting-row">
-              <label>行高</label>
-              <NSlider v-model:value="lineHeight" :min="1.4" :max="2.5" :step="0.1" />
-            </div>
-            <div class="setting-row theme-select">
-              <div class="theme-opt dark" @click="theme = 'dark'" :class="{ active: theme === 'dark' }">A</div>
-              <div class="theme-opt light" @click="theme = 'light'" :class="{ active: theme === 'light' }">A</div>
-              <div class="theme-opt sepia" @click="theme = 'sepia'" :class="{ active: theme === 'sepia' }">A</div>
-            </div>
-            <div class="setting-row">
-              <NButton size="small" block @click="handleImport">导入本地书籍</NButton>
-            </div>
-          </div>
-        </NPopover>
-      </div>
-    </header>
+        </aside>
+      </transition>
 
-    <div class="library-body">
-      <!-- Sidebar: Books & Chapters -->
-      <aside class="library-sidebar">
-        <div class="book-tabs">
-          <div 
-            v-for="book in books" 
-            :key="book.id"
-            class="book-tab"
-            :class="{ active: selectedBookId === book.id }"
-            :style="{ '--book-color': book.color }"
-            @click="selectedBookId = book.id; selectedChapterId = '1'"
-          >
-            <div class="book-title">{{ book.title.split(':')[1] }}</div>
-            <div class="book-sub">{{ book.sub }}</div>
-          </div>
-        </div>
-        
-        <div class="chapter-nav">
-          <NScrollbar>
-            <div class="chapter-list">
-              <div 
-                v-for="ch in chapters" 
-                :key="ch.id"
-                class="chapter-item"
-                :class="{ active: selectedChapterId === ch.id }"
-                @click="selectedChapterId = ch.id"
-              >
-                {{ ch.title }}
-              </div>
-            </div>
-          </NScrollbar>
-        </div>
-      </aside>
-
-      <!-- Main Reader -->
-      <main class="reader-container">
-        <NScrollbar @scroll="handleScroll">
-          <div 
-            class="paper" 
-            :style="{ fontSize: fontSize + 'px', lineHeight: lineHeight }"
-          >
-            <div class="content" v-html="currentContent"></div>
-            
-            <div class="reader-footer">
-              <NButton @click="prevChapter" :disabled="selectedChapterId === chapters[0].id">上一章</NButton>
-              <span class="page-num">{{ selectedChapterId }} / {{ chapters.length }}</span>
-              <NButton @click="nextChapter" :disabled="selectedChapterId === chapters[chapters.length-1].id">下一章</NButton>
-            </div>
-          </div>
-        </NScrollbar>
-      </main>
-    </div>
+      <article
+        v-if="chapter"
+        class="page"
+        :class="prefs.face"
+        :style="{ '--size': prefs.size + 'px', '--leading': prefs.leading, '--measure': WIDTHS[prefs.width] }"
+      >
+        <h1 class="ch-title">{{ chapter.title }}</h1>
+        <p
+          v-for="(p, k) in chapter.paragraphs"
+          :id="`para-${k}`"
+          :key="k"
+          class="para"
+          :class="{ flash: flashPara === k }"
+        >{{ p }}</p>
+        <p v-if="!chapter.paragraphs.length" class="para muted">（这一章没有文字。）</p>
+        <nav class="ch-nav" aria-label="翻章">
+          <button type="button" class="bar-btn" :disabled="chapterIndex === 0" @click="goChapter(chapterIndex - 1)">上一章</button>
+          <span class="ch-count num">{{ chapterIndex + 1 }} / {{ book.chapters.length }}</span>
+          <button type="button" class="bar-btn" :disabled="chapterIndex >= book.chapters.length - 1" @click="goChapter(chapterIndex + 1)">下一章</button>
+        </nav>
+        <p class="ch-hint">← → 键翻章</p>
+      </article>
+    </template>
   </div>
 </template>
 
 <style scoped>
-.sector-library {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  background: var(--bg-color);
-  color: var(--text-color);
-  transition: background 0.3s, color 0.3s;
-}
-
-/* Themes */
-.sector-library.dark { --bg-color: #1a1a1a; --text-color: #ccc; --paper-bg: #222; --border: #333; --accent: #d4af37; }
-.sector-library.light { --bg-color: #f0f0f0; --text-color: #333; --paper-bg: #fff; --border: #ddd; --accent: #2c3e50; }
-.sector-library.sepia { --bg-color: #f4ecd8; --text-color: #5b4636; --paper-bg: #fdf6e3; --border: #e0d0b0; --accent: #8b4513; }
-
-.library-header {
-  padding: 0 2rem;
-  height: 60px;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: var(--paper-bg);
-}
-
-
-.brand h1 { margin: 0; font-size: 1.2rem; font-family: var(--font-title-classic); letter-spacing: 2px; color: var(--accent); }
-.sub { font-size: 0.8rem; opacity: 0.7; }
-
-.icon-btn {
-  background: none; border: 1px solid var(--border); color: var(--text-color);
-  width: 32px; height: 32px; border-radius: 4px; cursor: pointer;
-  font-family: var(--font-serif); font-size: 1.1rem;
-}
-
-.library-body {
-  flex: 1;
-  display: flex;
-  overflow: hidden;
-}
-
-.library-sidebar {
-  width: 300px;
-  border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  background: var(--paper-bg);
-}
-
-.book-tabs {
-  border-bottom: 1px solid var(--border);
-}
-
-.book-tab {
-  padding: 1rem 1.5rem;
-  cursor: pointer;
-  border-left: 4px solid transparent;
-  transition: all 0.2s;
-  opacity: 0.7;
-}
-.book-tab:hover { opacity: 1; background: rgba(0,0,0,0.05); }
-.book-tab.active {
-  opacity: 1;
-  border-left-color: var(--book-color);
-  background: rgba(0,0,0,0.03);
-}
-.book-title { font-weight: bold; font-size: 0.95rem; }
-.book-sub { font-size: 0.75rem; font-style: italic; opacity: 0.6; }
-
-.chapter-nav { flex: 1; overflow: hidden; }
-.chapter-list { padding: 1rem 0; }
-.chapter-item {
-  padding: 0.8rem 1.5rem;
-  cursor: pointer;
-  font-size: 0.9rem;
-  border-left: 2px solid transparent;
-}
-.chapter-item:hover { color: var(--accent); }
-.chapter-item.active { color: var(--accent); font-weight: bold; border-left-color: var(--accent); background: rgba(128,128,128,0.05); }
-
-.reader-container {
-  flex: 1;
+.reading-room {
+  --page-bg: transparent;
+  --ink: var(--bone);
+  --ink-soft: var(--weathered);
+  --rule: var(--incision);
+  --mark: rgba(var(--cherenkov-rgb), 0.35);
   position: relative;
-  background: var(--bg-color);
-}
-
-.paper {
-  max-width: 900px;
-  margin: 0 auto;
   min-height: 100%;
-  padding: 4rem 6rem;
-  background: var(--paper-bg);
-  box-shadow: 0 0 20px rgba(0,0,0,0.05);
-  font-family: var(--font-serif);
+  padding: 2rem clamp(1rem, 4vw, 3rem) 4rem;
+  background: var(--page-bg);
+  color: var(--ink);
+  transition: background 0.4s, color 0.4s;
 }
+.reading-room[data-theme='paper'] {
+  --page-bg: #ece5d6;
+  --ink: #2c2721;
+  --ink-soft: #7a7064;
+  --rule: #cfc5b3;
+  --mark: rgba(176, 67, 47, 0.25);
+}
+.reading-room[data-theme='night'] {
+  --page-bg: #0d0e0f;
+  --ink: #a9a396;
+  --ink-soft: #6e6a62;
+  --rule: #26282b;
+}
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.muted { color: var(--ink-soft); }
+.hidden-input { display: none; }
 
-.content { margin-bottom: 4rem; }
-:deep(h2) { text-align: center; margin-bottom: 3rem; font-weight: normal; color: var(--accent); }
-:deep(p) { margin-bottom: 1.5em; text-align: justify; text-indent: 2em; }
-:deep(.chapter-end) { text-align: center; margin-top: 4rem; color: var(--border); font-style: italic; }
-:deep(.placeholder-text) { color: var(--accent); font-weight: bold; text-align: center; }
-
-.reader-footer {
+/* 书架 */
+.drop {
+  width: 100%;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
-  margin-top: 4rem;
-  padding-top: 2rem;
-  border-top: 1px solid var(--border);
+  gap: 0.6rem;
+  padding: 3rem 1.5rem;
+  font: inherit;
+  color: var(--bone);
+  background: rgba(var(--cherenkov-rgb), 0.03);
+  border: 1px dashed var(--incision);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
 }
+.drop:hover, .drop.over { border-color: var(--cherenkov); background: rgba(var(--cherenkov-rgb), 0.07); }
+.drop.busy { cursor: progress; }
+.drop-title { font-family: var(--font-serif); font-size: 1.25rem; letter-spacing: 0.06em; }
+.drop-sub { font-size: 0.875rem; color: var(--weathered); text-align: center; }
+.msg { margin: 1rem 0 0; font-size: 0.9375rem; line-height: 1.7; }
+.msg.err { color: var(--rust-bright); }
+.msg.ok { color: var(--gray-200); }
 
-/* Settings Panel */
-.settings-panel { padding: 1rem; width: 200px; }
-.setting-row { margin-bottom: 1rem; }
-.setting-row label { display: block; margin-bottom: 0.5rem; font-size: 0.8rem; color: #666; }
-.theme-select { display: flex; gap: 0.5rem; }
-.theme-opt {
-  flex: 1; height: 30px; border: 1px solid #ccc; cursor: pointer;
-  display: flex; align-items: center; justify-content: center; font-family: var(--font-serif);
+.shelf { margin-top: 2.5rem; max-width: 52rem; }
+.shelf-title { margin: 0 0 1rem; font-family: var(--font-serif); font-size: 1.25rem; font-weight: 600; letter-spacing: 0.1em; color: var(--bone); }
+.shelf-empty { margin: 0; font-size: 0.9375rem; color: var(--weathered); }
+.shelf-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--incision-soft); }
+.book-row { display: flex; align-items: center; gap: 1rem; border-bottom: 1px solid var(--incision-soft); }
+.book-open {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.35rem 1rem;
+  padding: 1rem 0.25rem;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
 }
-.theme-opt.dark { background: #222; color: #fff; }
-.theme-opt.light { background: #fff; color: #000; }
-.theme-opt.sepia { background: #f4ecd8; color: #5b4636; }
-.theme-opt.active { border: 2px solid var(--accent); }
+.book-open:hover .book-title { color: var(--white); }
+.book-title { grid-column: 1; font-family: var(--font-serif); font-size: 1.125rem; color: var(--bone); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.book-meta { grid-column: 1; display: flex; flex-wrap: wrap; gap: 0 1rem; font-size: 0.8125rem; color: var(--weathered); }
+.book-progress { grid-column: 2; grid-row: 1; align-self: center; width: 7rem; height: 2px; background: var(--incision-soft); }
+.book-progress span { display: block; height: 100%; background: var(--cherenkov); }
+.book-progress-text { grid-column: 2; grid-row: 2; font-size: 0.8125rem; color: var(--weathered); text-align: right; }
+.book-delete { flex-shrink: 0; padding: 0.35rem 0.6rem; font: inherit; font-size: 0.8125rem; color: var(--weathered); background: none; border: 1px solid transparent; border-radius: 2px; cursor: pointer; }
+.book-delete:hover { border-color: var(--incision); }
+.book-delete.armed { color: var(--rust-bright); border-color: rgba(210, 85, 63, 0.6); }
 
-/* 小屏：目录改为正文上方的两条横向滑动栏（书目 / 章节），正文占满宽度。
-   此前 300px 目录固定在左侧，手机上正文每行只剩 2–3 个字。 */
+/* 阅读 */
+.bar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: -2rem calc(-1 * clamp(1rem, 4vw, 3rem)) 0;
+  padding: 0.7rem clamp(1rem, 4vw, 3rem);
+  background: color-mix(in srgb, var(--page-bg) 92%, transparent);
+  border-bottom: 1px solid var(--rule);
+  backdrop-filter: blur(6px);
+}
+.reading-room[data-theme='basalt'] .bar { background: rgba(19, 20, 22, 0.94); }
+.bar-title { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.bar-book { font-size: 0.8125rem; color: var(--ink-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bar-chapter { font-family: var(--font-serif); font-size: 0.9375rem; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bar-pct { font-size: 0.8125rem; color: var(--ink-soft); }
+.bar-btn {
+  flex-shrink: 0;
+  padding: 0.4rem 0.8rem;
+  font: inherit;
+  font-size: 0.875rem;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  cursor: pointer;
+}
+.bar-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.bar-btn[aria-expanded='true'] { border-color: var(--cherenkov); }
+
+.garble {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: var(--measure, 36em);
+  margin: 1rem auto 0;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: var(--ink);
+  border: 1px solid rgba(210, 85, 63, 0.5);
+}
+.garble button, .seg button {
+  padding: 0.3rem 0.65rem;
+  font: inherit;
+  font-size: 0.8125rem;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  cursor: pointer;
+}
+.garble button.on, .seg button.on { border-color: var(--cherenkov); color: var(--cherenkov); }
+
+.panel {
+  position: fixed;
+  top: 7.5rem;
+  right: clamp(1rem, 4vw, 3rem);
+  z-index: 30;
+  width: min(24rem, calc(100vw - 2rem));
+  max-height: calc(100vh - 11rem);
+  overflow-y: auto;
+  padding: 1.25rem;
+  color: var(--bone);
+  background: var(--slab);
+  border: 1px solid var(--incision);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+}
+.panel-enter-active, .panel-leave-active { transition: opacity 0.2s; }
+.panel-enter-from, .panel-leave-to { opacity: 0; }
+.set { display: flex; flex-direction: column; gap: 0.45rem; margin-bottom: 1.1rem; font-size: 0.875rem; color: var(--weathered); }
+.set > span { display: flex; justify-content: space-between; }
+.set b { font-weight: 400; color: var(--bone); }
+.set input[type='range'] { width: 100%; accent-color: var(--cherenkov); }
+.seg { display: flex; gap: 0.35rem; }
+.seg.wrap { flex-wrap: wrap; }
+.seg button { color: var(--bone); border-color: var(--incision); }
+.field {
+  width: 100%;
+  margin-bottom: 0.75rem;
+  padding: 0.55rem 0.7rem;
+  font: inherit;
+  font-size: 0.9375rem;
+  color: var(--bone);
+  background: var(--void);
+  border: 1px solid var(--incision);
+  border-radius: 2px;
+}
+.field:focus { outline: none; border-color: var(--cherenkov); }
+.toc-list, .hits { list-style: none; margin: 0; padding: 0; }
+.toc-list button, .hits button {
+  width: 100%;
+  padding: 0.5rem 0.6rem;
+  font: inherit;
+  text-align: left;
+  color: var(--gray-200);
+  background: none;
+  border: 0;
+  border-left: 2px solid transparent;
+  cursor: pointer;
+}
+.toc-list button { font-family: var(--font-serif); font-size: 0.9375rem; }
+.toc-list button:hover, .hits button:hover { background: var(--slab-raised); }
+.toc-list button.current { color: var(--bone); border-left-color: var(--cherenkov); }
+.hits button { display: flex; flex-direction: column; gap: 0.2rem; }
+.hit-ch { font-size: 0.75rem; color: var(--weathered); }
+.hit-text { font-family: var(--font-serif); font-size: 0.9375rem; line-height: 1.6; }
+mark { background: var(--mark); color: inherit; padding: 0 1px; }
+
+.page { max-width: var(--measure); margin: 2.5rem auto 0; }
+.ch-title {
+  margin: 0 0 2rem;
+  font-family: var(--font-title);
+  font-weight: 900;
+  font-size: calc(var(--size) * 1.6);
+  line-height: 1.35;
+  letter-spacing: 0.06em;
+  color: var(--ink);
+}
+.para {
+  margin: 0 0 0.9em;
+  font-family: var(--font-serif);
+  font-size: var(--size);
+  line-height: var(--leading);
+  text-indent: 2em;
+  text-align: justify;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+  transition: background 0.6s;
+}
+.sans .para { font-family: var(--font-sans); }
+.para.flash { background: var(--mark); }
+.ch-nav { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--rule); }
+.ch-count { font-size: 0.875rem; color: var(--ink-soft); }
+.ch-hint { margin: 1rem 0 0; text-align: center; font-size: 0.75rem; color: var(--ink-soft); }
+
 @media (max-width: 768px) {
-  .library-header { padding: 0 0.75rem; height: 52px; }
-  .library-body { flex-direction: column; overflow: hidden; }
-  .library-sidebar { width: 100%; flex: 0 0 auto; border-right: none; border-bottom: 1px solid var(--border); }
-  .book-tabs { display: flex; overflow-x: auto; scrollbar-width: none; }
-  .book-tab { flex: 0 0 auto; padding: 0.6rem 1rem; border-left: none; border-bottom: 3px solid transparent; }
-  .book-tab.active { border-bottom-color: var(--book-color); }
-  .book-sub { display: none; }
-  .chapter-nav { flex: 0 0 auto; }
-  .chapter-list { display: flex; overflow-x: auto; padding: 0.25rem 0; scrollbar-width: none; }
-  .chapter-item { flex: 0 0 auto; white-space: nowrap; padding: 0.5rem 0.75rem; border-left: none; border-bottom: 2px solid transparent; }
-  .chapter-item.active { border-bottom-color: var(--accent); }
-  .reader-container { flex: 1 1 auto; min-height: 0; }
-  .paper { padding: 1.5rem 1rem; }
-  :deep(h2) { margin-bottom: 1.5rem; }
+  .bar { gap: 0.4rem; }
+  .bar-pct { display: none; }
+  .bar-btn { padding: 0.35rem 0.55rem; font-size: 0.8125rem; }
+  .panel { top: auto; bottom: 0; right: 0; left: 0; width: auto; max-height: 70vh; border-left: 0; border-right: 0; }
+  .book-progress { width: 4rem; }
+  .ch-hint { display: none; }
+  .para { text-align: left; }
 }
 </style>

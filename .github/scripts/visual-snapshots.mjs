@@ -332,6 +332,29 @@ const STATES = [
       await page.waitForTimeout(8200)
     },
   },
+  {
+    // 原著阅读：导入一个 GBK 编码的 TXT，确认自动识别编码、分章、无乱码
+    name: 'desktop-reader-gbk-txt',
+    viewport: 'desktop',
+    slug: 'sector-library',
+    act: async (page) => {
+      await page.setInputFiles('input[type=file]', { name: '三体试读.txt', mimeType: 'text/plain', buffer: Buffer.from('yP3M5aOoytS2wdH5sb6jqQoKtdrSu9XCIL/G0aex373nCqGhoaHN9O21vvW1w6OswLTV0sv7tcTV4ry4uPbIy9PQ0Km5xbnWoaMKoaGhocv7w8fOysbwwcvSu7j2vdChsL/G0aex373nobG1xNGnyvXX6davo6zT1s7KxvDBy9fuvfzP4LzM19TJsbXEvLjOu87vwO3Rp7zSoaMKoaGhobSwzeK1xLPHytDU2s7t9rDW0Mj00v7I9M/WoaMKCrXatv7VwiDMqMfyCqGhoaG2odLHsNHEuMfysNrU2syow+bW0NHro6zT1rDRwe3Su9a7x/Kw2tTatrS/2rHfoaMKoaGhoaGwxOO/tKOszt7C29TayrLDtMqxvOShosqyw7S12LXj1/bV4rj2yrXR6aOsveG5+7a80rvR+aGjobEKoaGhoaGw1eLLtcP3zu/A7bnmwsnU2sqxvOS6zb/VvOTJz8rHvvnUyLXEoaOhsQo=', 'base64') })
+      await page.waitForSelector('.page .para', { timeout: 10000 })
+      await page.waitForTimeout(500)
+    },
+  },
+  {
+    // 原著阅读：导入一本最小 EPUB 3（nav 目录、实体、注音），手机视口，打开目录
+    name: 'mobile-reader-epub',
+    viewport: 'mobile',
+    slug: 'sector-library',
+    act: async (page) => {
+      await page.setInputFiles('input[type=file]', { name: '三体.epub', mimeType: 'application/epub+zip', buffer: Buffer.from('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', 'base64') })
+      await page.waitForSelector('.page .para', { timeout: 10000 })
+      await page.getByRole('button', { name: '目录与搜索' }).click()
+      await page.waitForTimeout(400)
+    },
+  },
 ]
 
 async function snapshotState(browser, state) {
