@@ -3,6 +3,17 @@
 > 目标：把 `backend/`（FastAPI）部署到公网，并把前端 `VITE_API_BASE` 指向它，
 > 让 Cloudflare Pages / GitHub Pages 上的站点具备真实 API。
 
+## 当前线上实例
+
+| 项 | 值 |
+|---|---|
+| 后端地址 | **https://threebody-api.onrender.com** |
+| 平台 | Render 免费 Web Service（Docker，Singapore） |
+| 健康检查 | `GET https://threebody-api.onrender.com/health` |
+| LLM | DeepSeek `deepseek-chat`（Key 存于 Render 环境变量，不入库） |
+| 前端接入 | `frontend/.env.production` 中 `VITE_API_BASE` |
+| 已知限制 | 15 分钟无访问休眠（冷启动 30–60s）；SQLite 临时存储，重启由种子脚本重建；未装 RAG |
+
 ---
 
 ## 1. 架构
