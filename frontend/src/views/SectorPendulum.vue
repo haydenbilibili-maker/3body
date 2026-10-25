@@ -22,7 +22,7 @@ const civ = ref<CivState>(createCiv())
 const today = ref<Env>(classify(flux(sys.value)))
 const prediction = ref<Env[]>(forecast(sys.value, FORECAST_DAYS, 0.1, 1))
 const history = ref<Env[]>([])
-const running = ref(true)
+const running = ref(false)
 const speed = ref(1)
 const trails: { x: number; y: number }[][] = [[], [], []]
 
@@ -55,7 +55,7 @@ function restart() {
   prediction.value = forecast(sys.value, FORECAST_DAYS, 0.1, 1)
   history.value = []
   trails.forEach((t) => (t.length = 0))
-  running.value = true
+  running.value = false
 }
 
 /* ---------- 画布：俯视三体系统 ---------- */
@@ -175,7 +175,7 @@ const targetHydrated = computed(() => (civ.value.pending ? civ.value.pending.to 
     <SectorHeader
       title="三体摆"
       subtitle="三颗太阳，一颗行星。没有任何历法能算准明天。"
-      goal="每天决定浸泡还是脱水：浸泡的文明才会发展，但遇上乱纪元就会毁灭。切换需要两天。发展到信息时代即可。"
+      goal="文明从脱水状态开始。每天决定浸泡还是脱水：浸泡才会发展，但遇上乱纪元就会毁灭。切换需要两天。发展到信息时代即可。"
       accent="#e7b46a"
       :show-restart="civ.day > 0"
       restart-label="换一片星空"
@@ -235,7 +235,9 @@ const targetHydrated = computed(() => (civ.value.pending ? civ.value.pending.to 
           </div>
 
           <div class="controls">
-            <button type="button" class="plain-btn" @click="running = !running">{{ running ? '暂停' : '继续' }}</button>
+            <button type="button" class="plain-btn" :class="{ primary: civ.day === 0 && !running }" @click="running = !running">
+              {{ running ? '暂停' : civ.day === 0 ? '开始第一天' : '继续' }}
+            </button>
             <button type="button" class="plain-btn" @click="speed = speed === 1 ? 3 : 1">{{ speed === 1 ? '加速' : '正常速度' }}</button>
           </div>
         </div>
@@ -355,6 +357,7 @@ const targetHydrated = computed(() => (civ.value.pending ? civ.value.pending.to 
   text-decoration: none;
 }
 .plain-btn:hover { border-color: var(--weathered); }
+.plain-btn.primary { border-color: var(--cherenkov); color: var(--cherenkov); }
 
 .below { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem; }
 .section-title { margin: 0 0 0.75rem; font-family: var(--font-serif); font-size: 1.0625rem; font-weight: 600; letter-spacing: 0.08em; color: var(--bone); }

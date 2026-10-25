@@ -25,7 +25,8 @@ export interface CivState {
 }
 
 export function createCiv(): CivState {
-  return { civ: FIRST_CIV, progress: 0, hydrated: true, pending: null, day: 0, fallen: [], won: false }
+  // 开局处于脱水状态：先观察天空，再决定何时浸泡
+  return { civ: FIRST_CIV, progress: 0, hydrated: false, pending: null, day: 0, fallen: [], won: false }
 }
 
 export function ageOf(progress: number): string {

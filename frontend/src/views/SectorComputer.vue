@@ -371,8 +371,8 @@ onUnmounted(() => {
 }
 .soldier, .formation { font: inherit; background: none; border: 0; cursor: pointer; padding: 0; }
 .flag {
-  width: 14px;
-  height: 22px;
+  width: 20px;
+  height: 30px;
   border-left: 2px solid var(--weathered);
   position: relative;
 }
@@ -380,9 +380,9 @@ onUnmounted(() => {
   content: '';
   position: absolute;
   left: 0;
-  top: 10px;
-  width: 11px;
-  height: 7px;
+  top: 14px;
+  width: 16px;
+  height: 10px;
   background: var(--incision);
   transition: top 0.25s, background 0.25s;
 }

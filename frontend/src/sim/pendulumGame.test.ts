@@ -4,7 +4,7 @@ import { advanceDay, classify, createSystem, flux, forecast } from './threeBody'
 
 describe('pendulum civilization', () => {
   it('grows only while hydrated in a stable era', () => {
-    let s = createCiv()
+    let s = { ...createCiv(), hydrated: true }
     s = liveDay(s, 'stable')
     expect(s.progress).toBe(GROWTH_PER_DAY)
     s = order(s, false)
@@ -16,7 +16,7 @@ describe('pendulum civilization', () => {
   })
 
   it('a hydrated civilization falls in chaos; a dehydrated one survives', () => {
-    let s = liveDay(createCiv(), 'heat')
+    let s = liveDay({ ...createCiv(), hydrated: true }, 'heat')
     expect(s.civ).toBe(FIRST_CIV + 1)
     expect(s.fallen[0].cause).toBe('heat')
     expect(s.hydrated).toBe(false)
@@ -25,17 +25,18 @@ describe('pendulum civilization', () => {
     expect(s.civ).toBe(before)
   })
 
-  it('switching takes time', () => {
-    let s = order(createCiv(), false)
-    s = liveDay(s, 'stable')
-    expect(s.hydrated).toBe(true)
-    expect(s.pending?.days).toBe(SWITCH_DAYS - 1)
+  it('starts dehydrated, and switching takes time', () => {
+    expect(createCiv().hydrated).toBe(false)
+    let s = order(createCiv(), true)
     s = liveDay(s, 'stable')
     expect(s.hydrated).toBe(false)
+    expect(s.pending?.days).toBe(SWITCH_DAYS - 1)
+    s = liveDay(s, 'stable')
+    expect(s.hydrated).toBe(true)
   })
 
   it('reaches the information age at full progress', () => {
-    let s = createCiv()
+    let s = { ...createCiv(), hydrated: true }
     while (!s.won) s = liveDay(s, 'stable')
     expect(ageOf(s.progress)).toBe(AGES[AGES.length - 1])
   })
