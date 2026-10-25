@@ -142,9 +142,9 @@ watch(activeTab, (newTab) => {
 
 // Swordholder Visuals
 const deterrenceColor = computed(() => {
-  if (deterrence.value > 80) return '#00ff41'
-  if (deterrence.value > 40) return '#ffcc00'
-  return '#ff3333'
+  if (deterrence.value > 80) return '#9fb39a'
+  if (deterrence.value > 40) return '#c9b48a'
+  return '#d2553f'
 })
 
 const stabilityPath = computed(() => {
@@ -328,9 +328,9 @@ function draw() {
       ctx.fillStyle = '#222'
     } else if (star.type === 'civ') {
        if (star.status === 'DYING') {
-         ctx.fillStyle = '#ffcc00'
+         ctx.fillStyle = '#c9b48a'
          ctx.shadowBlur = 20
-         ctx.shadowColor = '#ff0000'
+         ctx.shadowColor = '#d2553f'
        } else {
          // Civ Color based on aggressive/hiding
          ctx.fillStyle = star.aggressive ? '#ff5555' : '#00aaff'
@@ -384,7 +384,7 @@ function draw() {
     
     ctx.beginPath()
     ctx.arc(hx, hy, (hunter.scanRadius/100)*Math.min(w,h), 0, Math.PI * 2)
-    ctx.strokeStyle = 'rgba(0, 255, 255, 0.5)'
+    ctx.strokeStyle = 'rgba(125, 184, 255, 0.5)'
     ctx.lineWidth = 2
     ctx.stroke()
   }
@@ -1004,7 +1004,7 @@ const dfQuestion = sectorByPath('/sector-e')?.question
             <div class="reason">存活曲线（存活文明数 vs 纪元）</div>
             <svg viewBox="0 0 320 90" class="curve-svg">
               <path d="M0 89 L320 89" class="curve-axis" />
-              <path :d="survivalCurvePath" class="curve-line" fill="none" stroke="#00ff41" stroke-width="1.5" />
+              <path :d="survivalCurvePath" class="curve-line" fill="none" stroke="#9fb39a" stroke-width="1.5" />
             </svg>
           </div>
           <div class="summary-card">
@@ -1030,9 +1030,9 @@ const dfQuestion = sectorByPath('/sector-e')?.question
               <NButton size="tiny" ghost :type="eventFilter === 'ALL' ? 'primary' : 'default'" @click="eventFilter = 'ALL'">全部</NButton>
               <NButton size="tiny" ghost :type="eventFilter === 'STRIKE' ? 'error' : 'default'" @click="eventFilter = 'STRIKE'">打击</NButton>
               <NButton size="tiny" ghost :type="eventFilter === 'SYSTEM' ? 'warning' : 'default'" @click="eventFilter = 'SYSTEM'">系统</NButton>
-              <NButton size="tiny" ghost @click="exportEventStreamJson">导出JSON</NButton>
-              <NButton size="tiny" ghost @click="exportEventStreamCsv">导出CSV</NButton>
-              <NButton size="tiny" type="primary" ghost @click="exportFullPackage">导出完整包 (ZIP)</NButton>
+              <NButton size="tiny" ghost @click="exportEventStreamJson">导出 JSON</NButton>
+              <NButton size="tiny" ghost @click="exportEventStreamCsv">导出 CSV</NButton>
+              <NButton size="tiny" type="primary" ghost @click="exportFullPackage">导出完整包</NButton>
             </div>
             <div v-if="filteredEventStream.length === 0" class="reason">尚无流事件。</div>
             <div v-for="evt in filteredEventStream" :key="evt.id" class="stream-line">[{{ evt.at }}] {{ evt.text }}</div>
@@ -1396,9 +1396,9 @@ const dfQuestion = sectorByPath('/sector-e')?.question
 }
 
 .ticker-chip.strike {
-  color: #00ff88;
-  background: rgba(0, 255, 136, 0.08);
-  border: 1px solid rgba(0, 255, 136, 0.3);
+  color: #9fb39a;
+  background: rgba(159, 179, 154, 0.08);
+  border: 1px solid rgba(159, 179, 154, 0.3);
 }
 
 .ticker-chip.warn {
@@ -1547,7 +1547,7 @@ const dfQuestion = sectorByPath('/sector-e')?.question
   position: absolute;
   top: 0; bottom: 0; width: 2px;
   background: rgba(var(--cherenkov-rgb), 0.5);
-  box-shadow: 0 0 10px var(--c-cyan);
+  box-shadow: none;
   animation: scan 2s linear infinite;
 }
 
@@ -1758,7 +1758,7 @@ const dfQuestion = sectorByPath('/sector-e')?.question
   background: var(--gray-700);
   position: relative;
 }
-.line.active { background: var(--c-cyan); box-shadow: 0 0 10px var(--c-cyan); }
+.line.active { background: var(--c-cyan); box-shadow: none; }
 
 .distance-label {
   margin-top: 0.5rem;
@@ -1847,7 +1847,7 @@ const dfQuestion = sectorByPath('/sector-e')?.question
 .summary-card { border: 1px solid #1e2e2e; padding: 0.6rem; background: rgba(0, 10, 15, 0.3); border-radius: 4px; }
 .summary-pre { margin: 0; font-size: 0.8rem; white-space: pre-wrap; color: #b8d0d0; max-height: 120px; overflow: auto; }
 .worldline-map { position: relative; height: 180px; background: var(--gray-950); border: 1px solid var(--gray-800); border-radius: 4px; }
-.agent-dot { position: absolute; transform: translate(-50%, -50%); padding: 2px 6px; font-size: 0.75rem; background: rgba(0, 200, 100, 0.3); border: 1px solid #00cc88; border-radius: 2px; color: #00ff88; }
+.agent-dot { position: absolute; transform: translate(-50%, -50%); padding: 2px 6px; font-size: 0.75rem; background: rgba(0, 200, 100, 0.3); border: 1px solid #00cc88; border-radius: 2px; color: #9fb39a; }
 .agent-dot.dead { background: rgba(80, 80, 80, 0.5); border-color: var(--gray-600); color: var(--gray-400); }
 .worldline-panel .logs { border: 1px solid #1e2e2e; padding: 0.6rem; background: rgba(0, 10, 15, 0.2); border-radius: 4px; max-height: 200px; overflow-y: auto; }
 .log-item { margin-bottom: 0.5rem; font-size: 0.85rem; }

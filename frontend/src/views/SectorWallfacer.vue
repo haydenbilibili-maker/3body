@@ -148,9 +148,9 @@ function detonateDiaz() {
 // 3. Bill Hines: Mental Seal (思想钢印)
 // ==========================================
 const seals = [
-  { type: 'TRIUMPH', label: '胜利主义', desc: '人类必胜 (Humanity Prevails)', color: '#00ff41' },
+  { type: 'TRIUMPH', label: '胜利主义', desc: '人类必胜 (Humanity Prevails)', color: '#9fb39a' },
   { type: 'DEFEAT', label: '失败主义', desc: '人类必败 (Doomed to Fail)', color: '#888' },
-  { type: 'ADVENT', label: '降临派', desc: '主来拯救世人 (Lord Savior)', color: '#00ffff' },
+  { type: 'ADVENT', label: '降临派', desc: '主来拯救世人 (Lord Savior)', color: '#7db8ff' },
   { type: 'SURVIVE', label: '幸存派', desc: '活下去是唯一的道德 (Survival)', color: '#ffb000' }
 ]
 
@@ -620,9 +620,9 @@ function persistWallbreakerState() {
 }
 const suspicionStage = computed(() => {
   const score = suspicionScore.value
-  if (score >= 90) return { key: 'breach', label: '破壁', color: '#ff3333', desc: '你的计划已被识破' }
+  if (score >= 90) return { key: 'breach', label: '破壁', color: '#d2553f', desc: '你的计划已被识破' }
   if (score >= 70) return { key: 'danger', label: '危险', color: '#ff8844', desc: '破壁人已高度警觉' }
-  if (score >= 40) return { key: 'watch', label: '关注', color: '#ffcc00', desc: '智子正在分析模式' }
+  if (score >= 40) return { key: 'watch', label: '关注', color: '#c9b48a', desc: '智子正在分析模式' }
   return { key: 'safe', label: '安全', color: '#00cc88', desc: '指令尚未暴露意图' }
 })
 function resetWallfacerGame() {
@@ -911,7 +911,7 @@ onMounted(() => {
                 <NButton ghost type="primary" @click="deploySwarm" :disabled="tylerState.deployed">
                   部署宏原子
                 </NButton>
-                <NButton color="#ff0000" ghost @click="executeTylerPlan" :disabled="!tylerState.deployed || tylerState.targetStatus !== 'ACTIVE'">
+                <NButton color="#d2553f" ghost @click="executeTylerPlan" :disabled="!tylerState.deployed || tylerState.targetStatus !== 'ACTIVE'">
                   攻击
                 </NButton>
               </div>
@@ -959,7 +959,7 @@ onMounted(() => {
                   <NButton ghost type="warning" @click="placeBombs" :disabled="diazState.bombCount >= 1000">
                     埋设
                   </NButton>
-                  <NButton color="#ff0000" class="detonate-btn" @click="detonateDiaz" :disabled="diazState.detonated">
+                  <NButton color="#d2553f" class="detonate-btn" @click="detonateDiaz" :disabled="diazState.detonated">
                     引爆
                   </NButton>
                 </div>
@@ -1084,10 +1084,10 @@ onMounted(() => {
                       </div>
                       <div v-if="session.status === 'active'" class="chat-input">
                         <NInput v-model:value="input" placeholder="Type..." @keyup.enter="sendReply" size="small" />
-                        <NButton size="small" @click="sendReply">SEND</NButton>
+                        <NButton size="small" @click="sendReply">发送</NButton>
                       </div>
                       <div v-else class="chat-reset">
-                        <NButton size="small" dashed @click="session = null">NEW CYCLE</NButton>
+                        <NButton size="small" dashed @click="session = null">重新开始</NButton>
                       </div>
                     </div>
 
@@ -1224,7 +1224,7 @@ onMounted(() => {
               <NInput v-model:value="creationInput" placeholder="提交用户后续共创文本" @keyup.enter="submitCreation" />
               <NButton ghost @click="submitCreation">记录样本</NButton>
             </div>
-            <NProgress type="line" :percentage="infectionIndex" :color="infectionIndex > 45 ? '#ff3333' : '#00ff41'" />
+            <NProgress type="line" :percentage="infectionIndex" :color="infectionIndex > 45 ? '#d2553f' : '#9fb39a'" />
             <ModuleDiagPanel module-key="D" :status="diagD.status" :duration-ms="diagD.durationMs" :updated-at="diagD.updatedAt" :error="diagD.error" :history="diagHistD" />
             <div class="infection-grid">
               <div v-for="cell in infectionCells" :key="cell.id" class="infection-cell" :style="{ '--cell-opacity': `${Math.max(0.1, cell.level / 100)}` }"></div>
@@ -1362,7 +1362,7 @@ onMounted(() => {
   line-height: 1.6;
 }
 .wb-line { color: var(--gray-200); margin-bottom: 1rem; }
-.wb-line.reveal { color: #ffeb3b; font-weight: bold; text-shadow: 0 0 10px rgba(255, 235, 59, 0.3); }
+.wb-line.reveal { color: #ffeb3b; font-weight: bold; text-shadow: none; }
 
 .wb-actions { margin-top: auto; }
 
@@ -1447,7 +1447,7 @@ onMounted(() => {
   background: var(--c-red);
   border-radius: 50%;
   transform: translate(-50%, -50%);
-  box-shadow: 0 0 10px var(--c-red);
+  box-shadow: none;
 }
 .target-fleet.ghost {
   opacity: 0.3;
@@ -1487,7 +1487,7 @@ onMounted(() => {
   background: radial-gradient(circle, #ffeb3b, var(--c-red));
   border-radius: 50%;
   transform: translateY(-50%);
-  box-shadow: 0 0 50px #ff9800;
+  box-shadow: none;
   transition: all 2s;
 }
 .mercury {
@@ -1499,7 +1499,7 @@ onMounted(() => {
   transform: translateY(-50%);
   transition: all 2s;
 }
-.doomsday .sun { width: 300px; height: 300px; box-shadow: 0 0 100px var(--c-red); }
+.doomsday .sun { width: 300px; height: 300px; box-shadow: none; }
 .doomsday .mercury { left: 50px; opacity: 0; }
 .bomb-controls {
   display: flex;
@@ -1552,7 +1552,7 @@ onMounted(() => {
   position: absolute;
   top: 0; left: 0; right: 0; height: 2px;
   background: var(--c-sky);
-  box-shadow: 0 0 10px var(--c-sky);
+  box-shadow: none;
   animation: scan 2s linear infinite;
 }
 @keyframes scan { 0% { top: 0; } 100% { top: 100%; } }
@@ -1838,7 +1838,7 @@ onMounted(() => {
   border-radius: 4px;
 }
 .suspicion-gauge.gauge-danger { border-color: rgba(255, 80, 80, 0.4); animation: gauge-pulse 1.5s ease-in-out infinite; }
-@keyframes gauge-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(255, 80, 80, 0); } 50% { box-shadow: 0 0 12px 2px rgba(255, 80, 80, 0.2); } }
+@keyframes gauge-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(255, 80, 80, 0); } 50% { box-shadow: none; } }
 .gauge-header { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.4rem; }
 .gauge-label { font-family: var(--font-mono); font-size: 0.85rem; color: #8ab3b3; }
 .gauge-stage { font-weight: 700; font-size: 0.9rem; }

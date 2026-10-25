@@ -68,14 +68,14 @@ function getCategoryColor(cat: string): string {
     Civilization: 'var(--holo-red)',
     Technology: 'var(--holo-blue)',
     Weapon: '#ff6b6b',
-    Theory: '#fbbf24',
-    Phenomenon: '#fbbf24',
+    Theory: '#c9b48a',
+    Phenomenon: '#c9b48a',
     Cosmology: '#a78bfa',
     History: 'var(--holo-green)',
-    Character: '#22d3ee',
-    Location: '#4ade80',
+    Character: '#7db8ff',
+    Location: '#9fb39a',
     Organization: '#fb923c',
-    Culture: '#e879f9',
+    Culture: '#a99cc4',
     Biology: '#2dd4bf',
   }
   return colors[cat] ?? 'var(--text-muted)'
@@ -255,8 +255,8 @@ onMounted(loadEncyclopedia)
           <div class="seal-header">
             <h2 class="seal-title">{{ selectedEntry.term }}</h2>
             <div class="seal-meta">
-              <span>CATEGORY: {{ selectedEntry.category }}</span>
-              <span>INDEX: {{ selectedEntry.id.toUpperCase() }}</span>
+              <span>分类：{{ selectedEntry.category }}</span>
+              
             </div>
           </div>
           
@@ -273,7 +273,7 @@ onMounted(loadEncyclopedia)
 
           <div class="seal-footer">
             <button class="seal-close" @click="selectedEntry = null">断开连接</button>
-            <span class="seal-status">MENTAL SEAL IMPRINTING... 100%</span>
+            
           </div>
         </div>
       </div>
@@ -288,8 +288,8 @@ onMounted(loadEncyclopedia)
 /* Filter Styles */
 .wiki-filter { display: flex; gap: 1rem; margin-bottom: 2rem; border-bottom: 1px solid var(--border-tech); padding-bottom: 0.5rem; }
 .filter-tab { background: transparent; border: none; color: var(--text-muted); font-family: var(--font-tech); font-size: 0.8rem; padding: 0.5rem 1rem; cursor: pointer; transition: all 0.3s; position: relative; }
-.filter-tab.active { color: var(--holo-blue); text-shadow: 0 0 5px var(--holo-blue); }
-.filter-tab.active::after { content: ''; position: absolute; bottom: -0.6rem; left: 0; width: 100%; height: 2px; background: var(--holo-blue); box-shadow: 0 0 10px var(--holo-blue); }
+.filter-tab.active { color: var(--holo-blue); text-shadow: none; }
+.filter-tab.active::after { content: ''; position: absolute; bottom: -0.6rem; left: 0; width: 100%; height: 2px; background: var(--holo-blue); box-shadow: none; }
 
 /* Grid Styles */
 .wiki-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
@@ -312,7 +312,7 @@ onMounted(loadEncyclopedia)
 .seal-overlay { position: fixed; inset: 0; z-index: 200; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; }
 .seal-container { width: 90%; max-width: 600px; border: 1px solid var(--seal-color); background: rgba(5, 10, 20, 0.95); position: relative; padding: 2rem; box-shadow: 0 0 50px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(255, 255, 255, 0.05); }
 .seal-header { border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 1rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: flex-end; }
-.seal-title { font-family: var(--font-display); font-size: 2rem; color: var(--seal-color); margin: 0; text-shadow: 0 0 15px var(--seal-color); }
+.seal-title { font-family: var(--font-display); font-size: 2rem; color: var(--seal-color); margin: 0; text-shadow: none; }
 .seal-meta { display: flex; flex-direction: column; text-align: right; font-family: var(--font-tech); font-size: 0.75rem; color: var(--text-muted); gap: 0.3rem; }
 .seal-body { position: relative; margin-bottom: 2rem; }
 .seal-line-deco { position: absolute; left: -2rem; top: 0; bottom: 0; width: 2px; background: linear-gradient(180deg, var(--seal-color), transparent); }

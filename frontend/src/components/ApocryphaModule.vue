@@ -122,8 +122,8 @@ onMounted(loadItems)
   <div class="apocrypha-module">
     <div class="apocrypha-header">
       <div class="header-info">
-        <h2 class="module-title">APOCRYPHA // 三体外传</h2>
-        <span class="module-subtitle">同人 · COO 续写与细节展开 [{{ items.length }}]</span>
+        <h2 class="module-title">外传</h2>
+        <span class="module-subtitle">同人续写与细节展开 [{{ items.length }}]</span>
       </div>
     </div>
 
@@ -173,7 +173,7 @@ onMounted(loadItems)
             </div>
           </div>
           <div class="retina-footer">
-            <span>APOCRYPHA_LAYER // 非正典 · 基于三体世界观创作</span>
+            <span>非正典：基于三体世界观的创作</span>
           </div>
         </div>
       </div>
@@ -202,7 +202,7 @@ onMounted(loadItems)
   font-size: 1.2rem;
   letter-spacing: 0.1em;
   margin: 0;
-  text-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
+  text-shadow: none;
 }
 
 .module-subtitle {
@@ -224,7 +224,7 @@ onMounted(loadItems)
 
 .card-frame {
   background: rgba(2, 6, 23, 0.6);
-  border: 1px solid rgba(0, 255, 65, 0.25);
+  border: 1px solid rgba(159, 179, 154, 0.25);
   padding: 1rem;
   transition: all 0.3s ease;
   position: relative;
@@ -232,7 +232,7 @@ onMounted(loadItems)
 
 .apocrypha-card:hover .card-frame {
   border-color: var(--holo-green, var(--holo-green));
-  box-shadow: 0 0 20px rgba(0, 255, 65, 0.15);
+  box-shadow: none;
 }
 
 .card-badge {
@@ -245,9 +245,9 @@ onMounted(loadItems)
   font-family: var(--font-tech);
   font-size: 0.75rem;
   padding: 0.2rem 0.5rem;
-  background: rgba(0, 255, 65, 0.15);
+  background: rgba(159, 179, 154, 0.15);
   color: var(--holo-green, var(--holo-green));
-  border: 1px solid rgba(0, 255, 65, 0.4);
+  border: 1px solid rgba(159, 179, 154, 0.4);
 }
 
 .badge-author {
@@ -292,7 +292,7 @@ onMounted(loadItems)
 }
 
 .apocrypha-card:hover .card-action {
-  background: rgba(0, 255, 65, 0.2);
+  background: rgba(159, 179, 154, 0.2);
 }
 
 /* Retina overlay */
@@ -315,7 +315,7 @@ onMounted(loadItems)
   background: rgba(0, 20, 15, 0.85);
   position: relative;
   overflow: hidden;
-  box-shadow: 0 0 50px rgba(0, 255, 65, 0.1);
+  box-shadow: none;
   display: flex;
   flex-direction: column;
 }
@@ -326,7 +326,7 @@ onMounted(loadItems)
   left: 0;
   width: 100%;
   height: 8px;
-  background: rgba(0, 255, 65, 0.25);
+  background: rgba(159, 179, 154, 0.25);
   opacity: 0.6;
   animation: scan 4s linear infinite;
   pointer-events: none;
@@ -335,7 +335,7 @@ onMounted(loadItems)
 
 .retina-header {
   padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid rgba(0, 255, 65, 0.2);
+  border-bottom: 1px solid rgba(159, 179, 154, 0.2);
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -415,7 +415,7 @@ onMounted(loadItems)
 
 .retina-footer {
   padding: 0.6rem 1.5rem;
-  border-top: 1px solid rgba(0, 255, 65, 0.2);
+  border-top: 1px solid rgba(159, 179, 154, 0.2);
   font-family: var(--font-tech);
   font-size: 0.75rem;
   color: var(--text-muted);

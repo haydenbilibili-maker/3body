@@ -938,7 +938,7 @@ onMounted(() => {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  box-shadow: 0 0 8px currentColor;
+  box-shadow: none;
   z-index: 2;
 }
 .status-indicator.active, .status-indicator.alive { background: var(--holo-green); color: var(--holo-green); }
@@ -1310,7 +1310,7 @@ onMounted(() => {
 .dialogue-err-inline {
   margin: 0.5rem 0 0;
   font-size: 0.82rem;
-  color: #ff4444;
+  color: var(--rust-bright);
 }
 .dialogue-suggested {
   margin-top: 0.25rem;

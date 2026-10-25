@@ -497,6 +497,26 @@ const STATES = [
       await page.waitForTimeout(2200)
     },
   },
+  {
+    // 编年史：档案馆分册
+    name: 'desktop-chronicle-archive',
+    viewport: 'desktop',
+    slug: 'sector-b',
+    act: async (page) => {
+      await page.getByRole('button', { name: '档案馆', exact: true }).click({ timeout: 8000 })
+      await page.waitForTimeout(1200)
+    },
+  },
+  {
+    // 编年史：百科分册（手机）
+    name: 'mobile-chronicle-wiki',
+    viewport: 'mobile',
+    slug: 'sector-b',
+    act: async (page) => {
+      await page.getByRole('button', { name: '百科', exact: true }).click({ timeout: 8000 })
+      await page.waitForTimeout(1200)
+    },
+  },
 ]
 
 async function snapshotState(browser, state) {

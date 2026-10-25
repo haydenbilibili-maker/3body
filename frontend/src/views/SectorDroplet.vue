@@ -534,7 +534,7 @@ onMounted(() => {
 }
 
 .data-row { margin-bottom: 0.5rem; }
-.data-row.highlight .label { color: #00ff88; }
+.data-row.highlight .label { color: #9fb39a; }
 .label { opacity: 0.7; margin-right: 1rem; }
 .val { color: var(--c-cyan); }
 .reason { color: #8ab; font-size: 0.8rem; }
@@ -575,7 +575,7 @@ onMounted(() => {
   width: 6px; height: 6px;
   background: var(--white);
   border-radius: 50%;
-  box-shadow: 0 0 5px var(--white);
+  box-shadow: none;
   transition: all 0.2s;
 }
 
@@ -617,7 +617,7 @@ onMounted(() => {
   height: 200px;
   border-radius: 50%;
   background: radial-gradient(circle, var(--c-yellow), #ff8c00, #ff4500);
-  box-shadow: 0 0 50px #ff8c00;
+  box-shadow: none;
   z-index: 1;
 }
 
