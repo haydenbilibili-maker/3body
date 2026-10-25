@@ -5,7 +5,8 @@
  * 冥王星的石碑只刻得下五件事——历史是发生过的事，还是被记住的事？
  * 另有档案馆、百科、外传三个分册；条目管理沿用后端接口。风化逻辑见 sim/erosion.ts。
  */
-import { ref, onMounted, computed, reactive } from 'vue'
+import { ref, onMounted, computed, reactive, watch } from 'vue'
+import { recordAnswer } from '@/data/answers'
 import SectorHeader from '@/components/SectorHeader.vue'
 import { sectorByPath } from '@/data/sectors'
 import { CARVE_SLOTS, VANTAGES, erode, toggleCarve } from '@/sim/erosion'
@@ -179,6 +180,12 @@ const VIEWS: { id: DimensionView; name: string }[] = [
   { id: 'ENCYCLOPEDIA', name: '百科' },
   { id: 'APOCRYPHA', name: '外传' },
 ]
+
+/* ---------- 读者的档案 ---------- */
+watch(vantage, (v) => {
+  if (v !== VANTAGES.length - 1) return
+  recordAnswer('/sector-b', carvedEvents.value.length ? `刻进石碑：${carvedEvents.value.map((e) => e.title).join('、')}` : '什么都没有刻进石碑')
+})
 </script>
 
 <template>

@@ -6,7 +6,8 @@
  * 换成三体人的头脑：思维透明，想到即说出，没有盲区。
  * 逻辑见 sim/blind.ts。
  */
-import { computed, nextTick, ref } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
+import { recordAnswer } from '@/data/answers'
 import SectorHeader from '@/components/SectorHeader.vue'
 import Vitrine from '@/components/Vitrine.vue'
 import { sectorByPath } from '@/data/sectors'
@@ -51,6 +52,14 @@ function restart() {
   mind.value = 'human'
   channel.value = 'think'
 }
+
+/* ---------- 读者的档案 ---------- */
+watch(
+  () => thoughts.value.length,
+  (n) => {
+    if (n >= 3) recordAnswer('/sector-blind', `智子看见了 ${counts.value.seen} 个念头，只有自己知道 ${counts.value.hidden} 个`)
+  },
+)
 </script>
 
 <template>

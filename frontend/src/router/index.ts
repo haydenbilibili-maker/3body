@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { recordVisit } from '@/data/answers'
 import { markStarterVisited } from '@/utils/starterRoute'
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -165,6 +166,24 @@ const router = createRouter({
       component: () => import('@/views/CosmicGuestbook.vue'),
       meta: { title: '宇宙留言簿', sector: 'guestbook' },
     },
+    {
+      path: '/sector-guzheng',
+      name: 'sector-guzheng',
+      component: () => import('@/views/SectorGuzheng.vue'),
+      meta: { title: '古筝计划', sector: 'guzheng' },
+    },
+    {
+      path: '/sector-sleep',
+      name: 'sector-sleep',
+      component: () => import('@/views/SectorHibernation.vue'),
+      meta: { title: '冬眠者', sector: 'sleep' },
+    },
+    {
+      path: '/sector-ledger',
+      name: 'sector-ledger',
+      component: () => import('@/views/SectorLedger.vue'),
+      meta: { title: '读者的档案', sector: 'ledger' },
+    },
     { path: '/figures', redirect: '/sector-p' },
     { path: '/sophon', redirect: '/sector-a' },
     { path: '/chronicle', redirect: '/sector-b' },
@@ -181,6 +200,7 @@ router.beforeEach((_to, _from, next) => {
 
 router.afterEach((to) => {
   markStarterVisited(to.path)
+  if (to.path.startsWith('/sector-')) recordVisit(to.path)
   const title = (to.meta?.title as string) || '3body'
   document.title = `${title} — 3Body X`
 })

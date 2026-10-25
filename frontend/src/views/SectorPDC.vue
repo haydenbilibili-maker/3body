@@ -5,7 +5,8 @@
  * 末日战役里，一个水滴摧毁了几乎整支舰队——然后回头看，每一代人为它付出了什么。
  * 逻辑见 sim/pdc.ts。
  */
-import { computed, onUnmounted, ref } from 'vue'
+import { computed, onUnmounted, ref, watch } from 'vue'
+import { recordAnswer } from '@/data/answers'
 import { NSlider } from 'naive-ui'
 import SectorHeader from '@/components/SectorHeader.vue'
 import Vitrine from '@/components/Vitrine.vue'
@@ -55,6 +56,11 @@ function restart() {
   battle.value = 'idle'
 }
 onUnmounted(() => clearInterval(timer))
+
+/* ---------- 读者的档案 ---------- */
+watch(battle, (b) => {
+  if (b === 'after') recordAnswer('/sector-pdc', `${hardTerms.value} 代人为舰队过紧日子；末日战役后逃出 ${result.value.escaped} 艘`)
+})
 </script>
 
 <template>

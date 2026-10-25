@@ -5,7 +5,8 @@
  * 字刻得越大保存得越久，能写下的就越少。选字号、写留言、按住刻下，再拖动时间看它风化。
  * 逻辑见 sim/stone.ts。
  */
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { recordAnswer } from '@/data/answers'
 import SectorHeader from '@/components/SectorHeader.vue'
 import Vitrine from '@/components/Vitrine.vue'
 import HoldButton from '@/components/HoldButton.vue'
@@ -42,6 +43,11 @@ function life(y: number) {
   if (y >= 1e4) return `约 ${y / 1e4} 万年`
   return `约 ${y} 年`
 }
+
+/* ---------- 读者的档案 ---------- */
+watch(carved, (c) => {
+  if (c) recordAnswer('/sector-tomb', `用「${SIZES[c.size].name}」刻下：${c.text}`)
+})
 </script>
 
 <template>

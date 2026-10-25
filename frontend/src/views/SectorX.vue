@@ -6,7 +6,8 @@
  * 你看得到总质量和谁已经归还，却永远看不到别人在想什么。
  * 逻辑见 sim/returners.ts。
  */
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { recordAnswer } from '@/data/answers'
 import SectorHeader from '@/components/SectorHeader.vue'
 import Vitrine from '@/components/Vitrine.vue'
 import HoldButton from '@/components/HoldButton.vue'
@@ -63,6 +64,13 @@ function restart() {
   state.value = createReturn(Math.floor(Math.random() * 1e6))
   lastNews.value = ''
 }
+
+/* ---------- 读者的档案 ---------- */
+watch(finished, (f) => {
+  if (!f) return
+  const mine = you.value.returned ? (you.value.bottle ? '归还了质量，留下一只漂流瓶' : '归还了全部质量') : '没有归还质量'
+  recordAnswer('/sector-x', `${mine}；宇宙${end.value?.title === '重启' ? '重启了' : '没有重启'}`)
+})
 </script>
 
 <template>

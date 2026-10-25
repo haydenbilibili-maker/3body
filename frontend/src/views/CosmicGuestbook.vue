@@ -6,7 +6,8 @@
  * 在一座黑暗森林里，每一次发声也都是一次暴露。
  * 逻辑见 sim/signal.ts；留言只保存在本机浏览器里。
  */
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { recordAnswer } from '@/data/answers'
 import SectorHeader from '@/components/SectorHeader.vue'
 import Vitrine from '@/components/Vitrine.vue'
 import HoldButton from '@/components/HoldButton.vue'
@@ -65,6 +66,14 @@ function when(s: Signal) {
   const d = new Date(s.sentAt)
   return s.id < 0 ? `${d.getUTCFullYear()} 年发出` : `${d.toLocaleDateString('zh-CN')} ${d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })} 发出`
 }
+
+/* ---------- 读者的档案 ---------- */
+watch(
+  () => mine.value.length,
+  (n) => {
+    if (n) recordAnswer('/sector-guestbook', `向宇宙发出了 ${sent.value} 条信号，${silent.value} 条只留在留言簿里`)
+  },
+)
 </script>
 
 <template>

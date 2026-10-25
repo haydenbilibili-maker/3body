@@ -5,6 +5,7 @@
  * 逻辑见 sim/miniUniverse.ts。
  */
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
+import { recordAnswer } from '@/data/answers'
 import { NSlider } from 'naive-ui'
 import SectorHeader from '@/components/SectorHeader.vue'
 import HoldButton from '@/components/HoldButton.vue'
@@ -254,6 +255,12 @@ onUnmounted(() => {
   clearInterval(eternityTimer)
   cancelAnimationFrame(rebootRaf)
   soundManager.stopAmbient()
+})
+
+/* ---------- 读者的档案 ---------- */
+watch(phase, (p) => {
+  if (p === 'reboot') recordAnswer('/sector-u', `归还了质量，给新宇宙留下 ${mass.value.toFixed(1)} 公斤`)
+  else if (p === 'eternity') recordAnswer('/sector-u', '留在了 647 号小宇宙里')
 })
 </script>
 

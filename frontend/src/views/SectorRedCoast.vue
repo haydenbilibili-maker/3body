@@ -6,7 +6,8 @@
  * 第三幕 回答：收到「不要回答」，由你决定
  * 逻辑与文本见 sim/redCoast.ts。
  */
-import { computed, onUnmounted, reactive, ref } from 'vue'
+import { computed, onUnmounted, reactive, ref, watch } from 'vue'
+import { recordAnswer } from '@/data/answers'
 import { NSlider, NSwitch } from 'naive-ui'
 import SectorHeader from '@/components/SectorHeader.vue'
 import Vitrine from '@/components/Vitrine.vue'
@@ -133,6 +134,13 @@ const ACTS = [
 const actIndex = computed(() =>
   phase.value === 'calibrate' || phase.value === 'faded' ? 0 : phase.value === 'travel' ? 1 : 2,
 )
+
+/* ---------- 读者的档案 ---------- */
+watch(phase, (p) => {
+  if (p === 'answered') recordAnswer('/sector-r', '收到「不要回答」之后，回答了三体世界')
+  else if (p === 'silent') recordAnswer('/sector-r', '收到「不要回答」之后，保持了沉默')
+  else if (p === 'faded') recordAnswer('/sector-r', '信号没能发出去')
+})
 </script>
 
 <template>

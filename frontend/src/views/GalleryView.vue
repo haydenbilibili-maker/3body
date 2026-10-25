@@ -5,7 +5,8 @@
  * 然后是冥王星上看到的那一幕：太阳系变成了一幅画。
  * 逻辑见 sim/flatten.ts。
  */
-import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { recordAnswer } from '@/data/answers'
 import SectorHeader from '@/components/SectorHeader.vue'
 import Vitrine from '@/components/Vitrine.vue'
 import HoldButton from '@/components/HoldButton.vue'
@@ -138,6 +139,11 @@ onUnmounted(() => clearTimeout(doneTimer))
 function nameOf(id: SpecimenId | 'upload') {
   return id === 'upload' ? '你的图像' : (SPECIMENS.find((s) => s.id === id)?.name ?? '')
 }
+
+/* ---------- 读者的档案 ---------- */
+watch(done, (d) => {
+  if (d) recordAnswer('/sector-d', `让${nameOf(specimen.value)}跌入了二维`)
+})
 </script>
 
 <template>

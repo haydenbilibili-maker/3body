@@ -8,7 +8,8 @@
  *   航迹在远处拖得太长，就成了给猎人看的路标。
  * 逻辑见 sim/curvature.ts。
  */
-import { computed, onMounted, onUnmounted, ref, shallowRef } from 'vue'
+import { computed, onMounted, onUnmounted, ref, shallowRef, watch } from 'vue'
+import { recordAnswer } from '@/data/answers'
 import SectorHeader from '@/components/SectorHeader.vue'
 import Vitrine from '@/components/Vitrine.vue'
 import { sectorByPath } from '@/data/sectors'
@@ -187,6 +188,11 @@ function draw() {
 const speedPct = computed(() => Math.round((speedOf(flight.value.ship) / MAX_SPEED) * 100))
 const wrapPct = computed(() => Math.round(coverage(flight.value.trail) * 100))
 const seenPct = computed(() => Math.round((flight.value.exposure / EXPOSE_LIMIT) * 100))
+
+/* ---------- 读者的档案 ---------- */
+watch(ending, (e) => {
+  if (e) recordAnswer('/sector-l', `曲率航行的结局：${ENDINGS[e].title}`)
+})
 </script>
 
 <template>
