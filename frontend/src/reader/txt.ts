@@ -13,7 +13,7 @@ import type { Book, Chapter } from './types'
 const CN_NUM = '0-9０-９零〇一二两三四五六七八九十百千万'
 const HEADING = new RegExp(
   [
-    `^第[${CN_NUM}]+[章节回卷部篇集幕](?:[\\s　:：、.·\\-—]+.{0,30})?$`,
+    `^第[${CN_NUM}]+[章节回卷部篇集幕](?:[\\s　:：、.·\\-—]+.{0,30}|[^\\s　]{1,20})?$`,
     `^(?:序章|序言|序幕|序|楔子|引子|前言|尾声|后记|後記|终章|終章|番外)(?:[\\s　:：、.·\\-—]+.{0,30})?$`,
     `^(?:卷[${CN_NUM}]+|[上中下]部)(?:[\\s　:：、.·\\-—]+.{0,30})?$`,
     `^(?:chapter|part)\\s+[0-9ivxlc]+(?:[\\s:.\\-—]+.{0,40})?$`,
@@ -24,8 +24,9 @@ const HEADING = new RegExp(
 export function isHeading(line: string): boolean {
   const t = line.trim()
   if (!t || t.length > 40) return false
-  // 以句号、问号等收尾的多半是正文里的句子，而不是标题
+  // 以句号、问号等收尾的多半是正文里的句子，而不是标题；紧贴「第X章」的标题里也不该出现逗号句号
   if (/[。！？!?，,；;]$/.test(t)) return false
+  if (/^第[^\s　]+[章节回卷部篇集幕][^\s　:：、.·\-—]/.test(t) && /[，。,]/.test(t)) return false
   return HEADING.test(t)
 }
 
@@ -68,7 +69,9 @@ export function parseTxt(text: string, fileName: string): Book {
   let chapters: Chapter[] = []
   if (headingIdx.length >= 2) {
     const before = paragraphsOf(lines.slice(0, headingIdx[0]))
-    if (before.length) chapters.push({ title: '卷首', paragraphs: before })
+    // 卷首只有书名、作者这类寥寥几行时不单独成章，打开书直接从第一章开始
+    const trivial = before.length <= 3 && before.join('').length <= 60
+    if (before.length && !trivial) chapters.push({ title: '卷首', paragraphs: before })
     headingIdx.forEach((start, k) => {
       const end = k + 1 < headingIdx.length ? headingIdx[k + 1] : lines.length
       chapters.push({ title: cleanLine(lines[start]), paragraphs: paragraphsOf(lines.slice(start + 1, end)) })

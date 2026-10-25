@@ -10,17 +10,23 @@ const bytes = (b64: string) => Uint8Array.from(atob(b64), (c) => c.charCodeAt(0)
 
 describe('txt chapters', () => {
   it('recognises common Chinese chapter headings', () => {
-    for (const h of ['第一章 疯狂年代', '第12章', '第三十一节　古筝行动', '序章 褐蚁之墓', '尾声', '第一部 面壁者', '卷三', 'Chapter 4', '后记'])
+    for (const h of ['第一章 疯狂年代', '第一章疯狂年代', '第12章', '第三十一节　古筝行动', '序章 褐蚁之墓', '尾声', '第一部 面壁者', '卷三', 'Chapter 4', '后记'])
       expect(isHeading(h)).toBe(true)
-    for (const n of ['第一章就这样结束了，他想。', '这是第一章。', '序列号很长', '他说：“第一。”'])
+    for (const n of ['第一章就这样结束了，他想。', '第一章写完了，他想', '这是第一章。', '序列号很长', '他说：“第一。”'])
       expect(isHeading(n)).toBe(false)
   })
 
-  it('splits by headings and keeps text before the first one', () => {
+  it('splits by headings and drops a trivial title page', () => {
     const book = parseTxt('三体\n作者\n\n第一章 疯狂年代\n　　中国，1967年。\n\n第二章 寂静的春天\n两年以后。\n', '三体.txt')
     expect(book.title).toBe('三体')
-    expect(book.chapters.map((c) => c.title)).toEqual(['卷首', '第一章 疯狂年代', '第二章 寂静的春天'])
-    expect(book.chapters[1].paragraphs).toEqual(['中国，1967年。'])
+    expect(book.chapters.map((c) => c.title)).toEqual(['第一章 疯狂年代', '第二章 寂静的春天'])
+    expect(book.chapters[0].paragraphs).toEqual(['中国，1967年。'])
+  })
+
+  it('keeps a substantial preface as its own chapter', () => {
+    const preface = Array.from({ length: 5 }, (_, i) => `这是一段很长的前言文字，第 ${i} 段，讲述了成书的经过。`).join('\n')
+    const book = parseTxt(`${preface}\n第一章 甲\n正文\n第二章 乙\n正文\n`, 'x.txt')
+    expect(book.chapters[0].title).toBe('卷首')
   })
 
   it('drops empty table-of-contents headings', () => {
