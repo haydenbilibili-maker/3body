@@ -25,17 +25,6 @@ uniform vec2 uRes; uniform float uTime; uniform vec2 uRot; uniform float uGo;
 
 float hash(vec3 p){ p = fract(p * 0.3183099 + 0.1); p *= 17.0; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }
 
-float sdRoundCone(vec3 p, vec3 a, vec3 b, float r1, float r2){
-  vec3 ba = b - a; float l2 = dot(ba, ba); float rr = r1 - r2;
-  float a2 = l2 - rr * rr; float il2 = 1.0 / l2;
-  vec3 pa = p - a; float y = dot(pa, ba); float z = y - l2;
-  vec3 xv = pa * l2 - ba * y; float x2 = dot(xv, xv);
-  float y2 = y * y * l2; float z2 = z * z * l2;
-  float k = sign(rr) * rr * rr * x2;
-  if (sign(z) * a2 * z2 > k) return sqrt(x2 + z2) * il2 - r2;
-  if (sign(y) * a2 * y2 < k) return sqrt(x2 + y2) * il2 - r1;
-  return (sqrt(x2 * a2 * il2) + y * rr) * il2 - r1;
-}
 
 mat3 rotY(float a){ float c = cos(a), s = sin(a); return mat3(c, 0.0, -s, 0.0, 1.0, 0.0, s, 0.0, c); }
 mat3 rotX(float a){ float c = cos(a), s = sin(a); return mat3(1.0, 0.0, 0.0, 0.0, c, s, 0.0, -s, c); }
@@ -44,7 +33,15 @@ float map(vec3 p){
   // 加速时沿 x 方向离去
   p.x -= uGo * uGo * 14.0;
   p = rotX(uRot.y) * rotY(uRot.x) * p;
-  return sdRoundCone(p, vec3(0.35, 0.0, 0.0), vec3(-1.25, 0.0, 0.0), 0.62, 0.015);
+  // 圆润的头部 + 弧线收拢的尾部（不是直线圆锥），像一滴水银
+  const float R = 0.62;
+  const float L = 1.55;
+  if (p.x > 0.0) return length(p) - R;
+  float k = clamp(-p.x / L, 0.0, 1.0);
+  float r = R * pow(1.0 - k, 1.7) * (1.0 + 0.35 * k * (1.0 - k));
+  float d = length(p.yz) - r;
+  if (-p.x > L) d = length(p + vec3(L, 0.0, 0.0));
+  return d * 0.55;
 }
 
 vec3 env(vec3 d){
@@ -67,7 +64,7 @@ void main(){
   vec3 ro = vec3(0.0, 0.0, 3.4);
   vec3 rd = normalize(vec3(uv, -1.6));
   float t = 0.0; float d = 0.0; bool hit = false;
-  for (int i = 0; i < 90; i++) {
+  for (int i = 0; i < 140; i++) {
     d = map(ro + rd * t);
     if (d < 0.0008) { hit = true; break; }
     t += d;

@@ -52,7 +52,7 @@ function draw() {
   const ctx = canvas.value?.getContext('2d')
   if (!ctx) return
   // 渐隐：轨迹慢慢沉进黑暗里
-  ctx.fillStyle = 'rgba(13, 14, 16, 0.06)'
+  ctx.fillStyle = 'rgba(13, 14, 16, 0.035)'
   ctx.fillRect(0, 0, W, H)
   for (let i = 0; i < field.suns.length; i++) {
     const s = field.suns[i]
