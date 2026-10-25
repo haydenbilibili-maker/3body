@@ -702,6 +702,23 @@ const STATES = [
     },
   },
   {
+    // 人物志 · 对谈：程心与维德谈光速飞船，两轮之后由访客判断
+    name: 'mobile-figures-debate',
+    viewport: 'mobile',
+    slug: 'sector-p',
+    act: async (page) => {
+      await page.getByRole('button', { name: '对谈' }).click({ timeout: 10000 })
+      await page.getByRole('button', { name: '请他们开始' }).click()
+      await page.getByRole('button', { name: '请他们接着说' }).waitFor({ timeout: 20000 })
+      await page.waitForFunction(() => !document.querySelector('.go:disabled'), null, { timeout: 20000 })
+      await page.locator('#debate-input').fill('如果只能救一部分人呢？')
+      await page.getByRole('button', { name: '请他们接着说' }).click()
+      await page.locator('.judge').waitFor({ timeout: 20000 })
+      await page.locator('.judge').scrollIntoViewIfNeeded()
+      await page.waitForTimeout(400)
+    },
+  },
+  {
     // 归零者：第一轮就归还全部质量（键盘确认），然后听完剩下的广播
     name: 'desktop-returners-end',
     viewport: 'desktop',

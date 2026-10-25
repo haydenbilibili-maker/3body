@@ -15,6 +15,7 @@ import { figureImageUrl } from '@/utils/imageFallback'
 import { hasDialogue, getDialogueSet } from '@/data/figureDialogues'
 import { useLlmConfigStore } from '@/stores/llmConfig'
 import FigureTalk from '@/components/FigureTalk.vue'
+import FigureDebate from '@/components/FigureDebate.vue'
 
 const figures = ref<Figure[]>([])
 const loading = ref(true)
@@ -31,7 +32,7 @@ const dialogueInput = ref('')
 const dialogueListRef = ref<HTMLElement | null>(null)
 const llmConfig = useLlmConfigStore()
 /** 子模块：'list' 档案列表 | 'graph' 关系星图 */
-const subModule = ref<'list' | 'graph' | 'choices'>('list')
+const subModule = ref<'list' | 'graph' | 'choices' | 'debate'>('list')
 const question = sectorByPath('/sector-p')?.question
 
 /** 一个人的选择：所有人物的关键决策，按出场顺序排成一列；后果要自己翻开 */
@@ -325,6 +326,7 @@ onMounted(() => {
         <button type="button" :class="{ on: subModule === 'list' }" :aria-pressed="subModule === 'list'" @click="subModule = 'list'">档案</button>
         <button type="button" :class="{ on: subModule === 'graph' }" :aria-pressed="subModule === 'graph'" @click="subModule = 'graph'">关系星图</button>
         <button type="button" :class="{ on: subModule === 'choices' }" :aria-pressed="subModule === 'choices'" @click="subModule = 'choices'">一个人的选择</button>
+        <button type="button" :class="{ on: subModule === 'debate' }" :aria-pressed="subModule === 'debate'" @click="subModule = 'debate'">对谈</button>
       </nav>
       <div v-if="subModule === 'list'" class="fig-filter">
         <NInput v-model:value="searchQuery" placeholder="按姓名查找" clearable class="fig-search" />
@@ -350,6 +352,9 @@ onMounted(() => {
             <h2>暂无档案记录</h2>
       <p>智子档案库未同步或当前筛选无匹配人物。请检查后端服务或切换筛选条件。</p>
     </div>
+
+    <!-- 对谈：两个人，一个问题 -->
+    <FigureDebate v-else-if="subModule === 'debate'" />
 
     <!-- 一个人的选择 -->
     <section v-else-if="subModule === 'choices'" class="choices">

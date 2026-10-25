@@ -4,6 +4,8 @@
  * - 时刻：人物在哪里、此刻知道什么；人物先开口
  * - 心防：三个话题，每碰到一个松一格；三格全开，人物会说出心里藏着的那件事
  * - 记忆：每个场景的谈话保存在本机，下次回来接着说
+ * - 记得你：访客在相关展厅里的选择会告诉人物（data/figureMemory.ts）
+ * - 说话的节奏：回答按说话的速度出现，遇到动作和句号会停一停
  * - 没有后端时，用档案里的录音（预设问答与场景台词）兜底
  * 场景数据见 data/figureScenes.ts；人设提示词由后端按场景组织（backend/routers/chat.py）。
  */
@@ -12,7 +14,8 @@ import { streamFigureChat } from '@/api/figureChat'
 import { useLlmConfigStore } from '@/stores/llmConfig'
 import { getDialogueSet, hasDialogue } from '@/data/figureDialogues'
 import { scenesOf, splitStage, touchedKeys, type FigureScene } from '@/data/figureScenes'
-import { recordAnswer } from '@/data/answers'
+import { answers, recordAnswer } from '@/data/answers'
+import { followUpsFor, visitorFor } from '@/data/figureMemory'
 
 interface FigureLike {
   name: string
@@ -72,7 +75,44 @@ const revealed = ref<string[]>(loadRevealed())
 const sceneRevealed = computed(() => revealed.value.includes(sceneId.value))
 
 const asked = computed(() => new Set(userLines.value))
-const suggestions = computed(() => (scene.value ? scene.value.questions.filter((q) => !asked.value.has(q)) : []))
+const visitor = computed(() => visitorFor(props.figure.name, answers.value))
+const lastReply = computed(() => {
+  const m = [...messages.value].reverse().find((x) => x.role === 'figure')
+  return m?.content ?? ''
+})
+/** 追问在前（跟着他刚说的话），场景问题在后 */
+const suggestions = computed(() => {
+  if (!scene.value) return []
+  const base = scene.value.questions.filter((q) => !asked.value.has(q))
+  if (!messages.value.length) return base
+  return [...followUpsFor(lastReply.value, asked.value), ...base.slice(0, 2)]
+})
+
+/* ---------- 说话的节奏 ---------- */
+const reduced = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+let pending = ''
+let pumping: Promise<void> | null = null
+function pump(onText: (t: string) => void): Promise<void> {
+  if (pumping) return pumping
+  pumping = new Promise<void>((resolve) => {
+    const step = () => {
+      if (!pending) {
+        pumping = null
+        resolve()
+        return
+      }
+      // 每拍放出两个字；句号、问号、动作结束时停一停
+      const take = reduced ? pending.length : 2
+      const out = pending.slice(0, take)
+      pending = pending.slice(take)
+      onText(out)
+      const pause = /[。？！）]$/.test(out) ? 420 : 45
+      setTimeout(step, reduced ? 0 : pause)
+    }
+    step()
+  })
+  return pumping
+}
 
 function scrollDown() {
   nextTick(() => {
@@ -109,6 +149,8 @@ async function send(text: string) {
   setMessages([...list, reply])
   loading.value = true
   let failed = false
+  let raw = ''
+  let queued = 0
   await streamFigureChat(
     {
       figure_name: props.figure.name,
@@ -124,24 +166,44 @@ async function send(text: string) {
         mood: s.mood,
         secret: s.secret,
         reveal: willOpen,
+        visitor: visitor.value,
       },
       ...llmConfig.requestOverrides,
     },
     (chunk) => {
-      reply.content += chunk
-      setMessages([...list, { ...reply }])
-      scrollDown()
+      raw += chunk
+      // 「[智子]……」是后端在模型没接通时流回来的错误文案：不显示，稍后换成档案录音；
+      // 还看不出是不是它的时候先攒着，看清楚之后再一起放出来
+      const t = raw.trimStart()
+      if (t.startsWith('[智子]') || (t.length < 4 && '[智子]'.startsWith(t))) return
+      pending += raw.slice(queued)
+      queued = raw.length
+      void pump((t) => {
+        reply.content += t
+        setMessages([...list, { ...reply }])
+        scrollDown()
+      })
     },
     () => {
       failed = true
     },
   )
+  // 流结束时还攒着、但不是错误文案的那几个字，也放出来
+  if (!raw.trimStart().startsWith('[智子]') && queued < raw.length) {
+    pending += raw.slice(queued)
+    queued = raw.length
+    void pump((t) => {
+      reply.content += t
+      setMessages([...list, { ...reply }])
+    })
+  }
+  if (pumping) await pumping
   // 后端接通了、模型没有接通时，后端会把「[智子]……」这样的错误文案当作回答流回来
-  if (reply.content.trimStart().startsWith('[智子]')) {
-    offlineReason.value = reply.content.replace(/^\s*\[智子\]\s*/, '')
+  if (raw.trimStart().startsWith('[智子]')) {
+    offlineReason.value = raw.replace(/^\s*\[智子\]\s*/, '').replace(/[。.]\s*$/, '')
     failed = true
   }
-  if (failed || !reply.content.trim()) {
+  if (failed || !raw.trim()) {
     offline.value = true
     const k = list.filter((m) => m.role === 'user').length - 1
     const content = willOpen && !sceneRevealed.value ? `（沉默了很久，终于开口。）${s.secret}` : offlineReply(q, k)
@@ -214,6 +276,11 @@ onUnmounted(() => window.removeEventListener('keydown', onKey))
           <p class="guard-note">
             {{ sceneRevealed ? '他已经对你说出了心里藏着的事。' : open ? '心防打开了。再问一句。' : '他心里藏着一件事。问到对的话题，他会慢慢松口。' }}
           </p>
+        </template>
+
+        <template v-if="visitor">
+          <p class="side-label">他听说过你</p>
+          <p class="heard">{{ visitor }}</p>
         </template>
 
         <details class="conn">
@@ -295,6 +362,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey))
 .guard li.on { color: var(--bone); }
 .guard li.on .g-notch { background: var(--cherenkov); }
 .guard-note { margin: 0.2rem 0 0; font-family: var(--font-serif); font-size: 0.875rem; line-height: 1.7; color: var(--gray-150); }
+.heard { margin: 0; font-size: 0.8125rem; line-height: 1.7; color: var(--gray-150); }
 .conn { margin-top: auto; padding-top: 1rem; font-size: 0.8125rem; color: var(--weathered); }
 .conn summary { cursor: pointer; }
 .conn p { line-height: 1.6; }
