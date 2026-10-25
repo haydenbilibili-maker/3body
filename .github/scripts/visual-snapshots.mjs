@@ -202,11 +202,12 @@ async function snapshotRoute(browser, viewport, [slug, title]) {
 }
 
 // 交互态快照：只靠逐页截图看不到的界面（下拉菜单、手机抽屉）。每项：视口、页面、操作、截图名
+// 导航相关的交互态放在编年史页：首页的 Three.js 背景在 CI 的软件渲染下偶尔让主线程卡住数十秒
 const STATES = [
   {
     name: 'desktop-nav-dropdown',
     viewport: 'desktop',
-    slug: 'sector-c',
+    slug: 'sector-b',
     act: async (page) => {
       const group = page.locator('.nav-group').nth(1)
       try {
@@ -239,7 +240,7 @@ const STATES = [
   {
     name: 'mobile-nav-drawer',
     viewport: 'mobile',
-    slug: 'sector-c',
+    slug: 'sector-b',
     act: async (page) => {
       await page.click('.nav-hamburger')
       await page.waitForTimeout(600)
@@ -248,7 +249,7 @@ const STATES = [
   {
     name: 'mobile-nav-drawer-scrolled',
     viewport: 'mobile',
-    slug: 'sector-c',
+    slug: 'sector-b',
     act: async (page) => {
       await page.click('.nav-hamburger')
       await page.waitForTimeout(400)

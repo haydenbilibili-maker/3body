@@ -121,9 +121,11 @@ function draw(now: number) {
   }
 
   // 两个文明与它们之间的消息
-  const y = H * 0.8
-  const ax = W * 0.14
-  const bx = W * 0.86
+  // 桌面：放在文字列与刻度之间的空白处；窄屏：放在页面最底部，避开文字
+  const narrow = W / dpr < 900
+  const y = narrow ? H - 28 * dpr : H * 0.74
+  const ax = narrow ? W * 0.1 : W * 0.5
+  const bx = narrow ? W * 0.9 : W * 0.8
   const starAlpha = d === 0 ? 0.15 : 1
   for (const x of [ax, bx]) {
     ctx.fillStyle = `rgba(255, 236, 200, ${starAlpha})`
@@ -414,7 +416,7 @@ onUnmounted(() => {
 .stage-leave-to { opacity: 0; transform: translateY(-8px); }
 
 @media (max-width: 900px) {
-  .m-layout { grid-template-columns: 1fr; gap: 1.25rem; padding: 1.25rem 1rem 3rem; }
+  .m-layout { grid-template-columns: 1fr; gap: 1.25rem; padding: 1.25rem 1rem 4.5rem; }
   .m-main, .m-ladder { grid-column: 1; }
   .m-ladder { flex-direction: row; flex-wrap: wrap; gap: 0.35rem; }
   .m-ladder li { border-left: 0; border-bottom: 2px solid rgba(255, 255, 255, 0.12); padding: 0.2rem 0.4rem; }

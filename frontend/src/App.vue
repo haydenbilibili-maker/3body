@@ -154,8 +154,9 @@ const themeOverrides: GlobalThemeOverrides = {
   100% { transform: translate(-1px, -1px); }
 }
 
-/* Big Rip */
-.env-rip * {
+/* Big Rip：只让页面主体轻微漂移。此前作用于所有元素（.env-rip *），
+   会让 fixed 元素失位、交互元素持续移动而难以点击，并显著拖慢渲染 */
+.env-rip .app-main > * {
   animation: float-random 5s ease-in-out infinite;
 }
 @keyframes float-random {
