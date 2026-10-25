@@ -196,7 +196,7 @@ onUnmounted(() => {
   position: relative;
   z-index: 50;
 }
-.meta { display: flex; gap: 1.75rem; }
+.meta { display: flex; gap: 1.75rem; min-width: 0; }
 .meta-item b { margin-left: 0.5rem; font-weight: 500; color: var(--bone); }
 .meta-item .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 
@@ -217,6 +217,7 @@ onUnmounted(() => {
   .app-footer .slogan {
     display: none;
   }
+  .meta { gap: 1rem; flex-wrap: wrap; justify-content: center; min-width: 0; }
 }
 
 @media (min-width: 769px) and (max-width: 1100px) {
