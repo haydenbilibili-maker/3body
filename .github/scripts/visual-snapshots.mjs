@@ -702,6 +702,21 @@ const STATES = [
     },
   },
   {
+    // 人物志 · 对话室：给云天明看星星的产权证书，再离开时看到告别小结
+    name: 'figures-talk-token-farewell',
+    viewport: 'desktop',
+    slug: 'sector-p',
+    act: async (page) => {
+      await page.locator('.figure-card', { hasText: '云天明' }).first().click({ timeout: 10000 })
+      await page.getByRole('button', { name: /与他对话/ }).click({ timeout: 5000 })
+      await page.getByRole('button', { name: '放下一样东西' }).click()
+      await page.getByRole('button', { name: '一张星星的产权证书' }).click()
+      await page.waitForFunction(() => !document.querySelector('.cursor'), null, { timeout: 15000 })
+      await page.getByRole('button', { name: '离开对话室' }).click()
+      await page.waitForTimeout(400)
+    },
+  },
+  {
     // 人物志 · 对谈：程心与维德谈光速飞船，两轮之后由访客判断
     name: 'mobile-figures-debate',
     viewport: 'mobile',

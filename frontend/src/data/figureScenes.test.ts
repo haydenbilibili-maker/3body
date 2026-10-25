@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { FIGURE_SCENES, sceneById, scenesOf, splitStage, touchedKeys } from './figureScenes'
+import { FIGURE_SCENES, TOKENS, openedKeys, sceneById, scenesOf, splitStage, touchedKeys } from './figureScenes'
 import { CORE_FIGURES_WITH_DIALOGUE } from './figureDialogues'
 
 describe('figure scenes', () => {
@@ -27,5 +27,21 @@ describe('figure scenes', () => {
     const s = sceneById('luoji-grave')!
     expect(touchedKeys(s, ['她跟你说了什么？']).size).toBe(0)
     expect([...touchedKeys(s, ['那两句话是什么？', '文明之间能互相信任吗？'])].sort()).toEqual(['公理', '猜疑'].sort())
+  })
+})
+
+describe('tokens', () => {
+  it('every token opens a key that exists in its scene', () => {
+    for (const t of TOKENS)
+      for (const [sid, word] of Object.entries(t.opens)) {
+        const s = sceneById(sid)!
+        expect(s.keys.map((k) => k.word)).toContain(word)
+      }
+  })
+
+  it('a token opens its notch without the topic being asked', () => {
+    const s = sceneById('yun-star')!
+    expect(openedKeys(s, [], ['star']).has('星星')).toBe(true)
+    expect(openedKeys(s, [], ['photo']).size).toBe(0)
   })
 })

@@ -6,6 +6,9 @@
  * - 记忆：每个场景的谈话保存在本机，下次回来接着说
  * - 记得你：访客在相关展厅里的选择会告诉人物（data/figureMemory.ts）
  * - 说话的节奏：回答按说话的速度出现，遇到动作和句号会停一停
+ * - 信物：把一样东西放在人物面前；对的信物直接打开一格心防
+ * - 听他说：浏览器的中文语音读出台词（动作不读），每位人物音高不同；默认关闭
+ * - 告别：离开时一张小结：谈了几句、心防开了几格、他最后说了什么
  * - 没有后端时，用档案里的录音（预设问答与场景台词）兜底
  * 场景数据见 data/figureScenes.ts；人设提示词由后端按场景组织（backend/routers/chat.py）。
  */
@@ -13,7 +16,7 @@ import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { streamFigureChat } from '@/api/figureChat'
 import { useLlmConfigStore } from '@/stores/llmConfig'
 import { getDialogueSet, hasDialogue } from '@/data/figureDialogues'
-import { scenesOf, splitStage, touchedKeys, type FigureScene } from '@/data/figureScenes'
+import { TOKENS, openedKeys, scenesOf, splitStage, type FigureScene } from '@/data/figureScenes'
 import { answers, recordAnswer } from '@/data/answers'
 import { followUpsFor, visitorFor } from '@/data/figureMemory'
 
@@ -30,7 +33,7 @@ const scenes = computed(() => scenesOf(props.figure.name))
 const sceneId = ref(scenes.value[0]?.id ?? '')
 const scene = computed<FigureScene | undefined>(() => scenes.value.find((s) => s.id === sceneId.value))
 
-type Msg = { role: 'user' | 'figure'; content: string; offline?: boolean }
+type Msg = { role: 'user' | 'figure'; content: string; offline?: boolean; token?: string }
 const KEY = 'figure-talk-v1'
 function loadAll(): Record<string, Msg[]> {
   try {
@@ -60,8 +63,9 @@ const offlineReason = ref('')
 const listEl = ref<HTMLElement | null>(null)
 
 /* ---------- 心防 ---------- */
-const userLines = computed(() => messages.value.filter((m) => m.role === 'user').map((m) => m.content))
-const touched = computed(() => (scene.value ? touchedKeys(scene.value, userLines.value) : new Set<string>()))
+const userLines = computed(() => messages.value.filter((m) => m.role === 'user' && !m.token).map((m) => m.content))
+const tokensUsed = computed(() => messages.value.filter((m) => m.token).map((m) => m.token!))
+const touched = computed(() => (scene.value ? openedKeys(scene.value, userLines.value, tokensUsed.value) : new Set<string>()))
 const open = computed(() => !!scene.value && touched.value.size >= scene.value.keys.length)
 const revealedKey = 'figure-talk-revealed-v1'
 function loadRevealed(): string[] {
@@ -130,21 +134,23 @@ function offlineReply(q: string, k: number): string {
   return lines[k % lines.length]
 }
 
-async function send(text: string) {
+async function send(text: string, tokenId?: string) {
   const s = scene.value
-  const q = text.trim()
+  const token = tokenId ? TOKENS.find((t) => t.id === tokenId) : undefined
+  const q = token ? `（访客${token.act}。）你看到它，想说什么？` : text.trim()
   if (!s || !q || loading.value) return
+  stopVoice()
   const before = messages.value
   const history = before
     .filter((m) => !m.offline)
     .map((m) => ({ role: m.role === 'user' ? ('user' as const) : ('assistant' as const), content: m.content }))
-  const list: Msg[] = [...before, { role: 'user', content: q }]
+  const list: Msg[] = [...before, token ? { role: 'user', content: `（你${token.act}。）`, token: token.id } : { role: 'user', content: q }]
   setMessages(list)
   input.value = ''
   scrollDown()
 
   // 这一句是否刚好打开了心防：打开后的这一轮，人物可以把藏着的事说出来
-  const willOpen = touchedKeys(s, [...userLines.value]).size >= s.keys.length
+  const willOpen = openedKeys(s, [...userLines.value], [...tokensUsed.value]).size >= s.keys.length
   const reply: Msg = { role: 'figure', content: '' }
   setMessages([...list, reply])
   loading.value = true
@@ -220,7 +226,70 @@ async function send(text: string) {
   }
   loading.value = false
   scrollDown()
+  const last = messages.value[messages.value.length - 1]
+  if (last?.role === 'figure') speak(last.content)
 }
+
+/* ---------- 信物 ---------- */
+const showTokens = ref(false)
+const tokensLeft = computed(() => TOKENS.filter((t) => !tokensUsed.value.includes(t.id)))
+function placeToken(id: string) {
+  showTokens.value = false
+  send('', id)
+}
+
+/* ---------- 听他说 ---------- */
+const VOICE_KEY = 'figure-talk-voice'
+const canSpeak = typeof window !== 'undefined' && 'speechSynthesis' in window
+const voiceOn = ref(false)
+try {
+  voiceOn.value = canSpeak && localStorage.getItem(VOICE_KEY) === '1'
+} catch {
+  /* 忽略 */
+}
+const PITCH: Record<string, number> = { 叶文洁: 0.9, 程心: 1.15, '智子 (仿生人)': 1.25, 云天明: 1.0, 罗辑: 0.85, 章北海: 0.75, '托马斯·维德': 0.7, 史强: 0.8, 汪淼: 0.95, 丁仪: 0.9 }
+function stopVoice() {
+  if (canSpeak) window.speechSynthesis.cancel()
+}
+function speak(text: string) {
+  if (!canSpeak || !voiceOn.value) return
+  const words = splitStage(text).filter((p) => p.kind === 'line').map((p) => p.text).join('')
+  if (!words.trim()) return
+  stopVoice()
+  const u = new SpeechSynthesisUtterance(words)
+  u.lang = 'zh-CN'
+  const zh = window.speechSynthesis.getVoices().find((v) => v.lang.toLowerCase().startsWith('zh'))
+  if (zh) u.voice = zh
+  u.pitch = PITCH[props.figure.name] ?? 1
+  u.rate = 0.95
+  window.speechSynthesis.speak(u)
+}
+function toggleVoice() {
+  voiceOn.value = !voiceOn.value
+  try {
+    localStorage.setItem(VOICE_KEY, voiceOn.value ? '1' : '0')
+  } catch {
+    /* 忽略 */
+  }
+  if (voiceOn.value) speak(lastReply.value || scene.value?.opening || '')
+  else stopVoice()
+}
+
+/* ---------- 告别 ---------- */
+const farewell = ref(false)
+const rounds = computed(() => messages.value.filter((m) => m.role === 'user').length)
+function leave() {
+  if (rounds.value > 0 && !farewell.value) {
+    farewell.value = true
+    return
+  }
+  stopVoice()
+  emit('close')
+}
+const lastWords = computed(() => {
+  const words = splitStage(lastReply.value || scene.value?.opening || '').filter((p) => p.kind === 'line')
+  return words.map((p) => p.text).join('').slice(0, 80)
+})
 
 function submit() {
   send(input.value)
@@ -231,20 +300,23 @@ function forgetScene() {
 
 watch(sceneId, scrollDown)
 function onKey(e: KeyboardEvent) {
-  if (e.key === 'Escape') emit('close')
+  if (e.key === 'Escape') leave()
 }
 onMounted(() => {
   window.addEventListener('keydown', onKey)
   scrollDown()
 })
-onUnmounted(() => window.removeEventListener('keydown', onKey))
+onUnmounted(() => {
+  window.removeEventListener('keydown', onKey)
+  stopVoice()
+})
 </script>
 
 <template>
   <Teleport to="body">
     <div class="talk" role="dialog" aria-modal="true" :aria-label="`与${figure.name}对话`">
       <aside class="side">
-        <button type="button" class="close" @click="emit('close')">离开对话室</button>
+        <button type="button" class="close" @click="leave">离开对话室</button>
         <img v-if="portrait" :src="portrait" :alt="figure.name" class="portrait" />
         <h2 class="who">{{ figure.name }}</h2>
         <p v-if="figure.role" class="role">{{ figure.role }}</p>
@@ -282,6 +354,10 @@ onUnmounted(() => window.removeEventListener('keydown', onKey))
           <p class="side-label">他听说过你</p>
           <p class="heard">{{ visitor }}</p>
         </template>
+
+        <button v-if="canSpeak" type="button" class="voice" :aria-pressed="voiceOn" @click="toggleVoice">
+          {{ voiceOn ? '听他说：开' : '听他说：关' }}
+        </button>
 
         <details class="conn">
           <summary>连接设置</summary>
@@ -321,7 +397,12 @@ onUnmounted(() => window.removeEventListener('keydown', onKey))
           <div v-if="suggestions.length" class="chips">
             <button v-for="q in suggestions" :key="q" type="button" class="chip" :disabled="loading" @click="send(q)">{{ q }}</button>
           </div>
+          <div v-if="showTokens" class="tokens" role="group" aria-label="放下一样东西">
+            <button v-for="t in tokensLeft" :key="t.id" type="button" class="token" :disabled="loading" @click="placeToken(t.id)">{{ t.name }}</button>
+            <span v-if="!tokensLeft.length" class="token-none">能放下的东西都已经放下了。</span>
+          </div>
           <form class="ask" @submit.prevent="submit">
+            <button type="button" class="ask-token" :aria-expanded="showTokens" :disabled="loading" @click="showTokens = !showTokens">放下一样东西</button>
             <label class="sr" for="talk-input">对{{ figure.name }}说</label>
             <input id="talk-input" v-model="input" class="ask-input" :placeholder="`对${figure.name}说点什么…`" :disabled="loading" maxlength="400" autocomplete="off" />
             <button type="submit" class="ask-send" :disabled="!input.trim() || loading">说</button>
@@ -329,6 +410,19 @@ onUnmounted(() => window.removeEventListener('keydown', onKey))
           <button v-if="messages.length" type="button" class="forget" @click="forgetScene">忘掉这次谈话</button>
         </div>
       </main>
+
+      <div v-if="farewell && scene" class="farewell" role="alertdialog" aria-labelledby="fw-title">
+        <div class="fw-card">
+          <p class="fw-era">{{ scene.era }} · {{ scene.title }}</p>
+          <h2 id="fw-title" class="fw-title">你和{{ figure.name }}谈了 {{ rounds }} 句</h2>
+          <p class="fw-guard">心防开了 {{ touched.size }} / {{ scene.keys.length }} 格{{ sceneRevealed ? '，他对你说出了心里藏着的事。' : '。' }}</p>
+          <p class="fw-last">他最后说：「{{ lastWords }}」</p>
+          <div class="fw-acts">
+            <button type="button" class="ask-send" @click="farewell = false">再坐一会儿</button>
+            <button type="button" class="close" @click="leave">离开</button>
+          </div>
+        </div>
+      </div>
     </div>
   </Teleport>
 </template>
@@ -362,6 +456,22 @@ onUnmounted(() => window.removeEventListener('keydown', onKey))
 .guard li.on { color: var(--bone); }
 .guard li.on .g-notch { background: var(--cherenkov); }
 .guard-note { margin: 0.2rem 0 0; font-family: var(--font-serif); font-size: 0.875rem; line-height: 1.7; color: var(--gray-150); }
+.voice { align-self: flex-start; margin-top: 0.75rem; padding: 0.35rem 0.8rem; font: inherit; font-size: 0.8125rem; color: var(--weathered); background: transparent; border: 1px solid var(--incision); border-radius: var(--radius-cut); cursor: pointer; }
+.voice[aria-pressed='true'] { color: var(--cherenkov); border-color: var(--cherenkov); }
+.tokens { display: flex; flex-wrap: wrap; gap: 0.5rem; padding: 0.6rem; background: var(--slab); border: 1px solid var(--incision-soft); }
+.token { padding: 0.35rem 0.75rem; font: inherit; font-family: var(--font-serif); font-size: 0.875rem; color: var(--bone); background: transparent; border: 1px dashed var(--weathered); border-radius: var(--radius-cut); cursor: pointer; }
+.token:hover:not(:disabled) { border-style: solid; }
+.token-none { font-size: 0.8125rem; color: var(--weathered); }
+.ask-token { flex: none; padding: 0 0.8rem; font: inherit; font-size: 0.8125rem; color: var(--weathered); background: transparent; border: 1px solid var(--incision); border-radius: var(--radius-cut); cursor: pointer; }
+.ask-token[aria-expanded='true'] { color: var(--bone); border-color: var(--weathered); }
+.farewell { position: absolute; inset: 0; z-index: 2; display: flex; align-items: center; justify-content: center; padding: 1rem; background: rgba(10, 10, 11, 0.82); }
+.fw-card { width: min(28rem, 100%); padding: 1.5rem; background: var(--slab); border: 1px solid var(--incision); display: flex; flex-direction: column; gap: 0.6rem; }
+.fw-era { margin: 0; font-family: var(--font-serif); font-size: 0.8125rem; letter-spacing: 0.12em; color: var(--weathered); }
+.fw-title { margin: 0; font-family: var(--font-title); font-weight: 900; font-size: 1.375rem; letter-spacing: 0.08em; color: var(--bone); }
+.fw-guard { margin: 0; font-size: 0.9375rem; color: var(--gray-150); }
+.fw-last { margin: 0; padding-left: 0.9rem; border-left: 1px solid var(--era-archive); font-family: var(--font-serif); font-size: 1rem; line-height: 1.85; color: var(--bone); }
+.fw-acts { display: flex; gap: 0.6rem; margin-top: 0.5rem; }
+.fw-acts .ask-send { padding: 0.45rem 1rem; }
 .heard { margin: 0; font-size: 0.8125rem; line-height: 1.7; color: var(--gray-150); }
 .conn { margin-top: auto; padding-top: 1rem; font-size: 0.8125rem; color: var(--weathered); }
 .conn summary { cursor: pointer; }
