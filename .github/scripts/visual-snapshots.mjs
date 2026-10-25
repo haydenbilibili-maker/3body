@@ -675,6 +675,33 @@ const STATES = [
     },
   },
   {
+    // 人物志 · 对话室：在杨冬墓前遇见罗辑，他先开口
+    name: 'figures-talk-open',
+    viewport: 'desktop',
+    slug: 'sector-p',
+    act: async (page) => {
+      await page.locator('.figure-card', { hasText: '罗辑' }).first().click({ timeout: 10000 })
+      await page.getByRole('button', { name: /与他对话/ }).click({ timeout: 5000 })
+      await page.waitForTimeout(600)
+    },
+  },
+  {
+    // 人物志 · 对话室：问到两个话题，心防松了两格（CI 没有模型，回答来自档案录音）
+    name: 'mobile-figures-talk-guard',
+    viewport: 'mobile',
+    slug: 'sector-p',
+    act: async (page) => {
+      await page.locator('.figure-card', { hasText: '罗辑' }).first().click({ timeout: 10000 })
+      await page.getByRole('button', { name: /与他对话/ }).click({ timeout: 5000 })
+      for (const q of ['那两句话是什么？', '文明之间能互相信任吗？']) {
+        await page.locator('#talk-input').fill(q)
+        await page.getByRole('button', { name: '说', exact: true }).click()
+        await page.waitForFunction(() => !document.querySelector('.cursor'), null, { timeout: 15000 })
+      }
+      await page.waitForTimeout(500)
+    },
+  },
+  {
     // 归零者：第一轮就归还全部质量（键盘确认），然后听完剩下的广播
     name: 'desktop-returners-end',
     viewport: 'desktop',

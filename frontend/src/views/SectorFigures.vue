@@ -14,7 +14,7 @@ import { sectorByPath } from '@/data/sectors'
 import { figureImageUrl } from '@/utils/imageFallback'
 import { hasDialogue, getDialogueSet } from '@/data/figureDialogues'
 import { useLlmConfigStore } from '@/stores/llmConfig'
-import { streamFigureChat } from '@/api/figureChat'
+import FigureTalk from '@/components/FigureTalk.vue'
 
 const figures = ref<Figure[]>([])
 const loading = ref(true)
@@ -298,66 +298,6 @@ function closeDialogue() {
   showDialogueModal.value = false
 }
 
-/** 将当前对话转为 API 所需的 history（user -> user，figure -> assistant） */
-function conversationToHistory(): { role: 'user' | 'assistant'; content: string }[] {
-  return conversation.value.map((m) => ({
-    role: m.role === 'user' ? 'user' : 'assistant',
-    content: m.content,
-  }))
-}
-
-/** 发送一条用户消息并请求人物回复（流式追加到 conversation） */
-async function sendMessage(userText: string) {
-  const fig = selectedFigure.value
-  const set = fig ? getDialogueSet(fig.name) : null
-  if (!fig || !set || !userText.trim()) return
-  dialogueError.value = ''
-  const history = conversationToHistory()
-  conversation.value.push({ role: 'user', content: userText.trim() })
-  scrollDialogueToBottom()
-  const figureMsg = { role: 'figure' as const, content: '' }
-  conversation.value.push(figureMsg)
-  dialogueLoading.value = true
-  const payload = {
-    figure_name: fig.name,
-    figure_role: fig.role || undefined,
-    figure_description: fig.description || undefined,
-    message: userText.trim(),
-    history: history.length ? history : undefined,
-    ...llmConfig.requestOverrides,
-  }
-  await streamFigureChat(
-    payload,
-    (chunk) => {
-      figureMsg.content += chunk
-      scrollDialogueToBottom()
-    },
-    (err) => { dialogueError.value = err }
-  )
-  dialogueLoading.value = false
-  scrollDialogueToBottom()
-}
-
-/** 点击推荐问题（预埋问题作引导） */
-function onSuggestedQuestion(question: string) {
-  sendMessage(question)
-}
-
-/** 提交输入框内容并清空 */
-function submitInput() {
-  const text = dialogueInput.value.trim()
-  if (!text || dialogueLoading.value) return
-  dialogueInput.value = ''
-  sendMessage(text)
-}
-
-function scrollDialogueToBottom() {
-  nextTick(() => {
-    const el = dialogueListRef.value
-    if (el) el.scrollTop = el.scrollHeight
-  })
-}
-
 /** 对话按钮文案：与她/与他 */
 const dialogueEntryLabel = computed(() => {
   const name = selectedFigure.value?.name
@@ -514,7 +454,7 @@ onMounted(() => {
             <div v-if="hasDialogue(selectedFigure.name)" class="dossier-dialogue-cta">
               <button type="button" class="dialogue-cta-btn" @click="openDialogue">
                                 <span class="dialogue-cta-text">{{ dialogueEntryLabel }}</span>
-                <span class="dialogue-cta-sub">选择问题或输入提问，与 TA 实时对话</span>
+                <span class="dialogue-cta-sub">在某一个时刻与 TA 相遇：TA 先开口，心里藏着一件事</span>
               </button>
             </div>
 
@@ -590,111 +530,13 @@ onMounted(() => {
       </div>
     </NModal>
 
-    <!-- 选择式对话模态：对话式气泡，预埋问题作引导，回复统一为人物 AI -->
-    <NModal
-      :show="showDialogueModal"
-      @update:show="(v) => { if (!v) closeDialogue() }"
-      preset="card"
-      class="dialogue-modal"
-      style="width: 620px; max-width: 95vw;"
-      :title="selectedFigure && getDialogueSet(selectedFigure.name) ? `与 ${selectedFigure.name} 对话` : ''"
-    >
-      <template v-if="selectedFigure && getDialogueSet(selectedFigure.name)">
-        <div class="dialogue-content">
-          <header class="dialogue-header">
-            <span class="dialogue-header-name">{{ selectedFigure.name }}</span>
-            <span class="dialogue-header-role">{{ selectedFigure.role }}</span>
-            <p v-if="getDialogueSet(selectedFigure.name)!.intro" class="dialogue-intro">
-              {{ getDialogueSet(selectedFigure.name)!.intro }}
-            </p>
-          </header>
-
-          <div ref="dialogueListRef" class="dialogue-messages">
-            <template v-for="(msg, idx) in conversation" :key="idx">
-              <div v-if="msg.role === 'user'" class="dialogue-row dialogue-row-user">
-                <div class="dialogue-bubble dialogue-bubble-user">{{ msg.content }}</div>
-              </div>
-              <div v-else class="dialogue-row dialogue-row-figure">
-                <div class="dialogue-bubble dialogue-bubble-figure">
-                  <span class="dialogue-figure-name">{{ selectedFigure.name }}</span>
-                  <span class="dialogue-bubble-text">{{ msg.content }}</span>
-                  <span v-if="dialogueLoading && idx === conversation.length - 1" class="dialogue-cursor">|</span>
-                </div>
-              </div>
-            </template>
-            <p v-if="dialogueError" class="dialogue-err-inline">{{ dialogueError }}</p>
-          </div>
-
-          <div class="dialogue-suggested">
-            <span class="dialogue-suggested-label">可问：</span>
-            <div class="dialogue-suggested-chips">
-              <button
-                v-for="(item, idx) in getDialogueSet(selectedFigure.name)!.qa"
-                :key="idx"
-                type="button"
-                class="dialogue-chip"
-                :disabled="dialogueLoading"
-                @click="onSuggestedQuestion(item.question)"
-              >
-                {{ item.question }}
-              </button>
-            </div>
-          </div>
-
-          <div class="dialogue-input-row">
-            <NInput
-              v-model:value="dialogueInput"
-              type="text"
-              placeholder="输入你想问的…"
-              clearable
-              :disabled="dialogueLoading"
-              class="dialogue-input"
-              @keydown.enter.prevent="submitInput"
-            />
-            <NButton
-              type="primary"
-              :disabled="!dialogueInput.trim() || dialogueLoading"
-              @click="submitInput"
-            >
-              发送
-            </NButton>
-          </div>
-
-          <NCollapse class="dialogue-llm-config" :default-expanded-names="[]">
-            <NCollapseItem title="⚙️ API / Ollama 连接设置" name="llm">
-              <p class="dialogue-llm-hint">默认使用后端配置的模型（3BODY_LLM_*，未配置时为本地 Ollama）。</p>
-              <p class="dialogue-llm-hint">在此填写的 Key / 地址仅在后端设置 3BODY_LLM_ALLOW_CLIENT_OVERRIDE=true 时生效（仅建议本机使用）。</p>
-              <NCheckbox :checked="llmConfig.useLocalOllama" @update:checked="(v: boolean) => llmConfig.setUseLocalOllama(v)">
-                使用本地 Ollama
-              </NCheckbox>
-              <NFormItem label="API Key（可选）" class="dialogue-llm-item">
-                <NInput
-                  :value="llmConfig.apiKey"
-                  type="password"
-                  placeholder="留空则用本地"
-                  show-password-on="click"
-                  @update:value="(v: string) => llmConfig.setApiKey(v)"
-                />
-              </NFormItem>
-              <NFormItem label="Base URL（可选）" class="dialogue-llm-item">
-                <NInput
-                  :value="llmConfig.baseUrl"
-                  placeholder="如 https://api.openai.com/v1"
-                  @update:value="(v: string) => llmConfig.setBaseUrl(v)"
-                />
-              </NFormItem>
-              <NFormItem label="Model（可选）" class="dialogue-llm-item">
-                <NInput
-                  :value="llmConfig.model"
-                  placeholder="如 gpt-4、deepseek-chat"
-                  @update:value="(v: string) => llmConfig.setModel(v)"
-                />
-              </NFormItem>
-            </NCollapseItem>
-          </NCollapse>
-        </div>
-      </template>
-    </NModal>
+    <!-- 对话室：在某个时刻与人物相遇（components/FigureTalk.vue） -->
+    <FigureTalk
+      v-if="showDialogueModal && selectedFigure"
+      :figure="selectedFigure"
+      :portrait="figurePortraitUrl(selectedFigure)"
+      @close="closeDialogue"
+    />
   </div>
 </template>
 
