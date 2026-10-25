@@ -168,7 +168,6 @@ watch(done, (d) => {
       title="二向箔画廊"
       subtitle="一张小纸条，接触到什么，什么就开始向二维跌落。跌下去的一切，都被画进了同一幅画里。"
       goal="选一件展品，按住让它跌入二维，看它的每一层怎样摊开在同一个平面上。"
-      accent="#c9b48a"
     />
 
     <div class="studio">
@@ -286,7 +285,7 @@ watch(done, (d) => {
 .pluto { max-width: 44rem; margin-top: 2.5rem; }
 .p-title { margin: 0 0 1rem; font-family: var(--font-serif); font-weight: 900; font-size: 1.5rem; letter-spacing: 0.1em; color: var(--bone); }
 .pluto p { margin: 0 0 1rem; font-family: var(--font-serif); font-size: 1.0625rem; line-height: 1.95; color: var(--gray-150); }
-.pluto .q { margin-top: 1.5rem; padding-left: 1rem; border-left: 1px solid #c9b48a; color: var(--bone); }
+.pluto .q { margin-top: 1.5rem; padding-left: 1rem; border-left: 1px solid var(--era-bunker); color: var(--bone); }
 .links { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.25rem; }
 
 .plain-btn {

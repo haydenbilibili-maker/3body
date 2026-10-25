@@ -209,7 +209,6 @@ watch(ended, (e) => {
       title="大低谷"
       subtitle="为了四百年后的舰队，人类曾让一代人挨饿。这是那一代人里，一个普通人的三十天。"
       goal="每天做一个选择，在饥饿、健康与理智之间取舍，活过第 30 天。有人敲门时，决定开还是不开。"
-      accent="#c8a96a"
       show-restart
       restart-label="重新开始"
       @restart="start"

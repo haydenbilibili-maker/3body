@@ -86,7 +86,6 @@ watch(
       title="宇宙留言簿"
       subtitle="人类曾经向宇宙发出过几次信号。它们至今还在路上，以光速离开，没有任何办法追回。"
       goal="写下你想对宇宙说的话，然后选择：按住把它发射出去，或者只留在这本留言簿里。"
-      accent="#c9b48a"
     />
 
     <Vitrine class="compose">
@@ -161,7 +160,7 @@ textarea:focus { outline: none; border-color: var(--cherenkov); }
 
 .reflect { max-width: 42rem; margin-top: 1.5rem; }
 .reflect p { margin: 0 0 0.9rem; font-family: var(--font-serif); font-size: 1.0625rem; line-height: 1.9; color: var(--gray-150); }
-.reflect .q { margin-top: 1.25rem; padding-left: 1rem; border-left: 1px solid #c9b48a; color: var(--bone); }
+.reflect .q { margin-top: 1.25rem; padding-left: 1rem; border-left: 1px solid var(--era-archive); color: var(--bone); }
 .links { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1rem; }
 
 .plain-btn {

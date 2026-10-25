@@ -202,7 +202,6 @@ watch(rebootedOnce, (r) => {
           title="田园时代"
           subtitle="宇宙最初有十个维度，光几乎没有速度的上限。后来，维度和光速都变成了武器。"
           goal="从十维的田园时代出发，亲手把宇宙一维一维折叠下去，看看我们是怎么走到黑暗森林的。"
-          accent="#e8d27a"
           compact
         />
 
@@ -304,7 +303,7 @@ watch(rebootedOnce, (r) => {
   font-size: 0.75rem;
   color: var(--gray-300);
   border: 1px solid rgba(255, 255, 255, 0.25);
-  border-radius: 3px;
+  border-radius: var(--radius-cut);
 }
 .m-tag.now { color: #050505; background: var(--holo-blue); border-color: var(--holo-blue); }
 .m-stage-text { margin: 0; font-family: var(--font-serif); font-size: 1.05rem; line-height: 1.95; color: var(--gray-100); }

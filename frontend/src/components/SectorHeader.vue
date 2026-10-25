@@ -31,7 +31,7 @@ const props = withDefaults(
     subtitle: undefined,
     goal: undefined,
     question: undefined,
-    accent: 'var(--cherenkov)',
+    accent: undefined,
     showRestart: false,
     restartLabel: '再来一次',
     compact: false,
@@ -48,10 +48,17 @@ const eraName = computed(() => {
   return era === 'all' ? '跨越全部纪元' : eraById(era)?.name ?? ''
 })
 const questionText = computed(() => props.question ?? sector.value?.question)
+/* 纪元色：没有显式传入时按展厅所在纪元取（VI：每间展厅唯一的场景色） */
+const accentColor = computed(() => {
+  if (props.accent) return props.accent
+  const era = sector.value?.era
+  if (!era) return 'var(--cherenkov)'
+  return `var(--era-${era === 'all' ? 'archive' : era})`
+})
 </script>
 
 <template>
-  <header class="sector-header" :class="{ compact }" :style="{ '--sector-accent': accent }">
+  <header class="sector-header" :class="{ compact }" :style="{ '--sector-accent': accentColor }">
     <p v-if="eraName" class="sh-era"><span class="sh-era-mark" aria-hidden="true"></span>{{ eraName }}</p>
     <h1 class="sh-title">{{ title }}</h1>
     <p v-if="subtitle" class="sh-subtitle">{{ subtitle }}</p>

@@ -852,7 +852,6 @@ watch(breachTriggered, (b) => {
       title="面壁计划"
       subtitle="你的真实战略只存在于你的脑海中"
       goal="以面壁者身份下达资源指令，在破壁人的疑心值达到 90 之前，让尽量多的指令获批。"
-      accent="#8bc34a"
       show-restart
       restart-label="再玩一局"
       @restart="resetWallfacerGame"
@@ -1797,7 +1796,7 @@ watch(breachTriggered, (b) => {
   border: 1px solid #294040;
   padding: 0.8rem 1rem;
   background: linear-gradient(135deg, rgba(0, 30, 30, 0.35), rgba(0, 20, 35, 0.25));
-  border-radius: 6px;
+  border-radius: var(--radius-cut);
 }
 .decree-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.4rem; }
 .decree-icon { font-size: 1.2rem; opacity: 0.9; }
@@ -1807,11 +1806,11 @@ watch(breachTriggered, (b) => {
   padding: 0.5rem 0.6rem;
   border: 1px solid #25363a;
   background: rgba(0, 25, 30, 0.2);
-  border-radius: 4px;
+  border-radius: var(--radius-cut);
 }
 .wallfacer-intro .intro-title { font-size: 0.75rem; color: #7a9a9a; text-transform: uppercase; letter-spacing: 0.08em; margin-right: 0.5rem; }
 .wallfacer-intro p { margin: 0.3rem 0 0.5rem; font-size: 0.85rem; color: #a8c0c0; line-height: 1.5; }
-.intro-stats { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1rem; margin: 0.5rem 0; padding: 0.4rem 0.6rem; background: rgba(0, 20, 25, 0.35); border-radius: 4px; border: 1px solid #1e2f2f; }
+.intro-stats { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1rem; margin: 0.5rem 0; padding: 0.4rem 0.6rem; background: rgba(0, 20, 25, 0.35); border-radius: var(--radius-cut); border: 1px solid #1e2f2f; }
 .stat-item { font-size: 0.8rem; color: #9ab5b5; }
 .stat-item strong { color: #c0e0e0; }
 .stat-ok strong { color: #00cc88; }
@@ -1828,7 +1827,7 @@ watch(breachTriggered, (b) => {
   font-size: 0.85rem;
   line-height: 1.4;
   text-align: left;
-  border-radius: 6px;
+  border-radius: var(--radius-cut);
   cursor: pointer;
   transition: border-color 0.2s, background 0.2s;
 }
@@ -1841,7 +1840,7 @@ watch(breachTriggered, (b) => {
   padding: 0.6rem 0.8rem;
   border: 1px solid #1e2f2f;
   background: rgba(0, 15, 20, 0.4);
-  border-radius: 4px;
+  border-radius: var(--radius-cut);
 }
 .suspicion-gauge.gauge-danger { border-color: rgba(255, 80, 80, 0.4); animation: gauge-pulse 1.5s ease-in-out infinite; }
 @keyframes gauge-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(255, 80, 80, 0); } 50% { box-shadow: none; } }
@@ -1850,7 +1849,7 @@ watch(breachTriggered, (b) => {
 .gauge-stage { font-weight: 700; font-size: 0.9rem; }
 .gauge-desc { font-size: 0.8rem; }
 .gauge-value { font-family: var(--font-mono); font-size: 0.75rem; color: #7a9a9a; }
-.directive-logs { border: 1px solid #1e2e2e; padding: 0.6rem; background: rgba(0, 10, 15, 0.3); border-radius: 4px; }
+.directive-logs { border: 1px solid #1e2e2e; padding: 0.6rem; background: rgba(0, 10, 15, 0.3); border-radius: var(--radius-cut); }
 .logs-empty { padding: 0.8rem; text-align: center; font-size: 0.85rem; }
 .directive-card {
   border: 1px solid #25363a;
@@ -1866,13 +1865,13 @@ watch(breachTriggered, (b) => {
 .log-delta { font-size: 0.75rem; color: #8ab0b0; margin-left: auto; }
 .directive-text { margin: 0; font-size: 0.9rem; color: #c8e0e0; line-height: 1.45; }
 .directive-reason { margin: 0.25rem 0 0; font-size: 0.8rem; }
-.breach-card { border-radius: 6px; padding: 0.8rem 1rem; }
+.breach-card { border-radius: var(--radius-cut); padding: 0.8rem 1rem; }
 .breach-card-inner { display: flex; flex-direction: column; gap: 0.5rem; }
 .breach-quote { margin: 0; font-style: italic; color: #ffc8c8; }
 .breach-conclusion { margin: 0; font-weight: 600; color: #ffdddd; }
 .infection-grid { display: grid; grid-template-columns: repeat(16, 1fr); gap: 2px; }
 .infection-cell { height: 10px; background: rgba(255, 40, 40, var(--cell-opacity, 0.2)); border-radius: 1px; }
-.curve-panel { border: 1px solid #1f1f1f; padding: 0.4rem; border-radius: 4px; }
+.curve-panel { border: 1px solid #1f1f1f; padding: 0.4rem; border-radius: var(--radius-cut); }
 .curve-svg { width: 100%; height: 90px; display: block; }
 .curve-axis { stroke: var(--gray-700); stroke-width: 1; fill: none; }
 .curve-line { fill: none; stroke: #ff5252; stroke-width: 1.5; }

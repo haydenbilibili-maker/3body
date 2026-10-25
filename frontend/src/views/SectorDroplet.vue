@@ -231,7 +231,6 @@ watch(fleetDown, (d) => {
       title="水滴"
       subtitle="一个用强相互作用力材料制成的三体探测器。绝对光滑，表面温度接近绝对零度。"
       goal="看它的镜面倒映出什么；在末日战役里，亲手画出它穿过舰队的路线。"
-      accent="#c9ced6"
     />
 
     <NTabs type="segment" v-model:value="activeTab" class="w-tabs">
@@ -421,7 +420,7 @@ watch(fleetDown, (d) => {
   padding: 1rem;
   font-family: var(--font-mono);
   z-index: 10;
-  border-radius: 6px;
+  border-radius: var(--radius-cut);
 }
 
 .journey-title {
@@ -442,7 +441,7 @@ watch(fleetDown, (d) => {
   margin-bottom: 0.75rem;
   padding: 0.5rem 0.6rem;
   background: rgba(0, 40, 50, 0.3);
-  border-radius: 4px;
+  border-radius: var(--radius-cut);
   border-left: 3px solid var(--c-cyan);
 }
 
@@ -480,7 +479,7 @@ watch(fleetDown, (d) => {
   font-size: 0.8rem;
   font-family: var(--font-mono);
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: var(--radius-cut);
   transition: background 0.2s;
 }
 
@@ -513,7 +512,7 @@ watch(fleetDown, (d) => {
   font-size: 0.75rem;
   font-family: var(--font-mono);
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: var(--radius-cut);
   transition: border-color 0.2s, color 0.2s, background 0.2s;
 }
 

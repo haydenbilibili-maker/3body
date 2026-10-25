@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BrandMark from '@/components/BrandMark.vue'
 /**
  * AppNav —— 档案馆导航（冥王星档案馆视觉方案）。
  * 五个展区：起源 / 危机 / 宇宙 / 岁月 / 尽头；下拉里每间展厅标出所在纪元。
@@ -139,8 +140,8 @@ onUnmounted(() => window.removeEventListener('keydown', onKey))
 <template>
   <nav class="archive-nav" aria-label="主导航">
     <button type="button" class="brand" aria-label="返回首页" @click="navigate('/sector-c')">
-      <span class="suns" aria-hidden="true"><i></i><i></i><i></i></span>
-      <span class="brand-name">三体</span>
+      <BrandMark :size="22" class="mark" />
+      <span class="brand-name">三体·深时</span>
       <span class="brand-sub">体验沙盒</span>
     </button>
 
@@ -285,7 +286,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey))
   border-bottom: 1px solid var(--incision-soft);
 }
 
-/* 品牌：三颗太阳 + 碑刻「三体」 */
+/* 品牌：VI 组合标志（标志 + 碑刻「三体·深时」+ 副标） */
 .brand {
   flex: 0 0 auto;
   display: flex;
@@ -297,14 +298,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey))
   color: var(--bone);
   cursor: pointer;
 }
-.suns { position: relative; width: 20px; height: 16px; align-self: center; }
-.suns i { position: absolute; border-radius: 50%; }
-.suns i:nth-child(1) { width: 6px; height: 6px; left: 0; top: 7px; background: #e7b46a; animation: orbit-a 9s ease-in-out infinite; }
-.suns i:nth-child(2) { width: 5px; height: 5px; left: 10px; top: 0; background: #d98c5f; animation: orbit-b 11s ease-in-out infinite; }
-.suns i:nth-child(3) { width: 4px; height: 4px; left: 14px; top: 11px; background: var(--bone); animation: orbit-c 13s ease-in-out infinite; }
-@keyframes orbit-a { 50% { transform: translate(4px, -3px); } }
-@keyframes orbit-b { 50% { transform: translate(-5px, 4px); } }
-@keyframes orbit-c { 50% { transform: translate(-3px, -5px); } }
+.mark { align-self: center; color: var(--bone); }
 .brand-name {
   font-family: var(--font-title);
   font-weight: 900;

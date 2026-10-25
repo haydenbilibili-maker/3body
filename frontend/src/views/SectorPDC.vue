@@ -69,7 +69,6 @@ watch(battle, (b) => {
       title="行星防御理事会"
       subtitle="危机纪元元年，三体舰队启程。理事会要为一场四百年后的战争做预算。"
       goal="十届理事会，每届二十年：决定多少资源造舰队，多少留给活着的人。"
-      accent="#9fb8d8"
       :show-restart="state.term > 0"
       restart-label="回到危机纪元元年"
       @restart="restart"
@@ -194,7 +193,7 @@ watch(battle, (b) => {
 .battle-count .num { font-size: 1.5rem; color: var(--rust-bright); }
 .after { max-width: 40rem; margin-top: 1.5rem; }
 .after p { margin: 0 0 0.8rem; font-family: var(--font-serif); font-size: 1.0625rem; line-height: 1.9; color: var(--gray-150); }
-.after .q { margin-top: 1.25rem; padding-left: 1rem; border-left: 1px solid #9fb8d8; color: var(--bone); }
+.after .q { margin-top: 1.25rem; padding-left: 1rem; border-left: 1px solid var(--era-crisis); color: var(--bone); }
 .after-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1.25rem; }
 .after .sacrifice { margin-top: 1rem; font-family: var(--font-sans); font-size: 0.8125rem; }
 .fade-enter-active { transition: opacity 1s; }

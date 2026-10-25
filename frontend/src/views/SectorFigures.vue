@@ -378,7 +378,6 @@ onMounted(() => {
       title="人物志"
       subtitle="罗辑、叶文洁、章北海、程心……在宇宙的尺度上，他们每个人都只是一粒尘埃，却都做过一个改变了文明走向的决定。"
       goal="翻阅档案，看人物之间的关系；或者走进「一个人的选择」，在知道后果之前，先读一读他们当时面对的处境。"
-      accent="#c9b48a"
     />
 
     <div class="fig-controls">
@@ -751,7 +750,7 @@ onMounted(() => {
   display: flex;
   gap: 0;
   border: 1px solid rgba(var(--cherenkov-rgb), 0.2);
-  border-radius: 4px;
+  border-radius: var(--radius-cut);
   overflow: hidden;
   position: absolute;
   left: 50%;
@@ -856,7 +855,7 @@ onMounted(() => {
   z-index: 1;
   border: 1px dashed rgba(var(--cherenkov-rgb),0.2);
   background: rgba(var(--cherenkov-rgb),0.02);
-  border-radius: 4px;
+  border-radius: var(--radius-cut);
 }
 .empty-icon {
   font-size: 4rem;
@@ -1187,7 +1186,7 @@ onMounted(() => {
   color: var(--c-cyan);
   background: linear-gradient(135deg, rgba(var(--cherenkov-rgb),0.12) 0%, rgba(var(--cherenkov-rgb),0.06) 100%);
   border: 2px solid rgba(var(--cherenkov-rgb),0.5);
-  border-radius: 8px;
+  border-radius: var(--radius-cut);
   cursor: pointer;
   transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
   box-shadow: 0 0 20px rgba(var(--cherenkov-rgb),0.15);
@@ -1272,7 +1271,7 @@ onMounted(() => {
 .dialogue-bubble {
   max-width: 85%;
   padding: 0.65rem 1rem;
-  border-radius: 12px;
+  border-radius: var(--radius-cut);
   font-size: 0.9rem;
   line-height: 1.55;
   word-break: break-word;
@@ -1332,7 +1331,7 @@ onMounted(() => {
   color: var(--gray-350);
   background: rgba(255,255,255,0.04);
   border: 1px solid var(--gray-700);
-  border-radius: 999px;
+  border-radius: var(--radius-cut);
   cursor: pointer;
   transition: color 0.2s, border-color 0.2s, background 0.2s;
 }
@@ -1357,7 +1356,7 @@ onMounted(() => {
 .dialogue-llm-config {
   margin-top: 0.5rem;
   border: 1px solid rgba(var(--cherenkov-rgb),0.15);
-  border-radius: 6px;
+  border-radius: var(--radius-cut);
 }
 .dialogue-llm-config :deep(.n-collapse-item__header) {
   font-size: 0.85rem;
@@ -1365,7 +1364,7 @@ onMounted(() => {
 }
 .dialogue-llm-hint {
   font-size: 0.78rem;
-  color: var(--gray-450);
+  color: var(--weathered);
   margin: 0 0 0.5rem;
   line-height: 1.45;
 }
@@ -1460,7 +1459,7 @@ onMounted(() => {
   border-radius: 2px;
   cursor: pointer;
 }
-.c-q { margin: 1rem 0 0; padding-left: 1rem; border-left: 1px solid #c9b48a; font-family: var(--font-serif); font-size: 1.125rem; color: var(--bone); }
+.c-q { margin: 1rem 0 0; padding-left: 1rem; border-left: 1px solid var(--era-archive); font-family: var(--font-serif); font-size: 1.125rem; color: var(--bone); }
 
 .dossier-modal :deep(.n-card) { background: var(--slab) !important; border: 1px solid var(--incision) !important; border-radius: 2px !important; box-shadow: none !important; }
 .dossier-modal :deep(.n-card-header__main) { font-family: var(--font-sans) !important; font-size: 0.875rem !important; color: var(--weathered) !important; letter-spacing: 0.08em; text-shadow: none !important; }

@@ -370,7 +370,7 @@ onUnmounted(() => {
     rgba(0, 5, 10, 0.95) 100%
   );
   border: 1px solid rgba(var(--cherenkov-rgb), 0.12);
-  border-radius: 6px;
+  border-radius: var(--radius-cut);
   overflow: hidden;
 }
 

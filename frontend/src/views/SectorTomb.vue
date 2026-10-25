@@ -64,7 +64,6 @@ watch(carved, (c) => {
       title="文明墓碑"
       subtitle="冥王星上，人类为自己建了一座博物馆。硬盘、胶片、纸张都撑不过一千万年，最后他们回到了最古老的办法：把字刻在石头上。"
       goal="选字号，写下留给后来者的话，按住刻进石碑；再拖动时间，看看十亿年后还剩下什么。"
-      accent="#c9b48a"
       :show-restart="!!carved"
       restart-label="换一块石头"
       @restart="again"
@@ -212,7 +211,7 @@ textarea:focus { outline: none; border-color: var(--cherenkov); }
 .verdict { max-width: 42rem; margin-top: 2rem; }
 .verdict p { margin: 0 0 0.9rem; font-family: var(--font-serif); font-size: 1.0625rem; line-height: 1.9; color: var(--gray-150); }
 .verdict .muted { font-family: var(--font-sans); font-size: 0.9375rem; color: var(--weathered); }
-.verdict .q { margin-top: 1.25rem; padding-left: 1rem; border-left: 1px solid #c9b48a; color: var(--bone); }
+.verdict .q { margin-top: 1.25rem; padding-left: 1rem; border-left: 1px solid var(--era-bunker); color: var(--bone); }
 .links { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.25rem; }
 
 .plain-btn {

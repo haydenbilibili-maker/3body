@@ -21,7 +21,7 @@ defineProps<{
       <span v-if="error"> | {{ error }}</span>
     </div>
     <div v-if="history && history.length" class="diag-history">
-      <div class="diag-history-title">Recent Calls</div>
+      <div class="diag-history-title">最近调用</div>
       <div v-for="(h, idx) in history" :key="idx" class="diag-history-item">
         <span>[{{ h.at }}]</span>
         <span>{{ h.status }}</span>

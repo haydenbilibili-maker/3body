@@ -70,6 +70,23 @@
   --rust: #b0432f;        /* 红岸：不可逆与危险 */
   --rust-bright: #d2553f;
 
+  /* 纪元色（三体·深时 VI）：每间展厅唯一的场景色，经 --sector-accent 传给页头 */
+  --era-pastoral: #e8d27a;
+  --era-common: #c9a45c;
+  --era-crisis: #9fb8d8;
+  --era-deterrence: #a99cc4;
+  --era-broadcast: #d49bb0;
+  --era-bunker: #d0a56b;
+  --era-galaxy: #b7a2b8;
+  --era-beyond: #d6d2c8;
+  --era-archive: #c9b48a;
+
+  /* 形状与时长（VI）：石头是切出来的，不是磨圆的 */
+  --radius-cut: 2px;
+  --dur-arrive: 900ms;
+  --dur-hold: 1100ms;
+  --dur-quick: 200ms;
+
   /* Palette Mappings */
   /* 旧令牌映射到新色板：各页无需改动即随之换色 */
   --bg-deep: var(--void);
@@ -322,4 +339,52 @@ button, a, input, .card {
   12% { transform: perspective(900px) translateZ(-260px) translateY(30px); filter: blur(1.5px); }
   70% { transform: perspective(900px) translateZ(-320px) translateY(40px); filter: blur(2px) brightness(0.85); }
   100% { transform: none; filter: none; }
+}
+
+
+/*
+ * 拓片主题（三体·深时 VI）：纸品、打印与导出。同一组令牌名，换成宣纸与墨。
+ * 用法：任意容器加 data-theme="rubbing"；打印时整页自动切换。
+ */
+[data-theme='rubbing'] {
+  --void: #ece7dc;
+  --slab: #e3ddd0;
+  --slab-raised: #d9d2c3;
+  --incision: #a8a090;
+  --incision-soft: #cfc8b8;
+  --bone: #1d1e21;
+  --gray-150: #2c2d30;
+  --gray-200: #2c2d30;
+  --weathered: #5f5a50;
+  --cherenkov: #1f5fae;
+  --cherenkov-rgb: 31, 95, 174;
+  --rust: #9a3524;
+  --rust-bright: #a83a27;
+  --era-pastoral: #7a6514;
+  --era-common: #7a5a1c;
+  --era-crisis: #3c5a80;
+  --era-deterrence: #5a4a7a;
+  --era-broadcast: #8a3f5c;
+  --era-bunker: #7a5220;
+  --era-galaxy: #6a4f6c;
+  --era-beyond: #4a4740;
+  --era-archive: #6a5a36;
+  background: var(--void);
+  color: var(--bone);
+}
+
+@media print {
+  :root {
+    --void: #ece7dc;
+    --slab: #e3ddd0;
+    --incision: #a8a090;
+    --incision-soft: #cfc8b8;
+    --bone: #1d1e21;
+    --gray-150: #2c2d30;
+    --weathered: #5f5a50;
+    --cherenkov: #1f5fae;
+    --era-archive: #6a5a36;
+  }
+  body { background: #fff; }
+  .archive-nav, .deep-time, .app-footer, .no-print { display: none !important; }
 }
