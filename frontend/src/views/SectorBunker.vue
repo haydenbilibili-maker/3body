@@ -1,688 +1,325 @@
 <script setup lang="ts">
 /**
- * Sector J: Bunker World (掩体世界)
- * 核心：太空城全景 (City Viewer), 阴影躲避 (Shadow Sim), 光粒预警 (Photoid Alert)
- * 风格：工业科幻，橙色警示风
+ * Sector J：掩体纪元
+ * 一 表决：掩体、黑域、光速飞船，人类只能选一条路
+ * 二 守影：太空城藏在巨行星的阴影里，摄动会把它们推出去；预警响起后八秒，太阳被击中
+ * 三 真相：来的不是光粒——躲起来的人，躲开了他们以为的那种死亡
+ * 逻辑见 sim/bunker.ts。（原先的三维城市与阴影模拟占用主线程过重，已改为二维沙盘。）
  */
-import { ref, reactive, onMounted, onUnmounted, computed, watch } from 'vue'
-import { NTabs, NTabPane, NProgress, NSelect, useMessage } from 'naive-ui'
-import { soundManager } from '@/utils/sound'
-import { TresCanvas } from '@tresjs/core'
-import { OrbitControls, Stars } from '@tresjs/cientos'
-import ShadowSimBodies from '@/components/ShadowSimBodies.vue'
+import { computed, onUnmounted, ref, shallowRef } from 'vue'
+import SectorHeader from '@/components/SectorHeader.vue'
+import Vitrine from '@/components/Vitrine.vue'
+import HoldButton from '@/components/HoldButton.vue'
+import { sectorByPath } from '@/data/sectors'
+import {
+  MAX_FUEL,
+  PLANS,
+  correct,
+  createBunker,
+  inShadow,
+  phase as phaseOf,
+  shadowHalfAngle,
+  tick,
+  type BunkerState,
+  type City,
+  type Giant,
+  type Plan,
+} from '@/sim/bunker'
 
-const message = useMessage()
-const activeTab = ref('city') 
+const question = sectorByPath('/sector-j')?.question
 
-// --- 1. Space City Viewer (3D) ---
-const selectedCity = ref('asia1')
-const cityOptions = [
-  { label: '亚洲一号 (Asia I) - 轮辐式 (Wheel)', value: 'asia1' },
-  { label: '北美一号 (North America I) - 滚筒式 (Cylinder)', value: 'na1' },
-  { label: '欧洲三号 (Europe III) - 组合式 (Composite)', value: 'eu3' },
-  { label: '太平洋一号 (Pacific I) - 环形 (Ring)', value: 'pac1' }
-]
+type Act = 'vote' | 'hold' | 'struck' | 'truth'
+const act = ref<Act>('vote')
+const chosen = ref<Plan | null>(null)
 
-const cityMeta: Record<string, { orbit: string; type: string; desc: string }> = {
-  asia1: { orbit: 'JUPITER L5', type: '轮辐式 WHEEL', desc: '经典奥尼尔圆环，离心重力' },
-  na1: { orbit: 'SATURN L4', type: '滚筒式 CYLINDER', desc: '长筒自转，内壁地表' },
-  eu3: { orbit: 'JUPITER L4', type: '组合式 COMPOSITE', desc: '多舱段组合体' },
-  pac1: { orbit: 'NEPTUNE L5', type: '环形 RING', desc: '细环结构，轻量殖民' }
+const VOTE_NOTE: Record<Plan, string> = {
+  bunker: '你和大多数人想的一样。联合国通过了掩体计划，人类开始在四颗巨行星背后建造太空城。',
+  domain: '黑域需要把光速降到每秒十几公里，没有人知道怎么做到。表决之后，人类选择了掩体计划。',
+  lightspeed: '光速飞船只能带走极少数人，而且曲率航迹会让太阳系更早暴露。舰队国际随后立法禁止研究光速飞船，人类选择了掩体计划。',
 }
 
-const currentCityMeta = computed(() => cityMeta[selectedCity.value] ?? null)
-
-const cityViewMode = ref<'exterior' | 'interior'>('exterior')
-
-const cityStats = reactive({
-  population: 25000000,
-  gravity: 0.98,
-  oxygen: 99.8,
-  energy: 85.4,
-  hull: 100
-})
-
-setInterval(() => {
-  cityStats.energy = 80 + Math.random() * 20
-  cityStats.oxygen = 99 + Math.random()
-}, 3000)
-
-// 3D City Config (args: torus [radius, tube, radialSegments, tubularSegments] | cylinder [radiusTop, radiusBottom, height, radialSegments, heightSegments, openEnded])
-const cityConfig = computed(() => {
-  switch (selectedCity.value) {
-    case 'asia1': // Wheel
-      return { type: 'torus' as const, args: [10, 3, 16, 100] as [number, number, number, number], color: '#aaa', wireframe: false, rotSpeed: 0.2 }
-    case 'na1': // Cylinder
-      return { type: 'cylinder' as const, args: [5, 5, 20, 32, 1, true] as [number, number, number, number, number, boolean], color: '#8899aa', wireframe: false, rotSpeed: 0.1 }
-    case 'eu3': // Composite
-      return { type: 'torus' as const, args: [8, 2, 16, 50] as [number, number, number, number], color: '#d4af37', wireframe: true, rotSpeed: 0.15 }
-    case 'pac1': // Ring
-      return { type: 'torus' as const, args: [12, 1, 16, 100] as [number, number, number, number], color: '#00ccff', wireframe: false, rotSpeed: 0.05 }
-    default:
-      return { type: 'torus' as const, args: [10, 3, 16, 100] as [number, number, number, number], color: '#aaa', wireframe: false, rotSpeed: 0.1 }
-  }
-})
-
-const cityEmissiveIntensity = computed(() => (cityViewMode.value === 'interior' ? 0.15 : 0))
-const cityEmissive = computed(() => (cityViewMode.value === 'interior' ? '#0a331a' : '#111'))
-
-// Auto-rotate logic would be handled inside the template via ref or simple rotation prop if supported,
-// or we can use useRenderLoop inside a sub-component. For simplicity, we use simple reactive rotation here.
-const rotation = reactive({ x: 0, y: 0, z: 0 })
-let rotateFrame: number
-function animateCity() {
-  if (activeTab.value !== 'city') {
-    rotateFrame = requestAnimationFrame(animateCity)
+/* ---------- 守影 ---------- */
+const seed = ref(Math.floor(Math.random() * 1e6))
+const state = shallowRef<BunkerState>(createBunker(seed.value))
+let raf = 0
+let last = 0
+function loop(now: number) {
+  const dt = Math.min(0.1, (now - last) / 1000)
+  last = now
+  state.value = tick(state.value, dt, seed.value)
+  if (state.value.struck) {
+    raf = 0
+    act.value = 'struck'
     return
   }
-  if (cityViewMode.value === 'exterior') {
-    rotation.y += 0.005 * (cityConfig.value.rotSpeed * 5)
-    rotation.z += 0.01 * (cityConfig.value.rotSpeed * 5)
-  } else {
-    rotation.z += 0.002
-  }
-  rotateFrame = requestAnimationFrame(animateCity)
+  raf = requestAnimationFrame(loop)
+}
+function startHold() {
+  cancelAnimationFrame(raf)
+  seed.value = Math.floor(Math.random() * 1e6)
+  state.value = createBunker(seed.value)
+  act.value = 'hold'
+  last = performance.now()
+  raf = requestAnimationFrame(loop)
+}
+onUnmounted(() => cancelAnimationFrame(raf))
+
+const ph = computed(() => phaseOf(state.value))
+const countdown = computed(() => Math.max(0, state.value.strikeAt - state.value.t))
+const survivors = computed(() => state.value.cities.filter((c) => c.alive).length)
+
+function fix(c: City) {
+  state.value = correct(state.value, c.id)
 }
 
-// Watch view mode to reset camera/rotation logic if needed
-watch(cityViewMode, (mode) => {
-  if (mode === 'interior') {
-    message.info('切换至内景视角：模拟离心重力环境')
-  }
-})
-
-// --- 2. Shadow Hiding Sim ---
-const gameActive = ref(true)
-const timeSpeed = ref(1)
-const exposureTime = ref(0)
-const shadowSimTick = ref(0)
-
-// Celestial Bodies
-interface Body {
-  id: string, name: string, distance: number, radius: number, angle: number, speed: number, color: string, shadowWidth: number
+/* ---------- 画面几何 ---------- */
+const giantOf = (c: City) => state.value.giants.find((g) => g.id === c.giant) as Giant
+const gx = (g: Giant) => Math.cos(g.angle) * g.orbit
+const gy = (g: Giant) => Math.sin(g.angle) * g.orbit
+function cityXY(c: City) {
+  const g = giantOf(c)
+  const a = g.angle + c.offset
+  const d = g.radius + 13
+  return { x: gx(g) + Math.cos(a) * d, y: gy(g) + Math.sin(a) * d }
+}
+function shadowPath(g: Giant) {
+  const h = shadowHalfAngle(g)
+  const L = 70
+  const x = gx(g)
+  const y = gy(g)
+  const p1 = [x + Math.cos(g.angle + h) * L, y + Math.sin(g.angle + h) * L]
+  const p2 = [x + Math.cos(g.angle - h) * L, y + Math.sin(g.angle - h) * L]
+  return `M${x},${y} L${p1[0]},${p1[1]} L${p2[0]},${p2[1]} Z`
+}
+const safe = (c: City) => inShadow(c, state.value.giants)
+/** 离开阴影边缘还有多远（0–1，1 = 正中） */
+function margin(c: City) {
+  const h = shadowHalfAngle(giantOf(c))
+  return Math.max(0, 1 - Math.abs(c.offset) / h)
 }
 
-const sun = { x: 0, y: 300, r: 40 }
-const planets = reactive<Body[]>([
-  { id: 'jupiter', name: 'JUPITER', distance: 250, radius: 35, angle: 0, speed: 0.002, color: '#d4a373', shadowWidth: 0.35 },
-  { id: 'saturn', name: 'SATURN', distance: 400, radius: 28, angle: 2, speed: 0.0015, color: '#f4e4bc', shadowWidth: 0.28 },
-  { id: 'uranus', name: 'URANUS', distance: 550, radius: 20, angle: 4, speed: 0.001, color: '#73d7ee', shadowWidth: 0.2 },
-  { id: 'neptune', name: 'NEPTUNE', distance: 700, radius: 18, angle: 5, speed: 0.0008, color: '#5b5ddf', shadowWidth: 0.18 }
-])
-
-interface City {
-  id: string, label: string, x: number, y: number, planetId: string, angleOffset: number, orbitRadius: number, exposed: boolean
+function restart() {
+  cancelAnimationFrame(raf)
+  act.value = 'vote'
+  chosen.value = null
 }
-
-const cities = reactive<City[]>([
-  { id: 'c1', label: 'Asia I', x: 0, y: 0, planetId: 'jupiter', angleOffset: Math.PI, orbitRadius: 50, exposed: false },
-  { id: 'c2', label: 'NA I', x: 0, y: 0, planetId: 'saturn', angleOffset: Math.PI + 0.2, orbitRadius: 45, exposed: false },
-  { id: 'c3', label: 'Europe III', x: 0, y: 0, planetId: 'jupiter', angleOffset: Math.PI - 0.2, orbitRadius: 60, exposed: false },
-  { id: 'c4', label: 'Gravity', x: 0, y: 0, planetId: 'uranus', angleOffset: Math.PI, orbitRadius: 40, exposed: false }
-])
-
-let animationFrame: number
-let shadowSimInterval: ReturnType<typeof setInterval> | undefined
-
-// 3D 比例：放大以便看清行星与太空城运动
-const SHADOW_SCALE = 0.15
-const SUN_RADIUS_3D = 4
-const PLANET_RADIUS_SCALE = 0.2
-const CITY_ORBIT_SCALE = 0.15
-
-const planets3d = computed(() =>
-  planets.map((p) => ({
-    ...p,
-    x: p.distance * SHADOW_SCALE * Math.cos(p.angle),
-    y: 0,
-    z: p.distance * SHADOW_SCALE * Math.sin(p.angle),
-    r3d: p.radius * PLANET_RADIUS_SCALE
-  }))
-)
-
-const cities3d = computed(() =>
-  cities.map((c) => {
-    const parent = planets.find((p) => p.id === c.planetId)!
-    const px = parent.distance * SHADOW_SCALE * Math.cos(parent.angle)
-    const pz = parent.distance * SHADOW_SCALE * Math.sin(parent.angle)
-    const absAngle = parent.angle + c.angleOffset
-    const orbitR = c.orbitRadius * CITY_ORBIT_SCALE
-    return {
-      ...c,
-      x: px + orbitR * Math.cos(absAngle),
-      y: 0,
-      z: pz + orbitR * Math.sin(absAngle)
-    }
-  })
-)
-
-function tickShadowSim() {
-  if (!gameActive.value) return
-  planets.forEach(p => {
-    p.angle += p.speed * timeSpeed.value
-  })
-  cities.forEach(c => {
-    const parent = planets.find(p => p.id === c.planetId)!
-    const parentX = sun.x + Math.cos(parent.angle) * parent.distance
-    const parentY = sun.y + Math.sin(parent.angle) * parent.distance
-    const absAngle = parent.angle + c.angleOffset
-    c.x = parentX + Math.cos(absAngle) * c.orbitRadius
-    c.y = parentY + Math.sin(absAngle) * c.orbitRadius
-    let normOffset = c.angleOffset % (2 * Math.PI)
-    if (normOffset < 0) normOffset += 2 * Math.PI
-    if (Math.random() < 0.05) {
-      c.angleOffset += (Math.random() - 0.5) * 0.02
-    }
-    const distFromSafe = Math.abs(normOffset - Math.PI)
-    c.exposed = distFromSafe >= parent.shadowWidth
-  })
-  if (cities.some(c => c.exposed)) {
-    exposureTime.value += 0.5
-  } else {
-    exposureTime.value = Math.max(0, exposureTime.value - 0.2)
-  }
-  shadowSimTick.value++
-}
-
-function updatePositions() {
-  if (gameActive.value && activeTab.value === 'shadow') {
-    tickShadowSim()
-  }
-  animationFrame = requestAnimationFrame(updatePositions)
-}
-
-watch(activeTab, (tab) => {
-  if (shadowSimInterval) {
-    clearInterval(shadowSimInterval)
-    shadowSimInterval = undefined
-  }
-  if (tab === 'shadow') {
-    tickShadowSim()
-    shadowSimInterval = setInterval(tickShadowSim, 50)
-  }
-})
-
-// --- 3. Photoid Alert System (Doomsday Radar) ---
-const isStriking = ref(false)
-const strikeTime = ref(0)
-const shockwaveRadius = ref(0)
-const impactLogs = ref<{time: string, msg: string, type: 'info'|'warn'|'crit'}[]>([
-  { time: '00:00:00', msg: 'SYSTEM_INIT: EARLY_WARNING_NETWORK', type: 'info' },
-  { time: '00:00:01', msg: 'SENSORS: NOMINAL', type: 'info' }
-])
-
-const planetDists = {
-  jupiter: 43,
-  saturn: 79,
-  uranus: 159,
-  neptune: 250
-}
-
-const SIM_SPEED = 5 
-
-let alertTimer: ReturnType<typeof setInterval> | undefined
-
-function addLog(msg: string, type: 'info'|'warn'|'crit' = 'info') {
-  const now = new Date()
-  const ts = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2,'0')}`
-  impactLogs.value.unshift({ time: ts, msg, type })
-  if (impactLogs.value.length > 20) impactLogs.value.pop()
-}
-
-function startStrike() {
-  if (isStriking.value) return
-  isStriking.value = true
-  shockwaveRadius.value = 0
-  strikeTime.value = 0
-  
-  addLog('WARNING: GRAVITATIONAL WAVE DETECTED', 'warn')
-  addLog('PHOTOID IMPACT ON SUN CONFIRMED', 'crit')
-  message.error('警报：光粒已击中太阳！激波正在扩散！')
-  soundManager.playAlert()
-  
-  alertTimer = setInterval(() => {
-    strikeTime.value += 0.1 // seconds
-    shockwaveRadius.value += 0.1 * SIM_SPEED 
-    
-    Object.entries(planetDists).forEach(([p, dist]) => {
-      if (Math.abs(shockwaveRadius.value - dist) < 1) {
-        addLog(`IMPACT ALERT: ${p.toUpperCase()} SECTOR HIT`, 'crit')
-        soundManager.playBigCrunch()
-      }
-    })
-    
-    if (shockwaveRadius.value > 300) {
-      clearInterval(alertTimer)
-      isStriking.value = false
-      addLog('SIMULATION ENDED. SOLAR SYSTEM DESTROYED.', 'info')
-    }
-  }, 100)
-}
-
-function getCountdown(planetDist: number) {
-  if (!isStriking.value) return '--:--'
-  const distRemaining = planetDist - shockwaveRadius.value
-  if (distRemaining <= 0) return 'IMPACTED'
-  
-  const secondsLeft = distRemaining / (0.1 * SIM_SPEED) * 0.1
-  return secondsLeft.toFixed(1) + 's'
-}
-
-onMounted(() => {
-  updatePositions()
-  animateCity()
-  if (activeTab.value === 'shadow') {
-    tickShadowSim()
-    shadowSimInterval = setInterval(tickShadowSim, 50)
-  }
-})
-
-onUnmounted(() => {
-  cancelAnimationFrame(animationFrame)
-  cancelAnimationFrame(rotateFrame)
-  clearInterval(alertTimer)
-  if (shadowSimInterval) clearInterval(shadowSimInterval)
-})
-
 </script>
 
 <template>
-  <div class="sector-j">
-    <header class="header">
-      <h1 class="title">SECTOR J // BUNKER WORLD</h1>
-      <div class="subtitle">掩体纪元：木星庇护所群</div>
-    </header>
+  <div class="sector-bunker">
+    <SectorHeader
+      title="掩体"
+      subtitle="广播纪元之后，太阳系的坐标已经暴露。人类有几十年时间，为一场不知何时到来的打击做准备。"
+      goal="选一条生路；然后守住藏在巨行星阴影里的六座太空城，直到打击到来。"
+      accent="#c9b48a"
+      :show-restart="act !== 'vote'"
+      restart-label="回到表决"
+      @restart="restart"
+    />
 
-    <NTabs type="segment" v-model:value="activeTab" class="j-tabs">
-      
-      <!-- Tab 1: City Viewer -->
-      <NTabPane name="city" tab="太空城全景 (CITY VIEWER)">
-        <div class="city-viewer">
-          <aside class="viewer-sidebar">
-            <div class="selector-group">
-              <span class="selector-label">选择太空城 (SELECT COLONY)</span>
-              <NSelect v-model:value="selectedCity" :options="cityOptions" />
-            </div>
-            <div class="city-meta" v-if="currentCityMeta">
-              <div class="meta-orbit">ORBIT: {{ currentCityMeta.orbit }}</div>
-              <div class="meta-type">{{ currentCityMeta.type }}</div>
-              <div class="meta-desc">{{ currentCityMeta.desc }}</div>
-            </div>
-            <div class="city-stats">
-              <h4>生存指数 (HABITABILITY)</h4>
-              <div class="stat-row">
-                <span>GRAVITY</span>
-                <NProgress type="line" :percentage="selectedCity === 'asia1' ? cityStats.gravity * 100 : 90" color="#ffaa00" rail-color="#332211" :show-indicator="false" />
-                <span class="val">{{ selectedCity === 'asia1' ? cityStats.gravity : 0.9 }}G</span>
-              </div>
-              <div class="stat-row">
-                <span>OXYGEN</span>
-                <NProgress type="line" :percentage="cityStats.oxygen" color="#00ff41" rail-color="#332211" :show-indicator="false" />
-                <span class="val">{{ cityStats.oxygen.toFixed(1) }}%</span>
-              </div>
-              <div class="stat-row">
-                <span>ENERGY</span>
-                <NProgress type="line" :percentage="cityStats.energy" color="#00ccff" rail-color="#332211" :show-indicator="false" />
-                <span class="val">{{ cityStats.energy.toFixed(1) }}%</span>
-              </div>
-              <div class="stat-row">
-                <span>HULL</span>
-                <NProgress type="line" :percentage="cityStats.hull" color="#ff3333" rail-color="#332211" :show-indicator="false" />
-                <span class="val">OK</span>
-              </div>
-            </div>
-            <div class="view-switch">
-              <button :class="{ active: cityViewMode === 'exterior' }" @click="cityViewMode = 'exterior'">外观 (EXTERIOR)</button>
-              <button :class="{ active: cityViewMode === 'interior' }" @click="cityViewMode = 'interior'">内景 (INTERIOR)</button>
-            </div>
-          </aside>
-          <div class="viewport-wrap">
-            <div class="viewport">
-              <TresCanvas clear-color="#0a0806" class="city-canvas">
-                <TresPerspectiveCamera :position="cityViewMode === 'exterior' ? [22, 18, 22] : [0, 0, 8]" :look-at="[0, 0, 0]" />
-                <OrbitControls :enable-zoom="true" :auto-rotate="false" />
-                <Stars :radius="120" :depth="60" :count="6000" :size="0.4" :color="null" />
-                <TresAmbientLight :intensity="0.4" />
-                <TresDirectionalLight :position="[10, 10, 10]" :intensity="1.2" />
-                <TresDirectionalLight :position="[-8, 5, -8]" :intensity="0.5" color="#ffaa33" />
-                <TresMesh :rotation-x="rotation.x" :rotation-y="rotation.y" :rotation-z="rotation.z">
-                  <TresTorusGeometry v-if="cityConfig.type === 'torus'" :args="cityConfig.args" />
-                  <TresCylinderGeometry v-if="cityConfig.type === 'cylinder'" :args="cityConfig.args" />
-                  <TresMeshStandardMaterial
-                    :color="cityConfig.color"
-                    :wireframe="cityConfig.wireframe || cityViewMode === 'interior'"
-                    :roughness="0.35"
-                    :metalness="0.75"
-                    :emissive="cityEmissive"
-                    :emissiveIntensity="cityEmissiveIntensity"
-                  />
-                </TresMesh>
-                <TresMesh v-if="cityConfig.type === 'torus'" :rotation-x="rotation.x" :rotation-y="rotation.y" :rotation-z="rotation.z">
-                  <TresSphereGeometry :args="[2, 32, 32]" />
-                  <TresMeshStandardMaterial color="#444" :metalness="0.8" :roughness="0.4" />
-                </TresMesh>
-                <TresGroup v-if="cityConfig.type === 'torus'" :rotation-x="rotation.x" :rotation-y="rotation.y" :rotation-z="rotation.z">
-                  <TresMesh v-for="idx in 3" :key="idx" :rotation-x="0" :rotation-y="0" :rotation-z="(idx - 1) * 2.09">
-                    <TresCylinderGeometry :args="[0.5, 0.5, 10, 8]" :position="[0, 5, 0]" />
-                    <TresMeshStandardMaterial color="#333" :metalness="0.7" :roughness="0.5" />
-                  </TresMesh>
-                </TresGroup>
-              </TresCanvas>
-              <div class="viewport-vignette" aria-hidden="true"></div>
-              <div class="overlay-data">
-                <p class="hud-line">ID: {{ selectedCity.toUpperCase() }}</p>
-                <p class="hud-line">ORBIT: {{ currentCityMeta?.orbit ?? '--' }}</p>
-                <p class="hud-line status">STATUS: OPERATIONAL</p>
-              </div>
-            </div>
-          </div>
+    <!-- 一 表决 -->
+    <section v-if="act === 'vote'" class="vote">
+      <p class="lede">人类知道打击会来，却不知道会是什么。三条路摆在面前，每一条都要放弃一些东西。</p>
+      <div class="plans">
+        <button
+          v-for="p in PLANS"
+          :key="p.id"
+          type="button"
+          class="plan"
+          :class="{ on: chosen === p.id }"
+          :aria-pressed="chosen === p.id"
+          @click="chosen = p.id"
+        >
+          <span class="plan-name">{{ p.name }}</span>
+          <span class="plan-desc">{{ p.desc }}</span>
+          <span class="plan-cost">代价：{{ p.cost }}</span>
+        </button>
+      </div>
+      <transition name="fade">
+        <div v-if="chosen" class="vote-result">
+          <p>{{ VOTE_NOTE[chosen] }}</p>
+          <HoldButton :hold-ms="1600" @confirm="startHold">按住，把人类搬进阴影</HoldButton>
         </div>
-      </NTabPane>
+      </transition>
+    </section>
 
-      <!-- Tab 2: Shadow Sim (3D) -->
-      <NTabPane name="shadow" tab="阴影躲避 (SHADOW SIM)">
-        <div class="sim-container">
-          <div class="sim-header">
-            <div class="sim-status" :class="{ danger: exposureTime > 0 }">
-              暴露风险 (RISK): {{ Math.min(100, exposureTime).toFixed(1) }}%
-            </div>
-            <div class="hint-top">拖动滑块使太空城保持在行星背阳面阴影中 · 可旋转/缩放视角</div>
-          </div>
-          <div class="shadow-scene-3d" :data-tick="shadowSimTick">
-            <TresCanvas clear-color="#0a0a0f" class="shadow-canvas">
-              <TresPerspectiveCamera :position="[0, 45, 45]" :look-at="[0, 0, 0]" />
-              <OrbitControls :enable-zoom="true" :min-distance="20" :max-distance="120" />
-              <TresAmbientLight :intensity="0.3" />
-              <TresDirectionalLight :position="[0, 30, 0]" :intensity="1" color="#ffaa66" />
-              <TresMesh :position="[0, 0, 0]">
-                <TresSphereGeometry :args="[SUN_RADIUS_3D, 32, 32]" />
-                <TresMeshBasicMaterial color="#ffaa33" />
-              </TresMesh>
-              <TresPointLight :position="[0, 0, 0]" :intensity="1.5" :distance="150" color="#ffcc88" />
-              <!-- 轨道环（静态） -->
-              <TresMesh v-for="p in planets3d" :key="'ring-' + p.id" :position="[0, 0, 0]" :rotation-x="-Math.PI/2" rotation-y="0" rotation-z="0">
-                <TresRingGeometry :args="[p.distance * SHADOW_SCALE - 0.8, p.distance * SHADOW_SCALE + 0.8, 64]" />
-                <TresMeshBasicMaterial color="#332211" transparent :opacity="0.5" />
-              </TresMesh>
-              <!-- 行星与太空城：由子组件在渲染循环中每帧同步位置 -->
-              <ShadowSimBodies :planets3d="planets3d" :cities3d="cities3d" />
-            </TresCanvas>
-          </div>
-          <div class="sim-controls">
-            <div v-for="c in cities" :key="c.id" class="control-row">
-              <div class="row-header">
-                <label :class="{ 'text-danger': c.exposed }">{{ c.label }} {{ c.exposed ? '[EXPOSED]' : '[HIDDEN]' }}</label>
-                <span class="drift-val">DEV: {{ (c.angleOffset - Math.PI).toFixed(2) }}</span>
-              </div>
-              <input type="range" v-model.number="c.angleOffset" min="0" max="6.28" step="0.01" class="orbit-slider" />
-            </div>
-          </div>
+    <!-- 二 守影 / 三 打击 -->
+    <div v-else-if="act === 'hold' || act === 'struck'" class="hold">
+      <Vitrine flush class="orrery-frame" :class="{ alert: ph === 'alert', struck: act === 'struck' }">
+        <svg class="orrery" viewBox="-360 -360 720 720" role="img" aria-label="太阳系沙盘：四颗巨行星与它们阴影里的太空城">
+          <defs>
+            <radialGradient id="bk-sun">
+              <stop offset="0" stop-color="#fff6e0" />
+              <stop offset="0.4" stop-color="#e8c483" />
+              <stop offset="1" stop-color="#e8c483" stop-opacity="0" />
+            </radialGradient>
+          </defs>
+          <circle v-for="g in state.giants" :key="'o' + g.id" :r="g.orbit" class="orbit" />
+          <circle class="sun" :r="act === 'struck' ? 360 : 42" fill="url(#bk-sun)" />
+          <path v-for="g in state.giants" :key="'s' + g.id" :d="shadowPath(g)" class="shadow" />
+          <g v-for="g in state.giants" :key="'g' + g.id">
+            <circle :cx="gx(g)" :cy="gy(g)" :r="g.radius" class="giant" />
+            <text :x="gx(g)" :y="gy(g) - g.radius - 8" class="g-label">{{ g.name }}</text>
+          </g>
+          <g
+            v-for="c in state.cities"
+            :key="c.id"
+            class="city"
+            :class="{ out: !safe(c), dead: act === 'struck' && !c.alive }"
+            @click="fix(c)"
+          >
+            <circle :cx="cityXY(c).x" :cy="cityXY(c).y" r="14" class="hit" />
+            <circle :cx="cityXY(c).x" :cy="cityXY(c).y" r="4.5" class="dot" />
+          </g>
+        </svg>
+        <template #caption>
+          <span v-if="act === 'struck'">太阳被击中了。阴影之外的一切，都在那一刻气化。</span>
+          <span v-else-if="ph === 'alert'" class="alarm">光粒预警：距离打击 <b class="num">{{ countdown.toFixed(1) }}</b> 秒</span>
+          <span v-else>轻点一座正在漂出阴影的城市，用推进剂把它推回去。</span>
+        </template>
+      </Vitrine>
+
+      <aside class="panel">
+        <p class="fuel">
+          推进剂
+          <span class="fuel-bar" aria-hidden="true"><span :style="{ width: (state.fuel / MAX_FUEL) * 100 + '%' }"></span></span>
+          <span class="num">{{ Math.floor(state.fuel) }} / {{ MAX_FUEL }}</span>
+        </p>
+        <ul class="cities">
+          <li v-for="c in state.cities" :key="c.id" :class="{ out: !safe(c), dead: act === 'struck' && !c.alive }">
+            <span class="c-name">{{ c.name }}</span>
+            <span class="c-margin" aria-hidden="true"><span :style="{ width: margin(c) * 100 + '%' }"></span></span>
+            <button
+              v-if="act === 'hold'"
+              type="button"
+              class="c-fix"
+              :disabled="state.fuel < 1"
+              @click="fix(c)"
+            >校正</button>
+            <span v-else class="c-fate">{{ c.alive ? '幸存' : '气化' }}</span>
+          </li>
+        </ul>
+        <div v-if="act === 'struck'" class="verdict">
+          <p>六座太空城，<span class="num">{{ survivors }}</span> 座留在了阴影里。</p>
+          <p>你守住了人们以为会来的那种死亡。</p>
+          <button type="button" class="plain-btn primary" @click="act = 'truth'">可是，来的是什么？</button>
         </div>
-      </NTabPane>
+      </aside>
+    </div>
 
-      <!-- Tab 3: Alert System (Doomsday Radar) -->
-      <NTabPane name="alert" tab="光粒预警 (DOOMSDAY RADAR)">
-        <div class="radar-container" :class="{ 'red-alert': isStriking }">
-          <div class="radar-main">
-            <div class="radar-screen">
-              <!-- Sun Center -->
-              <div class="radar-sun" :class="{ 'sun-explode': isStriking }"></div>
-              
-              <!-- Orbits -->
-              <div class="radar-orbit" style="width: 150px; height: 150px"></div> <!-- Jupiter -->
-              <div class="radar-orbit" style="width: 250px; height: 250px"></div> <!-- Saturn -->
-              <div class="radar-orbit" style="width: 350px; height: 350px"></div> <!-- Uranus -->
-              <div class="radar-orbit" style="width: 450px; height: 450px"></div> <!-- Neptune -->
-              
-              <!-- Shockwave -->
-              <div 
-                v-if="isStriking" 
-                class="shockwave" 
-                :style="{ width: shockwaveRadius * 3 + 'px', height: shockwaveRadius * 3 + 'px' }"
-              ></div>
-              
-              <!-- Planet Markers -->
-              <div class="planet-marker" style="top: 50%; left: calc(50% + 75px)">JUP</div>
-              <div class="planet-marker" style="top: 50%; left: calc(50% + 125px)">SAT</div>
-              <div class="planet-marker" style="top: 50%; left: calc(50% + 175px)">URA</div>
-              <div class="planet-marker" style="top: 50%; left: calc(50% + 225px)">NEP</div>
-            </div>
-            
-            <div class="radar-data">
-              <h3>生存倒计时 (T-MINUS)</h3>
-              <div class="countdown-grid">
-                <div class="count-item" v-for="(dist, p) in planetDists" :key="p">
-                  <span class="label">{{ p.toUpperCase() }}</span>
-                  <span class="time" :class="{ 'impacted': getCountdown(dist) === 'IMPACTED' }">
-                    {{ getCountdown(dist) }}
-                  </span>
-                </div>
-              </div>
-              <div class="alert-actions">
-                 <button class="trigger-btn" @click="startStrike" :disabled="isStriking">
-                   {{ isStriking ? 'IMPACT SEQUENCE RUNNING' : '模拟光粒打击 (SIMULATE PHOTOID)' }}
-                 </button>
-              </div>
-            </div>
-          </div>
-          
-          <div class="radar-logs">
-            <div v-for="(log, i) in impactLogs" :key="i" class="log-entry" :class="log.type">
-              <span class="log-time">[{{ log.time }}]</span> {{ log.msg }}
-            </div>
-          </div>
+    <!-- 四 真相 -->
+    <Vitrine v-else class="truth">
+      <div class="truth-body">
+        <p>真正到来的不是光粒，而是一张小小的纸条：二向箔。</p>
+        <p>它接触到太阳系的那一刻，三维空间开始向二维跌落。太阳、巨行星、藏在阴影里的城市，都被摊平成一幅没有厚度的画。阴影救不了任何人——阴影本身也是三维的。</p>
+        <p>人类预备好了一种死亡，宇宙给了另一种。唯一能逃出去的是光速飞船，而那条路，是人类亲手禁止的。</p>
+        <p class="q">{{ question }}</p>
+        <div class="truth-actions">
+          <RouterLink to="/sector-d" class="plain-btn">看那幅画：二向箔画廊</RouterLink>
+          <RouterLink to="/sector-l" class="plain-btn">那条被禁止的路：曲率驱动</RouterLink>
+          <button type="button" class="plain-btn" @click="startHold">再守一次</button>
         </div>
-      </NTabPane>
-
-    </NTabs>
+      </div>
+    </Vitrine>
   </div>
 </template>
 
 <style scoped>
-.sector-j {
-  min-height: 0;
-  flex: 1;
-  background: #15100a;
-  color: var(--c-amber);
-  font-family: var(--font-mono);
+.sector-bunker { padding: 2rem clamp(1rem, 4vw, 3rem) 3rem; max-width: 76rem; }
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.lede { max-width: 42rem; margin: 0 0 1.5rem; font-family: var(--font-serif); font-size: 1.0625rem; line-height: 1.9; color: var(--gray-150); }
+
+.plans { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+.plan {
   display: flex;
   flex-direction: column;
-}
-
-.header {
-  padding: 1rem 2rem;
-  border-bottom: 2px solid var(--c-amber);
-  background: #2a2018;
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-}
-
-.title { margin: 0; letter-spacing: 2px; font-size: 1.5rem; }
-.subtitle { color: #886644; font-size: 0.9rem; }
-
-.j-tabs { flex: 1; display: flex; flex-direction: column; }
-:deep(.n-tabs-pane-wrapper) { flex: 1; display: flex; flex-direction: column; min-height: 0; }
-:deep(.n-tab-pane) { flex: 1; display: flex; flex-direction: column; min-height: 0; }
-
-/* City Viewer Layout */
-.city-viewer {
-  flex: 1;
-  display: flex;
-  padding: 1rem;
-  gap: 1rem;
-  overflow: hidden;
-}
-
-.viewer-sidebar {
-  width: 300px;
-  min-width: 280px;
-  flex-shrink: 0;
-  min-height: 200px;
-  overflow-y: auto;
-  background: #221a15;
-  border: 1px solid #554433;
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-  position: relative;
-  z-index: 2;
-}
-
-.selector-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-.selector-label {
-  display: block;
-  margin: 0;
-  color: #aa8844;
-  font-size: 0.9rem;
-  font-weight: 600;
-  line-height: 1.3;
-}
-
-.city-meta {
-  padding: 0.6rem 0;
-  border-bottom: 1px solid #332211;
-  flex-shrink: 0;
-}
-.meta-orbit {
-  color: #00cc88;
-  font-size: 0.75rem;
-  letter-spacing: 0.05em;
-  margin-bottom: 0.35rem;
-}
-.meta-type { color: var(--c-amber); font-size: 0.85rem; font-weight: bold; margin-bottom: 0.25rem; }
-.meta-desc { color: #a09080; font-size: 0.8rem; line-height: 1.4; }
-
-.city-stats h4 { margin: 0 0 1rem 0; color: var(--c-amber); border-bottom: 1px solid #554433; padding-bottom: 0.5rem; }
-.stat-row { display: flex; align-items: center; margin-bottom: 0.8rem; gap: 0.5rem; font-size: 0.8rem; }
-.stat-row span:first-child { width: 60px; }
-.stat-row .n-progress { flex: 1; }
-.stat-row .val { width: 50px; text-align: right; font-weight: bold; color: var(--gray-200); }
-
-.view-switch { display: flex; gap: 0.5rem; }
-.view-switch button {
-  flex: 1;
-  background: transparent;
-  border: 1px solid #554433;
-  color: #886644;
-  padding: 0.5rem;
-  cursor: pointer;
-  font-family: inherit;
-  transition: all 0.2s;
-}
-.view-switch button.active { background: var(--c-amber); color: var(--black); font-weight: bold; }
-
-.viewport-wrap {
-  flex: 1;
-  min-width: 320px;
-  min-height: 380px;
-  display: flex;
-  flex-direction: column;
-}
-
-.viewport {
-  flex: 1;
-  min-height: 360px;
-  background: #0a0806;
-  border: 1px solid #554433;
-  position: relative;
-  overflow: hidden;
+  gap: 0.6rem;
+  padding: 1.25rem;
+  text-align: left;
+  font: inherit;
+  color: var(--bone);
+  background: var(--slab);
+  border: 1px solid var(--incision);
   border-radius: 2px;
-  box-shadow: inset 0 0 80px rgba(0,0,0,0.6);
+  cursor: pointer;
+  transition: border-color 0.3s, background 0.3s;
 }
-/* TresCanvas 不用 window-size，避免 fixed 全屏盖住侧栏 */
-.viewport :deep(.city-canvas),
-.viewport :deep(canvas) {
-  display: block;
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  inset: 0;
+.plan:hover { border-color: var(--weathered); }
+.plan.on { border-color: #c9b48a; background: var(--slab-raised); }
+.plan-name { font-family: var(--font-serif); font-weight: 900; font-size: 1.25rem; letter-spacing: 0.08em; }
+.plan-desc { font-size: 0.9375rem; line-height: 1.75; color: var(--gray-150); }
+.plan-cost { font-size: 0.875rem; line-height: 1.7; color: var(--weathered); }
+.vote-result { max-width: 42rem; margin-top: 1.5rem; }
+.vote-result p { margin: 0 0 1rem; font-family: var(--font-serif); font-size: 1.0625rem; line-height: 1.9; color: var(--bone); }
+
+.hold { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(16rem, 1fr); gap: 1.5rem; align-items: start; }
+.orrery { display: block; width: 100%; height: auto; max-height: 70vh; background: #0d0e10; }
+.orbit { fill: none; stroke: var(--incision-soft); stroke-width: 1; }
+.sun { transition: r 0.6s ease-out; }
+.shadow { fill: rgba(0, 0, 0, 0.55); stroke: rgba(125, 184, 255, 0.18); stroke-width: 1; }
+.giant { fill: #4a4740; stroke: #6b665b; }
+.g-label { fill: var(--weathered); font-size: 13px; text-anchor: middle; font-family: var(--font-sans); }
+.city { cursor: pointer; }
+.city .hit { fill: transparent; }
+.city .dot { fill: var(--cherenkov); transition: fill 0.3s; }
+.city.out .dot { fill: var(--rust-bright); animation: blink 0.8s steps(2) infinite; }
+.city.dead .dot { fill: #555; animation: none; }
+@keyframes blink { 50% { opacity: 0.3; } }
+.orrery-frame.alert { box-shadow: 0 0 0 1px var(--rust); }
+.alarm { color: var(--rust-bright); }
+.alarm b { font-weight: 400; font-size: 1.125rem; }
+
+.panel { display: flex; flex-direction: column; gap: 1rem; }
+.fuel { display: flex; align-items: center; gap: 0.75rem; margin: 0; font-size: 0.9375rem; color: var(--weathered); }
+.fuel-bar { flex: 1; height: 4px; background: var(--incision-soft); }
+.fuel-bar span { display: block; height: 100%; background: var(--cherenkov); transition: width 0.2s; }
+.cities { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--incision-soft); }
+.cities li { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0; border-bottom: 1px solid var(--incision-soft); }
+.c-name { width: 5.5rem; font-family: var(--font-serif); color: var(--bone); }
+.c-margin { flex: 1; height: 3px; background: var(--incision-soft); }
+.c-margin span { display: block; height: 100%; background: var(--cherenkov); }
+.cities li.out .c-margin span { background: var(--rust-bright); }
+.cities li.dead .c-name { color: var(--weathered); text-decoration: line-through; }
+.c-fix {
+  padding: 0.25rem 0.7rem;
+  font: inherit;
+  font-size: 0.8125rem;
+  color: var(--bone);
+  background: transparent;
+  border: 1px solid var(--incision);
+  border-radius: 2px;
+  cursor: pointer;
 }
+.c-fix:disabled { opacity: 0.4; cursor: not-allowed; }
+.cities li.out .c-fix { border-color: var(--rust-bright); color: var(--rust-bright); }
+.c-fate { font-size: 0.8125rem; color: var(--weathered); }
+.verdict p { margin: 0 0 0.6rem; font-family: var(--font-serif); font-size: 1.0625rem; line-height: 1.8; color: var(--bone); }
 
-.viewport-vignette {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  border-radius: inherit;
-  box-shadow: inset 0 0 120px 20px rgba(0,0,0,0.5);
+.truth-body { max-width: 42rem; }
+.truth-body p { margin: 0 0 1rem; font-family: var(--font-serif); font-size: 1.0625rem; line-height: 1.95; color: var(--gray-150); }
+.truth-body .q { margin-top: 1.5rem; padding-left: 1rem; border-left: 1px solid #c9b48a; color: var(--bone); }
+.truth-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.5rem; }
+
+.plain-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.6rem 1.2rem;
+  font: inherit;
+  font-size: 0.9375rem;
+  color: var(--bone);
+  background: transparent;
+  border: 1px solid var(--incision);
+  border-radius: 2px;
+  cursor: pointer;
+  text-decoration: none;
 }
+.plain-btn:hover { border-color: var(--weathered); }
+.plain-btn.primary { border-color: var(--cherenkov); color: var(--cherenkov); }
+.fade-enter-active { transition: opacity 0.8s; }
+.fade-enter-from { opacity: 0; }
 
-.overlay-data {
-  position: absolute;
-  bottom: 1rem;
-  right: 1rem;
-  text-align: right;
-  color: var(--holo-green);
-  font-size: 0.75rem;
-  letter-spacing: 1px;
-  text-shadow: 0 0 8px rgba(0,255,65,0.4);
-  pointer-events: none;
-  padding: 0.5rem 0.75rem;
-  background: linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.7) 30%);
-  border-left: 2px solid rgba(0,255,65,0.3);
+@media (max-width: 900px) {
+  .plans { grid-template-columns: 1fr; }
+  .hold { grid-template-columns: 1fr; }
 }
-
-.overlay-data .hud-line { margin: 0.2rem 0; }
-.overlay-data .hud-line.status { color: #00cc88; }
-
-/* Shadow Sim (3D) */
-.sim-container { display: flex; flex-direction: column; flex: 1; min-height: 0; }
-.sim-header { padding: 0.75rem 1rem; background: #221a15; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #554433; flex-shrink: 0; }
-.sim-status { font-size: 1.2rem; font-weight: bold; color: var(--holo-green); }
-.sim-status.danger { color: var(--c-red); animation: blink 1s infinite; }
-.hint-top { color: #886644; font-size: 0.85rem; }
-.shadow-scene-3d {
-  flex: 1;
-  min-height: 320px;
-  position: relative;
-  background: #0a0a0f;
-  border: 1px solid #332211;
-}
-.shadow-scene-3d .shadow-canvas,
-.shadow-scene-3d :deep(canvas) {
-  display: block;
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  inset: 0;
-}
-.sim-controls { padding: 1rem; background: #221a15; display: flex; flex-direction: column; gap: 1rem; border-top: 1px solid #554433; flex-shrink: 0; }
-.control-row { display: flex; flex-direction: column; background: rgba(0,0,0,0.2); padding: 0.5rem; border: 1px solid #332211; }
-.row-header { display: flex; justify-content: space-between; margin-bottom: 0.2rem; font-size: 0.8rem; }
-.text-danger { color: var(--c-red); }
-.blink { animation: blink 0.5s infinite; }
-.orbit-slider { width: 100%; }
-
-/* Radar (Simplified) */
-.radar-container { flex: 1; display: flex; flex-direction: column; padding: 1rem; gap: 1rem; background: var(--gray-900); transition: background 0.5s; }
-.radar-container.red-alert { background: #220000; box-shadow: inset 0 0 50px var(--c-red); }
-.radar-main { flex: 2; display: flex; gap: 1rem; }
-.radar-screen { flex: 1; background: radial-gradient(circle, var(--gray-800) 0%, var(--black) 100%); border: 2px solid var(--gray-700); border-radius: 50%; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; aspect-ratio: 1; max-height: 500px; }
-.red-alert .radar-screen { border-color: var(--c-red); box-shadow: 0 0 20px rgba(255,0,0,0.3); }
-.radar-sun { width: 10px; height: 10px; background: var(--white); border-radius: 50%; position: absolute; z-index: 10; }
-.sun-explode { animation: explode 0.5s infinite alternate; box-shadow: 0 0 20px var(--c-amber); }
-.radar-orbit { position: absolute; border: 1px dashed rgba(255, 255, 255, 0.2); border-radius: 50%; }
-.shockwave { position: absolute; border: 2px solid var(--c-red); border-radius: 50%; background: rgba(255, 50, 50, 0.1); transform: translate(-50%, -50%); top: 50%; left: 50%; box-shadow: 0 0 10px var(--c-red); }
-.planet-marker { position: absolute; width: 4px; height: 4px; background: var(--holo-green); border-radius: 50%; font-size: 0.75rem; color: var(--gray-200); transform: translate(-50%, -50%); }
-.radar-data { width: 300px; background: #221a15; border: 1px solid #554433; padding: 1rem; display: flex; flex-direction: column; }
-.countdown-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0; }
-.count-item { background: var(--black); padding: 0.5rem; border: 1px solid var(--gray-700); text-align: center; }
-.count-item .label { display: block; font-size: 0.75rem; color: var(--gray-400); margin-bottom: 0.2rem; }
-.count-item .time { display: block; font-size: 1.2rem; color: var(--holo-green); }
-.count-item .time.impacted { color: var(--c-red); text-decoration: line-through; }
-.trigger-btn { width: 100%; padding: 1rem; background: #aa2222; color: var(--white); border: none; font-weight: bold; cursor: pointer; margin-top: auto; }
-.trigger-btn:hover { background: var(--c-red); }
-.trigger-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.radar-logs { flex: 1; background: var(--black); border: 1px solid var(--gray-700); padding: 1rem; font-family: var(--font-mono); overflow-y: auto; font-size: 0.8rem; height: 150px; }
-.log-entry { margin-bottom: 0.3rem; border-bottom: 1px solid var(--gray-900); padding-bottom: 0.2rem; }
-.log-entry.crit { color: var(--c-red); font-weight: bold; }
-
-@keyframes explode { from { transform: scale(1); opacity: 1; } to { transform: scale(3); opacity: 0.8; } }
-@keyframes blink { 50% { opacity: 0.5; } }
 </style>

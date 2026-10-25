@@ -355,6 +355,54 @@ const STATES = [
       await page.waitForTimeout(400)
     },
   },
+  {
+    // 掩体：选掩体计划 → 键盘确认（HoldButton 键盘即触发）→ 守影 6 秒，校正第一座城
+    name: 'desktop-bunker-hold',
+    viewport: 'desktop',
+    slug: 'sector-j',
+    act: async (page) => {
+      await page.getByRole('button', { name: /^掩体计划/ }).click({ timeout: 8000 })
+      await page.getByRole('button', { name: '按住，把人类搬进阴影' }).focus()
+      await page.keyboard.press('Enter')
+      await page.waitForTimeout(6000)
+      await page.getByRole('button', { name: '校正' }).first().click()
+      await page.waitForTimeout(400)
+    },
+  },
+  {
+    // 曲率驱动：点火，按住画面右侧拖着飞船绕太阳飞 5 秒
+    name: 'desktop-curvature-flight',
+    viewport: 'desktop',
+    slug: 'sector-l',
+    act: async (page) => {
+      await page.getByRole('button', { name: '点火' }).click({ timeout: 8000 })
+      const box = await page.locator('canvas.cv').boundingBox()
+      await page.mouse.move(box.x + box.width * 0.75, box.y + box.height * 0.5)
+      await page.mouse.down()
+      for (let i = 0; i < 25; i += 1) {
+        const a = Math.PI / 2 - (i / 25) * Math.PI * 1.5
+        await page.mouse.move(box.x + box.width * (0.5 + Math.cos(a) * 0.2), box.y + box.height * (0.5 + Math.sin(a) * 0.28))
+        await page.waitForTimeout(200)
+      }
+      await page.mouse.up()
+    },
+  },
+  {
+    // 盲区：三个预置念头（只在心里想 / 说出口 / 写下来），出现结语
+    name: 'mobile-blind-thoughts',
+    viewport: 'mobile',
+    slug: 'sector-blind',
+    act: async (page) => {
+      await page.getByRole('button', { name: '真正的计划，是让他们以为我在骗他们' }).click({ timeout: 8000 })
+      await page.getByRole('radio', { name: '说出口' }).click()
+      await page.fill('input[aria-label=念头]', '把舰队开往木星')
+      await page.keyboard.press('Enter')
+      await page.getByRole('radio', { name: '写下来' }).click()
+      await page.fill('input[aria-label=念头]', '我不相信我们能赢')
+      await page.keyboard.press('Enter')
+      await page.waitForTimeout(900)
+    },
+  },
 ]
 
 async function snapshotState(browser, state) {
