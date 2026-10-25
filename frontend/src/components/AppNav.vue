@@ -29,6 +29,7 @@ const navGroups = [
     code: 'ORIGINS',
     items: [
       { path: '/sector-r', label: '红岸', code: 'RED-COAST' },
+      { path: '/sector-guzheng', label: '古筝计划', code: 'GUZHENG' },
       { path: '/sector-t', label: '三体摆', code: 'PENDULUM' },
       { path: '/sector-v', label: '人列计算机', code: 'VON-NEUMANN' },
       { path: '/sector-a', label: '智子', code: 'SOPHON' },
@@ -44,7 +45,9 @@ const navGroups = [
       { path: '/sector-f', label: '面壁计划', code: 'WALLFACER' },
       { path: '/sector-s', label: '阶梯', code: 'STAIRCASE' },
       { path: '/sector-w', label: '水滴', code: 'DROPLET' },
+      { path: '/sector-ns', label: '自然选择号', code: 'NATURAL-SELECTION' },
       { path: '/sector-e', label: '黑暗森林', code: 'FOREST' },
+      { path: '/sector-sword', label: '执剑人', code: 'SWORDHOLDER' },
     ]
   },
   {
@@ -66,6 +69,7 @@ const navGroups = [
       { path: '/sector-p', label: '人物志', code: 'PRISMS' },
       { path: '/sector-d', label: '二向箔画廊', code: '2D-GALLERY' },
       { path: '/sector-tomb', label: '文明墓碑', code: 'TOMB' },
+      { path: '/sector-sleep', label: '冬眠者', code: 'SLEEP' },
       { path: '/sector-human', label: '银河人类', code: 'GALAXY-HUMAN' },
     ]
   },
@@ -76,6 +80,7 @@ const navGroups = [
       { path: '/sector-u', label: '647 号小宇宙', code: 'UNI-647' },
       { path: '/sector-x', label: '归零者', code: 'UNKNOWN' },
       { path: '/sector-m', label: '田园时代', code: 'MEMBRANE' },
+      { path: '/sector-ledger', label: '读者的档案', code: 'LEDGER' },
     ]
   }
 ]

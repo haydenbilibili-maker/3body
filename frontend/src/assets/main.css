@@ -252,3 +252,23 @@ button, a, input, .card {
   }
 }
 
+
+/* ---------- 二向箔画廊：整页跌入二维 ---------- */
+.page-flattening body { overflow: hidden; }
+.page-flattening .app-layout { perspective: 1100px; perspective-origin: 50% 100%; }
+.page-flattening .app-header,
+.page-flattening .app-body,
+.page-flattening .app-footer {
+  transform-origin: 50% 100%;
+  animation: page-fall 3s cubic-bezier(0.55, 0, 0.2, 1) forwards;
+}
+.page-flattening .app-header { animation-delay: 0.5s; }
+.page-flattening .app-footer { animation-delay: 0.2s; }
+@keyframes page-fall {
+  0% { transform: none; filter: none; }
+  55% { transform: rotateX(70deg) scale(1.05, 0.8); filter: saturate(1.3); }
+  100% { transform: rotateX(89.4deg) scale(2.4, 0.06); filter: saturate(1.8) contrast(1.2) blur(0.4px); opacity: 0.85; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .page-flattening .app-header, .page-flattening .app-body, .page-flattening .app-footer { animation-duration: 0.01s; }
+}

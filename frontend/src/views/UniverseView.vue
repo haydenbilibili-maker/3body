@@ -10,8 +10,8 @@ import { useUniverseStore } from '@/stores/universe'
 import { ERAS, SECTORS } from '@/data/sectors'
 import { STARTER_ROUTE, nextStarterIndex, readStarterVisited } from '@/utils/starterRoute'
 
-// 三体动画依赖 Three.js（约 900 KB）：异步加载，首页文字先渲染，3D 背景随后淡入
-const ThreeBodyBackground = defineAsyncComponent(() => import('@/components/ThreeBodyBackground.vue'))
+// 背景是一个真实计算的三体系统（Canvas 2D），可以抓住恒星甩出去；行星此刻的纪元就是读数
+const GravityField = defineAsyncComponent(() => import('@/components/GravityField.vue'))
 
 const router = useRouter()
 const universe = useUniverseStore()
@@ -40,26 +40,41 @@ const INSCRIPTIONS = [
 ]
 const inscriptionIndex = ref(0)
 
-/* 三体星此刻：唯一的实时读数 */
-const trisolarisEra = ref('乱纪元')
-const sunDistance = ref('0.80')
-function updateTrisolaris() {
-  trisolarisEra.value = Math.random() < 0.7 ? '乱纪元' : '恒纪元'
-  sunDistance.value = (0.5 + Math.random() * 2).toFixed(2)
+/* 三体星此刻：由背景里那颗行星的真实处境决定 */
+const CLIMATE: Record<string, { era: string; line: string }> = {
+  stable: { era: '恒纪元', line: '一颗太阳稳稳地照着，可以浸泡复活了。' },
+  chaos: { era: '乱纪元', line: '几颗太阳轮番升起，日夜没有规律。' },
+  scorched: { era: '三日凌空', line: '太阳离得太近，大地在燃烧。' },
+  frozen: { era: '飞星不动', line: '太阳都远去了，严寒降临。' },
+}
+const sky = ref<keyof typeof CLIMATE>('chaos')
+const trisolarisEra = computed(() => CLIMATE[sky.value].era)
+const skyLine = computed(() => CLIMATE[sky.value].line)
+/* 标题被背景里的三颗太阳照亮：光源取三颗太阳按亮度加权的位置 */
+const titleEl = ref<HTMLElement | null>(null)
+const light = ref({ x: 70, y: 30, i: 0.5 })
+function onSky(e: { kind: string; suns: { x: number; y: number; b: number }[] }) {
+  sky.value = (e.kind in CLIMATE ? e.kind : 'chaos') as keyof typeof CLIMATE
+  const r = titleEl.value?.getBoundingClientRect()
+  if (!r) return
+  const tot = e.suns.reduce((a, s) => a + s.b, 0) || 1
+  const x = e.suns.reduce((a, s) => a + s.x * s.b, 0) / tot
+  const y = e.suns.reduce((a, s) => a + s.y * s.b, 0) / tot
+  light.value = {
+    x: Math.max(-60, Math.min(160, ((x - r.left) / r.width) * 100)),
+    y: Math.max(-120, Math.min(220, ((y - r.top) / r.height) * 100)),
+    i: Math.min(1, tot / 6),
+  }
 }
 
-let envTimer: ReturnType<typeof setInterval> | undefined
 let quoteTimer: ReturnType<typeof setInterval> | undefined
 onMounted(() => {
   universe.fetchMetrics()
-  updateTrisolaris()
-  envTimer = setInterval(updateTrisolaris, 6000)
   quoteTimer = setInterval(() => {
     inscriptionIndex.value = (inscriptionIndex.value + 1) % INSCRIPTIONS.length
   }, 9000)
 })
 onUnmounted(() => {
-  clearInterval(envTimer)
   clearInterval(quoteTimer)
 })
 
@@ -69,14 +84,14 @@ const go = (path: string) => router.push(path)
 <template>
   <div class="home">
     <div class="home-bg" aria-hidden="true">
-      <ThreeBodyBackground />
+      <GravityField @sky="onSky" />
       <div class="home-shade"></div>
     </div>
 
     <div class="home-grid">
       <section class="hero">
         <p class="hero-era"><span class="hero-era-mark" aria-hidden="true"></span>冥王星上的地球文明档案馆</p>
-        <h1 class="hero-title">三体</h1>
+        <h1 ref="titleEl" class="hero-title" :style="{ '--lx': light.x + '%', '--ly': light.y + '%', '--li': light.i }">三体</h1>
         <p class="hero-lede">
           人类知道自己可能会消失，于是把文明刻进石头，留给亿万年后的读者。现在，读者是你。
         </p>
@@ -87,15 +102,17 @@ const go = (path: string) => router.push(path)
             <dt>三体星此刻</dt>
             <dd>{{ trisolarisEra }}</dd>
           </div>
-          <div>
-            <dt>日地距离</dt>
-            <dd><span class="num">{{ sunDistance }}</span> 天文单位</dd>
+          <div class="sky-line">
+            <dt>那颗行星上</dt>
+            <dd>{{ skyLine }}</dd>
           </div>
           <div>
             <dt>黑暗森林威慑度</dt>
             <dd><span class="num">{{ (universe.deterrence * 100).toFixed(0) }}%</span></dd>
           </div>
         </dl>
+
+        <p class="drag-hint">背景里的三颗太阳是真实计算的。按住任何一颗，把它甩出去；双击空白处复位。</p>
 
         <section class="route" aria-label="新手路线">
           <div class="route-head">
@@ -202,7 +219,11 @@ const go = (path: string) => router.push(path)
   line-height: 1;
   letter-spacing: 0.12em;
   color: var(--bone);
-  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.6);
+  background: radial-gradient(circle at var(--lx, 70%) var(--ly, 30%), #fff6e0 0%, #e8d9b8 calc(18% + var(--li, 0.5) * 22%), var(--bone) 55%, #8f897c 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.6));
   animation: light-arrives 1.4s ease-out both;
 }
 @keyframes light-arrives {
@@ -340,4 +361,7 @@ const go = (path: string) => router.push(path)
   .hero-question { font-size: 1.125rem; }
   .route { padding: 1rem 0.9rem 0.25rem; }
 }
+.drag-hint { margin: -0.5rem 0 1.75rem; font-size: 0.8125rem; color: var(--weathered); }
+.sky-line { flex-basis: 100%; }
+.home-bg { opacity: 1; }
 </style>

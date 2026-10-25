@@ -2,15 +2,33 @@
 /**
  * Sector W: The Droplet (水滴)
  * 核心：绝对光滑 (Mirror), 动态打击 (Strike), 太阳封锁 (Blockade)
- * 技术：TresJS (3D), Canvas (2D Game)
+ * 技术：WebGL 着色器（镜面水滴）, Canvas (2D Game)
  */
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
+import { recordAnswer } from '@/data/answers'
 import { NTabs, NTabPane } from 'naive-ui'
 import SectorHeader from '@/components/SectorHeader.vue'
 import { sectorByPath } from '@/data/sectors'
-import { TresCanvas } from '@tresjs/core'
-import { OrbitControls, Stars, Environment } from '@tresjs/cientos'
+import DropletMirror from '@/components/DropletMirror.vue'
+import HoldButton from '@/components/HoldButton.vue'
 const activeTab = ref('mirror')
+/* 镜面水滴：按住后一瞬间加速离去，再从远处回来 */
+const go = ref(0)
+const going = ref(false)
+function launch() {
+  going.value = true
+  const t0 = performance.now()
+  const tick = (now: number) => {
+    const p = (now - t0) / 1600
+    go.value = p < 1 ? p : Math.max(0, 1 - (p - 1) * 1.5)
+    if (p < 1.67) requestAnimationFrame(tick)
+    else {
+      go.value = 0
+      going.value = false
+    }
+  }
+  requestAnimationFrame(tick)
+}
 
 // --- 1. Mirror Inspection (3D) ---
 const magnification = ref(1)
@@ -200,6 +218,11 @@ onMounted(() => {
   initFleet()
 })
 
+
+/* ---------- 读者的档案 ---------- */
+watch(fleetDown, (d) => {
+  if (d) recordAnswer('/sector-w', '看着舰队在末日战役里被一个水滴摧毁')
+})
 </script>
 
 <template>
@@ -216,27 +239,11 @@ onMounted(() => {
       <!-- Tab 1: Mirror -->
       <NTabPane name="mirror" tab="绝对光滑">
         <div class="scene-3d" @wheel="handleWheel">
-          <TresCanvas clear-color="#000">
-            <TresPerspectiveCamera :position="[0, 0, cameraZ]" :look-at="[0,0,0]" />
-            <OrbitControls :enable-zoom="false" :enable-pan="false" :auto-rotate="true" :auto-rotate-speed="0.5" />
-            
-            <Stars :radius="100" :count="5000" :size="0.5" />
-            <Environment :preset="envPreset" :blur="0.5" />
-
-            <!-- The Droplet -->
-            <TresMesh :scale="[1, 1, 1.8]" :position="[0,0,0]">
-              <TresSphereGeometry :args="[1.5, 128, 128]" />
-              <TresMeshStandardMaterial 
-                color="#a0a0a0" 
-                :metalness="1" 
-                :roughness="0" 
-                :envMapIntensity="3"
-              />
-            </TresMesh>
-            
-            <TresDirectionalLight :position="[5, 5, 5]" :intensity="2" />
-            <TresAmbientLight :intensity="0.5" />
-          </TresCanvas>
+          <DropletMirror :go="go" class="mirror-gl" />
+          <div class="mirror-act">
+            <HoldButton :hold-ms="1200" :disabled="going" @confirm="launch">按住，让它动起来</HoldButton>
+            <span class="mirror-hint">拖动可以转动它。它的表面光滑到分子级别：你看到的不是它，是它周围的宇宙。</span>
+          </div>
           
           <div class="journey-panel">
             <h3 class="journey-title">水滴航程 · 镜面反射</h3>
@@ -397,7 +404,7 @@ onMounted(() => {
 .scene-3d {
   width: 100%;
   flex: 1;
-  min-height: 0;
+  min-height: 32rem;
   position: relative;
 }
 
@@ -405,8 +412,8 @@ onMounted(() => {
 .journey-panel {
   position: absolute;
   top: 1rem;
-  left: 1rem;
-  right: auto;
+  left: auto;
+  right: 1rem;
   max-width: 320px;
   background: rgba(0, 0, 0, 0.75);
   border: 1px solid rgba(var(--cherenkov-rgb), 0.35);
@@ -709,4 +716,12 @@ onMounted(() => {
 .strike-end p { margin: 0; max-width: 30rem; font-family: var(--font-serif); font-size: 1.125rem; line-height: 1.85; color: var(--bone); }
 .strike-end .q { color: var(--gray-200); font-size: 1rem; }
 :deep(.w-tabs .n-tabs-tab) { font-family: var(--font-serif); font-size: 1rem; }
+.mirror-gl { position: absolute; inset: 0; }
+.mirror-act { position: absolute; left: 1.25rem; bottom: 1.25rem; z-index: 2; display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; max-width: 34rem; }
+.mirror-hint { font-size: 0.8125rem; line-height: 1.6; color: var(--weathered); text-shadow: 0 1px 2px #000; }
+@media (max-width: 760px) {
+  .scene-3d { display: flex; flex-direction: column; }
+  .mirror-gl { position: relative; height: 22rem; }
+  .journey-panel, .mirror-act { position: static; max-width: none; margin: 0.75rem 0 0; }
+}
 </style>

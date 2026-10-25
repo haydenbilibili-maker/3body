@@ -5,7 +5,8 @@
  * 每个决定都在「活下去」和「还像地球人」之间取舍；结局回到那个问题：离开地球的人，还是人类吗？
  * 逻辑见 sim/galaxy.ts。
  */
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { recordAnswer } from '@/data/answers'
 import SectorHeader from '@/components/SectorHeader.vue'
 import Vitrine from '@/components/Vitrine.vue'
 import HoldButton from '@/components/HoldButton.vue'
@@ -27,6 +28,11 @@ function pick(i: number) {
 function restart() {
   choices.value = []
 }
+
+/* ---------- 读者的档案 ---------- */
+watch(result, (r) => {
+  if (r) recordAnswer('/sector-human', `离开地球之后的结局：${r.title}`)
+})
 </script>
 
 <template>

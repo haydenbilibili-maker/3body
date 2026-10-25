@@ -5,7 +5,8 @@
  * 然后是冥王星上看到的那一幕：太阳系变成了一幅画。
  * 逻辑见 sim/flatten.ts。
  */
-import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { recordAnswer } from '@/data/answers'
 import SectorHeader from '@/components/SectorHeader.vue'
 import Vitrine from '@/components/Vitrine.vue'
 import HoldButton from '@/components/HoldButton.vue'
@@ -133,11 +134,32 @@ function fall() {
     stage.value?.scrollTo({ left: 0 })
   }, 2400 + LAYERS * 80)
 }
-onUnmounted(() => clearTimeout(doneTimer))
+/* 整页跌入二维：给根元素加一个类，样式在 main.css 里 */
+const pageFlat = ref(false)
+let pageTimer: ReturnType<typeof setTimeout> | undefined
+function fallPage() {
+  document.documentElement.classList.add('page-flattening')
+  clearTimeout(pageTimer)
+  pageTimer = setTimeout(() => (pageFlat.value = true), 3200)
+}
+function restorePage() {
+  pageFlat.value = false
+  document.documentElement.classList.remove('page-flattening')
+}
+onUnmounted(() => {
+  clearTimeout(doneTimer)
+  clearTimeout(pageTimer)
+  document.documentElement.classList.remove('page-flattening')
+})
 
 function nameOf(id: SpecimenId | 'upload') {
   return id === 'upload' ? '你的图像' : (SPECIMENS.find((s) => s.id === id)?.name ?? '')
 }
+
+/* ---------- 读者的档案 ---------- */
+watch(done, (d) => {
+  if (d) recordAnswer('/sector-d', `让${nameOf(specimen.value)}跌入了二维`)
+})
 </script>
 
 <template>
@@ -205,6 +227,10 @@ function nameOf(id: SpecimenId | 'upload') {
         <p>二向箔到来的时候，程心和艾 AA 在冥王星上。她们看着太阳跌进平面，摊开成一片巨大的、有着同心环纹的光；地球、木星、土星一颗接一颗落下去，在那个平面上展开它们的全部结构，没有一处被遮挡。</p>
         <p>那是一幅画，像极了梵高的《星空》。太阳系所有的历史、城市和人，都在这幅画里，一笔也不少，只是永远没有了厚度。</p>
         <p>冥王星上的地球文明博物馆，是人类留下的最后一件三维的东西。</p>
+        <div class="page-fall">
+          <HoldButton tone="rust" :hold-ms="2400" @confirm="fallPage">按住，让这一页也跌进去</HoldButton>
+          <span>你正在看的这一页，也只是三维空间里的一样东西。</span>
+        </div>
         <p class="q">{{ question }}</p>
         <div class="links">
           <RouterLink to="/sector-j" class="plain-btn">躲在阴影里的人：掩体</RouterLink>
@@ -212,6 +238,16 @@ function nameOf(id: SpecimenId | 'upload') {
         </div>
       </section>
     </transition>
+
+    <Teleport to="body">
+      <transition name="fade">
+        <div v-if="pageFlat" class="flat-over" role="dialog" aria-label="这一页已经跌入二维">
+          <p class="fo-line">这一页也成了画的一部分。</p>
+          <p class="fo-sub">导航、标题、你读过的每一行字，都摊在同一个平面上，厚度为零。</p>
+          <button type="button" class="fo-btn" @click="restorePage">从画里出来</button>
+        </div>
+      </transition>
+    </Teleport>
   </div>
 </template>
 
@@ -276,4 +312,21 @@ function nameOf(id: SpecimenId | 'upload') {
 @media (max-width: 640px) {
   .stage { height: 17rem; padding: 0 1rem; }
 }
+.page-fall { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; margin: 1.5rem 0; font-size: 0.875rem; color: var(--weathered); }
+.flat-over {
+  position: fixed;
+  inset: 0;
+  z-index: 950;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  text-align: center;
+  background: radial-gradient(ellipse at 50% 100%, rgba(232, 196, 131, 0.12), transparent 60%);
+}
+.fo-line { margin: 0; font-family: var(--font-serif); font-weight: 900; font-size: clamp(1.5rem, 4vw, 2.5rem); letter-spacing: 0.15em; color: var(--bone); }
+.fo-sub { margin: 0; max-width: 32rem; font-family: var(--font-serif); line-height: 1.9; color: var(--weathered); }
+.fo-btn { margin-top: 0.5rem; padding: 0.6rem 1.4rem; font: inherit; color: var(--bone); background: rgba(19, 20, 22, 0.8); border: 1px solid var(--incision); cursor: pointer; }
 </style>

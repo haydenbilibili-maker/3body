@@ -54,6 +54,11 @@ const ROUTES = [
   ['sector-v', '人列计算机'],
   ['sector-library', '原著阅读'],
   ['sector-guestbook', '宇宙留言簿'],
+  ['sector-guzheng', '古筝计划'],
+  ['sector-sleep', '冬眠者'],
+  ['sector-ledger', '读者的档案'],
+  ['sector-sword', '执剑人'],
+  ['sector-ns', '自然选择号'],
 ]
 
 const VIEWPORTS = [
@@ -329,7 +334,8 @@ const STATES = [
       await page.waitForTimeout(1900)
       await page.mouse.up()
       await page.getByRole('button', { name: '跳过等待' }).click({ timeout: 5000 })
-      await page.waitForTimeout(8200)
+      await page.getByRole('button', { name: '让监听员调谐' }).click({ timeout: 5000 })
+      await page.waitForTimeout(11000)
     },
   },
   {
@@ -515,6 +521,220 @@ const STATES = [
     act: async (page) => {
       await page.getByRole('button', { name: '百科', exact: true }).click({ timeout: 8000 })
       await page.waitForTimeout(1200)
+    },
+  },
+  {
+    // 古筝计划：布置飞刃，丝距 0.5 米，按住让审判日号驶过
+    name: 'desktop-guzheng-after',
+    viewport: 'desktop',
+    slug: 'sector-guzheng',
+    act: async (page) => {
+      await page.getByRole('button', { name: '布置飞刃' }).click({ timeout: 8000 })
+      await page.locator('input[type=range]').fill('0.5')
+      await page.getByRole('button', { name: '按住，让审判日号驶过' }).focus()
+      await page.keyboard.press('Enter')
+      await page.waitForTimeout(5000)
+    },
+  },
+  {
+    // 冬眠者：带上爱人，睡两次，在威慑纪元留下
+    name: 'mobile-sleep-stay',
+    viewport: 'mobile',
+    slug: 'sector-sleep',
+    act: async (page) => {
+      await page.getByLabel('爱人').check({ timeout: 8000 })
+      await page.getByRole('button', { name: '按住，躺进冬眠舱' }).focus()
+      await page.keyboard.press('Enter')
+      await page.waitForTimeout(4000)
+      await page.getByRole('button', { name: '按住，再睡一次' }).focus()
+      await page.keyboard.press('Enter')
+      await page.waitForTimeout(4000)
+      await page.getByRole('button', { name: '留下来，在这个时代生活' }).click()
+      await page.waitForTimeout(500)
+    },
+  },
+  {
+    // 读者的档案：先在古筝计划里选择「不执行」，再打开档案
+    name: 'desktop-ledger-filled',
+    viewport: 'desktop',
+    slug: 'sector-guzheng',
+    act: async (page) => {
+      await page.getByRole('button', { name: '不执行' }).click({ timeout: 8000 })
+      await page.goto(new URL('sector-ledger', BASE_URL).toString(), { waitUntil: 'domcontentloaded' })
+      await page.waitForTimeout(1500)
+    },
+  },
+  {
+    // 执剑人：四个处境都选最温和的回答 → 接过开关 → 水滴来袭，倒计时中
+    name: 'desktop-sword-alarm',
+    viewport: 'desktop',
+    slug: 'sector-sword',
+    act: async (page) => {
+      for (const t of ['在发抖，迟迟没有伸出去', '不愿意。没有什么值得两个世界陪葬', '两个世界里所有的孩子', '不会的，别怕']) {
+        await page.getByRole('button', { name: t }).click({ timeout: 8000 })
+      }
+      await page.getByRole('button', { name: '按住，从罗辑手里接过开关' }).focus()
+      await page.keyboard.press('Enter')
+      await page.waitForTimeout(2500)
+    },
+  },
+  {
+    // 自然选择号：拨到前进三，然后按住「前进四」，跳过追击
+    name: 'mobile-ns-fled',
+    viewport: 'mobile',
+    slug: 'sector-ns',
+    act: async (page) => {
+      await page.getByRole('radio', { name: '前进三' }).click({ timeout: 8000 })
+      await page.getByRole('button', { name: '按住，前进四' }).focus()
+      await page.keyboard.press('Enter')
+      await page.getByRole('button', { name: '跳过' }).click({ timeout: 5000 })
+      await page.waitForTimeout(800)
+    },
+  },
+  {
+    // 首页：抓住一颗太阳甩出去，等轨迹画出来
+    name: 'desktop-home-gravity',
+    viewport: 'desktop',
+    slug: 'sector-c',
+    act: async (page) => {
+      await page.waitForTimeout(3000)
+      await page.mouse.move(900, 400)
+      await page.waitForTimeout(3000)
+    },
+  },
+  {
+    // 水滴：镜面着色器
+    name: 'desktop-droplet-mirror',
+    viewport: 'desktop',
+    slug: 'sector-w',
+    act: async (page) => {
+      await page.waitForTimeout(2500)
+    },
+  },
+  {
+    // 黑暗森林：灯在画布里移动几秒
+    name: 'desktop-forest-lamp',
+    viewport: 'desktop',
+    slug: 'sector-e',
+    act: async (page) => {
+      const box = await page.locator('section.lamp canvas').boundingBox({ timeout: 8000 })
+      for (let i = 0; i < 30; i += 1) {
+        await page.mouse.move(box.x + box.width * (0.2 + 0.6 * (i / 30)), box.y + box.height * (0.5 + 0.3 * Math.sin(i / 4)))
+        await page.waitForTimeout(120)
+      }
+    },
+  },
+  {
+    // 二向箔画廊：展品跌入二维，然后整页跌进去
+    name: 'desktop-gallery-page-fall',
+    viewport: 'desktop',
+    slug: 'sector-d',
+    act: async (page) => {
+      await page.getByRole('button', { name: '按住，让它跌入二维' }).focus({ timeout: 8000 })
+      await page.keyboard.press('Enter')
+      await page.waitForTimeout(4200)
+      await page.getByRole('button', { name: '按住，让这一页也跌进去' }).focus({ timeout: 5000 })
+      await page.keyboard.press('Enter')
+      await page.waitForTimeout(1800)
+    },
+  },
+  {
+    // 深时跃迁：从首页的展厅索引去「田园时代」，转场进行中
+    name: 'desktop-warp',
+    viewport: 'desktop',
+    slug: 'sector-r',
+    act: async (page) => {
+      await page.waitForTimeout(600)
+      await page.getByRole('link', { name: '田园时代' }).first().click({ timeout: 4000 }).catch(async () => {
+        await page.getByRole('button', { name: '田园时代' }).first().click({ timeout: 4000 })
+      })
+      await page.waitForTimeout(450)
+    },
+  },
+  {
+    // 智子：键盘把质子展开到二维，松手刻电路（网格扫过整页）
+    name: 'desktop-sophon-unfold',
+    viewport: 'desktop',
+    slug: 'sector-a',
+    act: async (page) => {
+      const cv = page.locator('.unfold-box canvas')
+      await cv.scrollIntoViewIfNeeded({ timeout: 8000 })
+      await cv.focus()
+      for (let i = 0; i < 9; i += 1) {
+        await page.keyboard.press('ArrowUp')
+        await page.waitForTimeout(120)
+      }
+      await page.waitForTimeout(600)
+      await page.keyboard.press('Enter')
+      await page.waitForTimeout(1400)
+    },
+  },
+  {
+    // 红岸：回信到来前的瀑布图（监听员正在调谐）
+    name: 'desktop-redcoast-waterfall',
+    viewport: 'desktop',
+    slug: 'sector-r',
+    act: async (page) => {
+      await page.getByRole('button', { name: '自动追踪太阳' }).click({ timeout: 8000 })
+      await page.waitForTimeout(3500)
+      await page.getByRole('switch').first().click()
+      await page.getByRole('button', { name: '按住，向太阳发射' }).focus()
+      await page.keyboard.press('Enter')
+      await page.getByRole('button', { name: '跳过等待' }).click({ timeout: 5000 })
+      await page.waitForTimeout(3500)
+    },
+  },
+  {
+    // 冬眠者：睡眠中，屏幕结霜
+    name: 'desktop-sleep-frost',
+    viewport: 'desktop',
+    slug: 'sector-sleep',
+    act: async (page) => {
+      await page.getByRole('button', { name: '按住，躺进冬眠舱' }).focus({ timeout: 8000 })
+      await page.keyboard.press('Enter')
+      await page.waitForTimeout(2600)
+    },
+  },
+  {
+    // 古筝计划：执行后页面被切成条带、滑开的瞬间
+    name: 'desktop-guzheng-slice',
+    viewport: 'desktop',
+    slug: 'sector-guzheng',
+    act: async (page) => {
+      await page.getByRole('button', { name: '布置飞刃' }).click({ timeout: 8000 })
+      await page.locator('input[type=range]').fill('0.7')
+      await page.getByRole('button', { name: '按住，让审判日号驶过' }).focus()
+      await page.keyboard.press('Enter')
+      await page.waitForTimeout(3100)
+    },
+  },
+  {
+    // 宇宙留言簿：发射时话碎成光点飞走
+    name: 'desktop-guestbook-scatter',
+    viewport: 'desktop',
+    slug: 'sector-guestbook',
+    act: async (page) => {
+      await page.fill('textarea', '这里有人，我们在听。')
+      await page.getByRole('button', { name: '按住，向宇宙发射' }).focus()
+      await page.keyboard.press('Enter')
+      await page.waitForTimeout(1500)
+    },
+  },
+  {
+    // 文明墓碑：拿起凿子，在石面上来回磨
+    name: 'desktop-tomb-chisel',
+    viewport: 'desktop',
+    slug: 'sector-tomb',
+    act: async (page) => {
+      await page.getByRole('button', { name: '拿起凿子，亲手刻' }).click({ timeout: 8000 })
+      const box = await page.locator('.chisel canvas').boundingBox({ timeout: 5000 })
+      await page.mouse.move(box.x + box.width * 0.3, box.y + box.height * 0.5)
+      await page.mouse.down()
+      for (let i = 0; i < 90; i += 1) {
+        await page.mouse.move(box.x + box.width * (0.3 + 0.1 * Math.sin(i / 2)), box.y + box.height * (0.5 + 0.08 * Math.cos(i / 3)))
+        await page.waitForTimeout(16)
+      }
+      await page.waitForTimeout(150)
     },
   },
 ]

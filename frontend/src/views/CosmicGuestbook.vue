@@ -6,10 +6,12 @@
  * 在一座黑暗森林里，每一次发声也都是一次暴露。
  * 逻辑见 sim/signal.ts；留言只保存在本机浏览器里。
  */
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { recordAnswer } from '@/data/answers'
 import SectorHeader from '@/components/SectorHeader.vue'
 import Vitrine from '@/components/Vitrine.vue'
 import HoldButton from '@/components/HoldButton.vue'
+import SignalScatter from '@/components/SignalScatter.vue'
 import { sectorByPath } from '@/data/sectors'
 import { ANCIENT, formatDistance, lightSeconds, whereIs, type Signal } from '@/sim/signal'
 
@@ -39,9 +41,11 @@ function save() {
     /* 存储不可用时只保留在本次访问 */
   }
 }
+const scatter = ref<InstanceType<typeof SignalScatter> | null>(null)
 function add(send: boolean) {
   const text = draft.value.trim()
   if (!text) return
+  if (send) scatter.value?.play(text)
   mine.value = [{ id: Date.now(), text, sentAt: send ? Date.now() : null, by: '你' }, ...mine.value]
   draft.value = ''
   save()
@@ -65,10 +69,19 @@ function when(s: Signal) {
   const d = new Date(s.sentAt)
   return s.id < 0 ? `${d.getUTCFullYear()} 年发出` : `${d.toLocaleDateString('zh-CN')} ${d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })} 发出`
 }
+
+/* ---------- 读者的档案 ---------- */
+watch(
+  () => mine.value.length,
+  (n) => {
+    if (n) recordAnswer('/sector-guestbook', `向宇宙发出了 ${sent.value} 条信号，${silent.value} 条只留在留言簿里`)
+  },
+)
 </script>
 
 <template>
   <div class="guestbook">
+    <SignalScatter ref="scatter" />
     <SectorHeader
       title="宇宙留言簿"
       subtitle="人类曾经向宇宙发出过几次信号。它们至今还在路上，以光速离开，没有任何办法追回。"

@@ -4,7 +4,9 @@
  * 宇宙社会学公理 + 猜疑链可视化 + 星际猎人模拟器 + 广播坐标
  */
 import { ref, onMounted, onUnmounted, reactive, watch, computed } from 'vue'
+import { recordAnswer } from '@/data/answers'
 import SectorHeader from '@/components/SectorHeader.vue'
+import DarkForestLamp from '@/components/DarkForestLamp.vue'
 import { sectorByPath } from '@/data/sectors'
 import { useRouter } from 'vue-router'
 import { NInput, NButton, NModal, useMessage, NTabs, NTabPane, NProgress } from 'naive-ui'
@@ -878,6 +880,15 @@ const axioms = [
 ]
 
 const dfQuestion = sectorByPath('/sector-e')?.question
+
+/* ---------- 读者的档案 ---------- */
+watch(isBroadcastTriggered, (b) => {
+  if (b) recordAnswer('/sector-e', '作为执剑人，按下了广播坐标的开关')
+})
+watch(gameStatus, (g) => {
+  if (g === 'WON') recordAnswer('/sector-e', '在猜疑链里活到了最后')
+  else if (g === 'DESTROYED') recordAnswer('/sector-e', '在猜疑链里暴露并被清除')
+})
 </script>
 
 <template>
@@ -887,6 +898,8 @@ const dfQuestion = sectorByPath('/sector-e')?.question
       subtitle="宇宙是一座黑暗森林，每个文明都是带枪的猎人"
       goal="在暴露与沉默之间做选择：沙盒里观察文明如何互相清除，博弈中让你的文明活到最后。"
     />
+
+    <DarkForestLamp />
 
     <NTabs v-model:value="activeTab" type="segment" class="df-tabs">
       <!-- Tab 1: Hunter Simulator -->
@@ -1185,6 +1198,7 @@ const dfQuestion = sectorByPath('/sector-e')?.question
               一旦按下，无法撤销。<br>
               两个世界将同归于尽。
             </p>
+            <RouterLink to="/sector-sword" class="sword-link">完整的交接与那几秒钟：执剑人展厅</RouterLink>
           </div>
         </div>
       </NTabPane>
@@ -1863,4 +1877,5 @@ const dfQuestion = sectorByPath('/sector-e')?.question
 .lab-scene { background: var(--void); border: 1px solid var(--incision-soft); }
 .lab-header { border-bottom-color: var(--incision); }
 .df-closing { max-width: 40rem; margin: 2rem 0 0; padding-left: 1rem; border-left: 1px solid var(--cherenkov); font-family: var(--font-serif); font-size: 1.125rem; line-height: 1.8; color: var(--bone); }
+.sword-link { display: inline-block; margin-top: 0.75rem; font-size: 0.875rem; color: var(--cherenkov); }
 </style>

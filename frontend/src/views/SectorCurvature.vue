@@ -8,9 +8,11 @@
  *   航迹在远处拖得太长，就成了给猎人看的路标。
  * 逻辑见 sim/curvature.ts。
  */
-import { computed, onMounted, onUnmounted, ref, shallowRef } from 'vue'
+import { computed, onMounted, onUnmounted, ref, shallowRef, watch } from 'vue'
+import { recordAnswer } from '@/data/answers'
 import SectorHeader from '@/components/SectorHeader.vue'
 import Vitrine from '@/components/Vitrine.vue'
+import SlowLight from '@/components/SlowLight.vue'
 import { sectorByPath } from '@/data/sectors'
 import {
   BAND,
@@ -187,10 +189,16 @@ function draw() {
 const speedPct = computed(() => Math.round((speedOf(flight.value.ship) / MAX_SPEED) * 100))
 const wrapPct = computed(() => Math.round(coverage(flight.value.trail) * 100))
 const seenPct = computed(() => Math.round((flight.value.exposure / EXPOSE_LIMIT) * 100))
+
+/* ---------- 读者的档案 ---------- */
+watch(ending, (e) => {
+  if (e) recordAnswer('/sector-l', `曲率航行的结局：${ENDINGS[e].title}`)
+})
 </script>
 
 <template>
   <div class="sector-curv">
+    <SlowLight :active="ending === 'domain'" />
     <SectorHeader
       title="曲率驱动"
       subtitle="抹平身后的空间，船就会被前方的空间拉着走。这是唯一能接近光速的办法，也是人类曾经立法禁止的技术。"
