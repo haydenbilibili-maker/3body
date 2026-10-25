@@ -54,6 +54,9 @@ const ROUTES = [
   ['sector-v', '人列计算机'],
   ['sector-library', '原著阅读'],
   ['sector-guestbook', '宇宙留言簿'],
+  ['sector-guzheng', '古筝计划'],
+  ['sector-sleep', '冬眠者'],
+  ['sector-ledger', '读者的档案'],
 ]
 
 const VIEWPORTS = [
@@ -515,6 +518,47 @@ const STATES = [
     act: async (page) => {
       await page.getByRole('button', { name: '百科', exact: true }).click({ timeout: 8000 })
       await page.waitForTimeout(1200)
+    },
+  },
+  {
+    // 古筝计划：布置飞刃，丝距 0.5 米，按住让审判日号驶过
+    name: 'desktop-guzheng-after',
+    viewport: 'desktop',
+    slug: 'sector-guzheng',
+    act: async (page) => {
+      await page.getByRole('button', { name: '布置飞刃' }).click({ timeout: 8000 })
+      await page.locator('input[type=range]').fill('0.5')
+      await page.getByRole('button', { name: '按住，让审判日号驶过' }).focus()
+      await page.keyboard.press('Enter')
+      await page.waitForTimeout(5000)
+    },
+  },
+  {
+    // 冬眠者：带上爱人，睡两次，在威慑纪元留下
+    name: 'mobile-sleep-stay',
+    viewport: 'mobile',
+    slug: 'sector-sleep',
+    act: async (page) => {
+      await page.getByLabel('爱人').check({ timeout: 8000 })
+      await page.getByRole('button', { name: '按住，躺进冬眠舱' }).focus()
+      await page.keyboard.press('Enter')
+      await page.waitForTimeout(2800)
+      await page.getByRole('button', { name: '按住，再睡一次' }).focus()
+      await page.keyboard.press('Enter')
+      await page.waitForTimeout(2800)
+      await page.getByRole('button', { name: '留下来，在这个时代生活' }).click()
+      await page.waitForTimeout(500)
+    },
+  },
+  {
+    // 读者的档案：先在古筝计划里选择「不执行」，再打开档案
+    name: 'desktop-ledger-filled',
+    viewport: 'desktop',
+    slug: 'sector-guzheng',
+    act: async (page) => {
+      await page.getByRole('button', { name: '不执行' }).click({ timeout: 8000 })
+      await page.goto(new URL('sector-ledger', BASE_URL).toString(), { waitUntil: 'domcontentloaded' })
+      await page.waitForTimeout(1500)
     },
   },
 ]

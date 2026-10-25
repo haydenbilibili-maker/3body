@@ -6,7 +6,8 @@
  * 三 真相：来的不是光粒——躲起来的人，躲开了他们以为的那种死亡
  * 逻辑见 sim/bunker.ts。（原先的三维城市与阴影模拟占用主线程过重，已改为二维沙盘。）
  */
-import { computed, onUnmounted, ref, shallowRef } from 'vue'
+import { computed, onUnmounted, ref, shallowRef, watch } from 'vue'
+import { recordAnswer } from '@/data/answers'
 import SectorHeader from '@/components/SectorHeader.vue'
 import Vitrine from '@/components/Vitrine.vue'
 import HoldButton from '@/components/HoldButton.vue'
@@ -103,6 +104,11 @@ function restart() {
   act.value = 'vote'
   chosen.value = null
 }
+
+/* ---------- 读者的档案 ---------- */
+watch(act, (a) => {
+  if (a === 'struck') recordAnswer('/sector-j', `投票给${PLANS.find((p) => p.id === chosen.value)?.name ?? '掩体计划'}；${survivors.value} 座太空城留在了阴影里`)
+})
 </script>
 
 <template>

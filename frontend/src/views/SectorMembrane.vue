@@ -5,7 +5,8 @@
  * 每一次折叠都要按住确认，且不可撤销；走到零维后，可以选择「归零」。
  * 数据见 sim/dimensions.ts。
  */
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { recordAnswer } from '@/data/answers'
 import SectorHeader from '@/components/SectorHeader.vue'
 import HoldButton from '@/components/HoldButton.vue'
 import { sectorByPath } from '@/data/sectors'
@@ -183,6 +184,11 @@ onMounted(() => {
 onUnmounted(() => {
   cancelAnimationFrame(raf)
   ro?.disconnect()
+})
+
+/* ---------- 读者的档案 ---------- */
+watch(rebootedOnce, (r) => {
+  if (r) recordAnswer('/sector-m', '把被用掉的维度还了回去')
 })
 </script>
 

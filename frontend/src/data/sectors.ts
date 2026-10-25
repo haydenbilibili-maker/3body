@@ -37,6 +37,7 @@ export const SECTORS: Sector[] = [
   { path: '/sector-r', name: '红岸', era: 'common', question: '一个对人类失望的人，有权替人类回答宇宙吗？' },
   { path: '/sector-t', name: '三体摆', era: 'common', question: '在无法预测的世界里，文明该怎样活下去？' },
   { path: '/sector-v', name: '人列计算机', era: 'common', question: '三千万人组成的计算机，算出来的是答案，还是另一种秩序？' },
+  { path: '/sector-guzheng', name: '古筝计划', era: 'common', question: '为了拿到敌人的信息，可以连同船上所有人一起切开吗？' },
   { path: '/sector-a', name: '智子', era: 'crisis', question: '当科学本身被锁死，人类还剩下什么？' },
   { path: '/sector-boundary', name: '科学边界', era: 'common', question: '如果物理规律可以被操纵，「真理」还意味着什么？' },
   { path: '/sector-pdc', name: '行星防御', era: 'crisis', question: '面对四百年后才到的敌人，今天的人应该付出多少？' },
@@ -54,10 +55,12 @@ export const SECTORS: Sector[] = [
   { path: '/sector-p', name: '人物志', era: 'all', question: '在宇宙尺度上，一个人的选择还重要吗？' },
   { path: '/sector-d', name: '二向箔画廊', era: 'bunker', question: '一幅没有厚度的画，算不算一种永恒？' },
   { path: '/sector-tomb', name: '文明墓碑', era: 'bunker', question: '给后来者留言时，我们该说什么？' },
+  { path: '/sector-sleep', name: '冬眠者', era: 'all', question: '跳过的岁月，还算不算你的人生？' },
   { path: '/sector-human', name: '银河人类', era: 'galaxy', question: '离开地球的人，还是人类吗？' },
   { path: '/sector-u', name: '647 号小宇宙', era: 'beyond', question: '你的永恒和整个宇宙的重生，哪个更重？' },
   { path: '/sector-x', name: '归零者', era: 'beyond', question: '为了让宇宙重新开始，所有文明都该放下武器吗？' },
   { path: '/sector-m', name: '田园时代', era: 'pastoral', question: '如果宇宙曾是田园，我们是怎么走到黑暗森林的？' },
+  { path: '/sector-ledger', name: '读者的档案', era: 'beyond', question: '离开档案馆的时候，你留下了什么？' },
   { path: '/sector-guestbook', name: '宇宙留言簿', era: 'common', question: '在一座黑暗森林里，你会对宇宙说什么？' },
 ]
 
