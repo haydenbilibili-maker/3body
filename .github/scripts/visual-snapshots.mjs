@@ -486,7 +486,7 @@ const STATES = [
         await page.getByRole('button', { name: '听下一轮广播' }).click({ timeout: 5000 })
         await page.waitForTimeout(200)
       }
-      await page.waitForTimeout(1400)
+      await page.waitForTimeout(5200)
     },
   },
   {
