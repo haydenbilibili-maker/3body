@@ -314,6 +314,24 @@ const STATES = [
       }
     },
   },
+  {
+    // 红岸：自动追踪对准太阳 → 打开太阳增益 → 按住发射 → 跳过等待 → 回信与抉择
+    name: 'desktop-redcoast-reply',
+    viewport: 'desktop',
+    slug: 'sector-r',
+    act: async (page) => {
+      await page.getByRole('button', { name: '自动追踪太阳' }).click({ timeout: 8000 })
+      await page.waitForTimeout(3500)
+      await page.getByRole('switch').first().click()
+      const fire = page.getByRole('button', { name: '按住，向太阳发射' })
+      await fire.hover()
+      await page.mouse.down()
+      await page.waitForTimeout(1900)
+      await page.mouse.up()
+      await page.getByRole('button', { name: '跳过等待' }).click({ timeout: 5000 })
+      await page.waitForTimeout(8200)
+    },
+  },
 ]
 
 async function snapshotState(browser, state) {
