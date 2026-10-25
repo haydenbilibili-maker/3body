@@ -108,8 +108,20 @@ const themeOverrides: GlobalThemeOverrides = {
 }
 
 /* Chaotic Cold: Frost */
+/*
+ * 环境滤镜只调冷暖与明暗，不再整体旋转色相：hue-rotate(180deg) 会把全站配色翻成补色
+ * （紫变绿、青变红），各扇区精心设定的主题色因此随服务器状态随机失真。
+ */
 .env-cold {
-  filter: brightness(0.8) contrast(1.2) hue-rotate(180deg); /* Shift to blue/purple */
+  filter: brightness(0.88) contrast(1.08) saturate(0.7);
+}
+.env-cold::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 0%, rgba(140, 190, 255, 0.10), rgba(120, 170, 255, 0.04) 60%);
+  pointer-events: none;
+  z-index: 9998;
 }
 .env-cold::after {
   content: '';
@@ -123,7 +135,15 @@ const themeOverrides: GlobalThemeOverrides = {
 
 /* Chaotic Heat: Heat */
 .env-heat {
-  filter: brightness(1.2) contrast(1.1) sepia(0.4) hue-rotate(-30deg); /* Shift to red/orange */
+  filter: brightness(1.05) contrast(1.05) sepia(0.18);
+}
+.env-heat::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 100%, rgba(255, 120, 40, 0.10), transparent 65%);
+  pointer-events: none;
+  z-index: 9998;
 }
 .env-heat body {
   animation: heat-shimmer 0.1s infinite;

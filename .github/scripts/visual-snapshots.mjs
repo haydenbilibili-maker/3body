@@ -287,6 +287,22 @@ const STATES = [
       await page.waitForTimeout(600)
     },
   },
+  {
+    // 宇宙膜「田园时代」：按住折叠 7 次，从十维走到三维（我们在这里）
+    name: 'desktop-membrane-3d',
+    viewport: 'desktop',
+    slug: 'sector-m',
+    act: async (page) => {
+      const btn = page.locator('.m-fold')
+      for (let i = 0; i < 7; i += 1) {
+        await btn.hover({ timeout: 5000 })
+        await page.mouse.down()
+        await page.waitForTimeout(1300)
+        await page.mouse.up()
+        await page.waitForTimeout(600)
+      }
+    },
+  },
 ]
 
 async function snapshotState(browser, state) {
