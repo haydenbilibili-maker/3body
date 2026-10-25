@@ -272,3 +272,26 @@ button, a, input, .card {
 @media (prefers-reduced-motion: reduce) {
   .page-flattening .app-header, .page-flattening .app-body, .page-flattening .app-footer { animation-duration: 0.01s; }
 }
+
+/* ---------- 大低谷：理智很低时，正文的字轻轻漂移 ---------- */
+.ravine-lost .app-main p {
+  animation: ravine-drift 6s ease-in-out infinite;
+}
+.ravine-lost .app-main p:nth-child(2n) { animation-delay: -2s; }
+.ravine-lost .app-main p:nth-child(3n) { animation-delay: -4s; }
+@keyframes ravine-drift {
+  0%, 100% { transform: translate(0, 0); letter-spacing: normal; }
+  50% { transform: translate(1.5px, -1px); letter-spacing: 0.02em; filter: blur(0.3px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ravine-lost .app-main p { animation: none; }
+}
+
+/* ---------- 三体摆：这一天的天气落在整页上 ---------- */
+.app-main { transition: filter 1.2s ease; }
+[data-room-env='heat'] .app-main { filter: url(#heat-haze) brightness(1.1) contrast(1.06) sepia(0.12); }
+[data-room-env='cold'] .app-main { filter: saturate(0.5) brightness(0.86) contrast(1.08); }
+[data-room-env='dry'] .app-main { filter: sepia(0.5) saturate(0.35) contrast(1.12) brightness(0.92); }
+@media (prefers-reduced-motion: reduce) {
+  [data-room-env='heat'] .app-main { filter: brightness(1.1) sepia(0.12); }
+}

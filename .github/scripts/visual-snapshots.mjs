@@ -737,6 +737,33 @@ const STATES = [
       await page.waitForTimeout(150)
     },
   },
+  {
+    // 大低谷：熬几天，饥饿让页面褪色、变暗
+    name: 'desktop-ravine-hunger',
+    viewport: 'desktop',
+    slug: 'sector-ravine',
+    act: async (page) => {
+      for (let i = 0; i < 6; i += 1) {
+        const b = page.getByRole('button', { name: /^躺着保存体力/ })
+        if (!(await b.isVisible().catch(() => false))) break
+        await b.click({ timeout: 4000 })
+        await page.waitForTimeout(1300)
+        const knock = page.getByRole('button', { name: '不开', exact: true })
+        if (await knock.first().isVisible().catch(() => false)) await knock.first().click()
+      }
+      await page.waitForTimeout(600)
+    },
+  },
+  {
+    // 三体摆：运行到天气变化，整页随之变色
+    name: 'desktop-pendulum-weather',
+    viewport: 'desktop',
+    slug: 'sector-t',
+    act: async (page) => {
+      await page.getByRole('button', { name: '开始第一天' }).click({ timeout: 8000 })
+      await page.waitForTimeout(6000)
+    },
+  },
 ]
 
 async function snapshotState(browser, state) {

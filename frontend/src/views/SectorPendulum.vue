@@ -8,6 +8,7 @@
 import { computed, onMounted, onUnmounted, ref, shallowRef } from 'vue'
 import SectorHeader from '@/components/SectorHeader.vue'
 import Vitrine from '@/components/Vitrine.vue'
+import RoomWeather from '@/components/RoomWeather.vue'
 import { sectorByPath } from '@/data/sectors'
 import { advanceDay, classify, createSystem, flux, forecast, type Env, type System } from '@/sim/threeBody'
 import { AGES, SWITCH_DAYS, ageOf, createCiv, liveDay, order, type CivState } from '@/sim/pendulumGame'
@@ -172,6 +173,7 @@ const targetHydrated = computed(() => (civ.value.pending ? civ.value.pending.to 
 
 <template>
   <div class="sector-t">
+    <RoomWeather :env="civ.day > 0 ? today : 'stable'" :dry="civ.day > 0 && !civ.hydrated" />
     <SectorHeader
       title="三体摆"
       subtitle="三颗太阳，一颗行星。没有任何历法能算准明天。"
