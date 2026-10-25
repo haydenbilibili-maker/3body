@@ -21,7 +21,7 @@ describe('stone', () => {
     expect(weathered('人类', s.lifespan * 10, s)).toBe('')
   })
   it('only one-stone-per-character survives a billion years', () => {
-    const last = EPOCHS.at(-1)!
+    const last = EPOCHS[EPOCHS.length - 1]
     expect(SIZES.filter((s) => wear(last, s) < 1).map((s) => s.id)).toEqual([4])
     expect(epochLabel(last)).toBe('10 亿年后')
   })

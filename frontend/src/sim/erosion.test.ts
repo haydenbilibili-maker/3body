@@ -24,6 +24,6 @@ describe('erosion', () => {
     expect(toggleCarve(c, 0)).not.toContain(0)
   })
   it('ends at the scale of the 647 universe', () => {
-    expect(VANTAGES.at(-1)!.level).toBe(1)
+    expect(VANTAGES[VANTAGES.length - 1].level).toBe(1)
   })
 })
