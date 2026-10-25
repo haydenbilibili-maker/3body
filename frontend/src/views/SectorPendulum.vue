@@ -354,7 +354,8 @@ const envText = computed(() => {
 <style scoped>
 .sector-pendulum {
   position: relative;
-  min-height: 0;
+  /* 叠在画布上的监测面板是绝对定位的，不会撑高根节点：给出足够的最小高度，避免被裁切 */
+  min-height: 48rem;
   background: var(--black);
   overflow: hidden;
 }

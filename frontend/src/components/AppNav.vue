@@ -410,7 +410,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey))
   border-radius: 2px;
   cursor: pointer;
 }
-.hamburger-line { display: block; height: 1px; background: var(--bone); transition: transform 0.25s, opacity 0.25s; }
+.hamburger-line { display: block; height: 1.5px; background: var(--bone); transition: transform 0.25s, opacity 0.25s; }
 .hamburger-line:nth-child(1).open { transform: translateY(6px) rotate(45deg); }
 .hamburger-line:nth-child(2).open { opacity: 0; }
 .hamburger-line:nth-child(3).open { transform: translateY(-6px) rotate(-45deg); }

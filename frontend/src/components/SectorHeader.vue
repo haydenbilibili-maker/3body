@@ -71,6 +71,7 @@ const questionText = computed(() => props.question ?? sector.value?.question)
 .sector-header {
   position: relative;
   z-index: 2;
+  min-width: 0;
   max-width: 52rem;
   margin-bottom: 2rem;
   padding-bottom: 1.5rem;
@@ -137,7 +138,10 @@ const questionText = computed(() => props.question ?? sector.value?.question)
   margin-top: 1.25rem;
 }
 .sh-goal {
-  flex: 1 1 24rem;
+  /* 不用固定的 flex-basis：它会撑大页头的最小宽度，在手机上把整页挤出屏幕 */
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 44rem;
   margin: 0;
   font-size: 0.9375rem;
   line-height: 1.7;

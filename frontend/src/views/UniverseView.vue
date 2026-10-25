@@ -33,7 +33,6 @@ const acrossAll = SECTORS.filter((s) => s.era === 'all')
 
 /* 碑文：一次只刻一句，缓慢更替 */
 const INSCRIPTIONS = [
-  '给岁月以文明，而不是给文明以岁月。',
   '弱小和无知不是生存的障碍，傲慢才是。',
   '宇宙就是一座黑暗森林，每个文明都是带枪的猎人。',
   '不要回答！不要回答！不要回答！',
@@ -166,7 +165,7 @@ const go = (path: string) => router.push(path)
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(90deg, rgba(19, 20, 22, 0.96) 0%, rgba(19, 20, 22, 0.7) 42%, rgba(19, 20, 22, 0.25) 70%, rgba(19, 20, 22, 0.75) 100%),
+    linear-gradient(90deg, rgba(19, 20, 22, 0.97) 0%, rgba(19, 20, 22, 0.93) 38%, rgba(19, 20, 22, 0.35) 62%, rgba(19, 20, 22, 0.8) 100%),
     radial-gradient(ellipse at 60% 50%, transparent 30%, rgba(19, 20, 22, 0.6) 100%);
 }
 
@@ -177,7 +176,7 @@ const go = (path: string) => router.push(path)
   grid-template-columns: minmax(0, 40rem) minmax(0, 1fr) minmax(15rem, 20rem);
   gap: 2rem;
   min-height: 100%;
-  padding: 4.5rem clamp(1.25rem, 5vw, 4.5rem) 6rem;
+  padding: 4.5rem clamp(1.25rem, 5vw, 4.5rem) 3rem;
 }
 .hero { grid-column: 1; }
 .index { grid-column: 3; }
@@ -314,12 +313,10 @@ const go = (path: string) => router.push(path)
 
 /* 碑文 */
 .inscription {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 3.25rem;
+  position: relative;
   z-index: 1;
   margin: 0;
+  padding: 0 1.25rem 3rem;
   text-align: center;
   font-family: var(--font-serif);
   font-size: 1rem;
@@ -335,7 +332,7 @@ const go = (path: string) => router.push(path)
   .hero, .index { grid-column: 1; }
   .index { align-self: start; max-width: 32rem; }
   .home-shade { background: linear-gradient(180deg, rgba(19, 20, 22, 0.55) 0%, rgba(19, 20, 22, 0.92) 45%, rgba(19, 20, 22, 0.97) 100%); }
-  .inscription { position: static; padding: 0 1.25rem 2rem; letter-spacing: 0.15em; }
+  .inscription { letter-spacing: 0.15em; }
 }
 @media (max-width: 600px) {
   .home-grid { padding: 2.25rem 1rem 3rem; gap: 2.5rem; }
