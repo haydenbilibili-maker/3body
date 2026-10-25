@@ -10,6 +10,7 @@ import { recordAnswer } from '@/data/answers'
 import SectorHeader from '@/components/SectorHeader.vue'
 import Vitrine from '@/components/Vitrine.vue'
 import HoldButton from '@/components/HoldButton.vue'
+import HumanTree from '@/components/HumanTree.vue'
 import { sectorByPath } from '@/data/sectors'
 import { STEPS, outcome } from '@/sim/galaxy'
 
@@ -71,6 +72,7 @@ watch(result, (r) => {
         <p class="dist">离地球 <span class="num">{{ DIST[STEPS.length] }}</span> 光年</p>
         <h2 class="end-title">{{ result.title }}</h2>
         <p class="end-text">{{ result.text }}</p>
+        <HumanTree :choices="choices" />
         <p class="book">在原著里，逃出太阳系的「蓝色空间」号与「万有引力」号在宇宙深处活了下来；后来又有星环号这样的光速飞船离开。太阳系跌入二维之后，散落在银河里的这些人，就是全部的人类。他们说的还是地球上的语言，记得的也还是地球上的事。</p>
         <p class="q">{{ question }}</p>
         <div class="links">

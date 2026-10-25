@@ -84,3 +84,94 @@ export function outcome(choices: number[]): Outcome {
     text: '你们活了下来，也把一些地球上的东西带了出来：投票、法律、对死者的愧疚。你们的孩子会问，这些东西在星际间有什么用。',
   }
 }
+
+/**
+ * 人类演化树：六个纪元的人类，从地球摇篮到散落银河（恢复自旧版「演化树」，文字重写）。
+ * 读者这一支从「星舰人类」分出去：末日战役之后逃出太阳系的那几艘船。
+ */
+export interface HumanNode {
+  era: string
+  title: string
+  text: string
+  tech: string
+  culture: string
+  quote: string
+}
+
+export const HUMAN_TREE: HumanNode[] = [
+  {
+    era: '公元',
+    title: '地球人类',
+    text: '生活在地球摇篮里的人类，有完整的爱与道德，也有完整的愚蠢。还没有经历技术爆炸，社会稳定，也脆弱。',
+    tech: '化学火箭 · 信息技术',
+    culture: '民族国家 · 普世价值',
+    quote: '给岁月以文明，而不是给文明以岁月。',
+  },
+  {
+    era: '危机纪元',
+    title: '黄金时代的人类',
+    text: '熬过大低谷之后，技术复兴，人类造出了两千艘恒星级战舰。他们自信到傲慢，认为三体不足为惧。',
+    tech: '可控核聚变 · 恒星级战舰',
+    culture: '技术乐观主义',
+    quote: '他们只是虫子。',
+  },
+  {
+    era: '威慑纪元',
+    title: '威慑下的人类',
+    text: '六十多年的和平让人变得温和、精致。人们失去了侵略性，也不再愿意把开关交给一个会按下去的人。',
+    tech: '引力波威慑 · 强相互作用力材料',
+    culture: '极致的人道主义',
+    quote: '把枪口对准自己，才是真正的威慑。',
+  },
+  {
+    era: '广播纪元',
+    title: '星舰人类',
+    text: '「蓝色空间」号与「万有引力」号的后来者。在黑暗森林里，他们长出了新的道德：生存是第一位的。',
+    tech: '曲率驱动 · 四维空间',
+    culture: '集权 · 极度理性',
+    quote: '不要返航，这里不是家。',
+  },
+  {
+    era: '掩体纪元',
+    title: '掩体人类',
+    text: '躲在巨行星背后、住进太空城的人类。技术发达，心态却像穴居人一样恐惧。',
+    tech: '太空城集群',
+    culture: '封闭 · 避难所心态',
+    quote: '躲起来，是生存还是放弃？',
+  },
+  {
+    era: '银河纪元',
+    title: '散落的人类',
+    text: '太阳系跌入二维之后，人类只剩下散落在银河里的几支。他们说的还是地球上的语言，记得的还是地球上的事。',
+    tech: '光速飞船 · 小宇宙',
+    culture: '各自为政',
+    quote: '我们还是人类吗？',
+  },
+]
+
+/** 树上读者这一支长在哪个节点之后 */
+export const BRANCH_FROM = 1
+
+export interface BranchProfile {
+  culture: string
+  /** 0–1：活下去的倾向 */
+  survive: number
+  /** 0–1：还像地球人的程度 */
+  bond: number
+}
+
+export function branchProfile(choices: number[]): BranchProfile {
+  const { survive, bond } = score(choices)
+  const range = STEPS.reduce(
+    (a, s) => ({
+      sMin: a.sMin + Math.min(...s.options.map((o) => o.survive)),
+      sMax: a.sMax + Math.max(...s.options.map((o) => o.survive)),
+      bMin: a.bMin + Math.min(...s.options.map((o) => o.bond)),
+      bMax: a.bMax + Math.max(...s.options.map((o) => o.bond)),
+    }),
+    { sMin: 0, sMax: 0, bMin: 0, bMax: 0 },
+  )
+  const norm = (v: number, lo: number, hi: number) => (hi === lo ? 0.5 : (v - lo) / (hi - lo))
+  const culture = bond <= -2 ? '集权 · 生存至上' : bond >= 3 ? '议会 · 法律 · 对死者的愧疚' : '在两者之间摇摆'
+  return { culture, survive: norm(survive, range.sMin, range.sMax), bond: norm(bond, range.bMin, range.bMax) }
+}

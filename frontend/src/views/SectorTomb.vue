@@ -11,6 +11,7 @@ import SectorHeader from '@/components/SectorHeader.vue'
 import Vitrine from '@/components/Vitrine.vue'
 import HoldButton from '@/components/HoldButton.vue'
 import ChiselStone from '@/components/ChiselStone.vue'
+import EpitaphWall from '@/components/EpitaphWall.vue'
 import { sectorByPath } from '@/data/sectors'
 import { EPOCHS, SIZES, epochLabel, fit, wear, weathered } from '@/sim/stone'
 
@@ -68,6 +69,8 @@ watch(carved, (c) => {
       restart-label="换一块石头"
       @restart="again"
     />
+
+    <EpitaphWall v-if="!carved && !chiseling" @borrow="(l) => (draft = l)" />
 
     <div class="work">
       <section v-if="!carved && chiseling" class="compose">
