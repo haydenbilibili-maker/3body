@@ -43,7 +43,7 @@ const ROUTES = [
   ['sector-l', '曲率驱动'],
   ['sector-j', '掩体世界'],
   ['sector-w', '水滴'],
-  ['sector-x', '未知区域'],
+  ['sector-x', '归零者'],
   ['sector-pdc', '行星防御理事会'],
   ['sector-ravine', '大低谷'],
   ['sector-blind', '盲区'],
@@ -466,6 +466,35 @@ const STATES = [
       await page.getByRole('button', { name: '一个人的选择' }).click({ timeout: 10000 })
       await page.getByRole('button', { name: '后来发生了什么' }).first().click({ timeout: 5000 })
       await page.waitForTimeout(400)
+    },
+  },
+  {
+    // 归零者：第一轮就归还全部质量（键盘确认），然后听完剩下的广播
+    name: 'desktop-returners-end',
+    viewport: 'desktop',
+    slug: 'sector-x',
+    act: async (page) => {
+      await page.getByRole('button', { name: '按住，归还全部质量' }).focus({ timeout: 8000 })
+      await page.keyboard.press('Enter')
+      for (let i = 0; i < 5; i += 1) {
+        await page.getByRole('button', { name: '听下一轮广播' }).click({ timeout: 5000 })
+        await page.waitForTimeout(200)
+      }
+      await page.waitForTimeout(1400)
+    },
+  },
+  {
+    // 宇宙留言簿：写一句话并发射，再写一句只留在留言簿里
+    name: 'mobile-guestbook-signal',
+    viewport: 'mobile',
+    slug: 'sector-guestbook',
+    act: async (page) => {
+      await page.fill('textarea', '这里有人。')
+      await page.getByRole('button', { name: '按住，向宇宙发射' }).focus()
+      await page.keyboard.press('Enter')
+      await page.fill('textarea', '我们不知道你是谁。')
+      await page.getByRole('button', { name: '只写在留言簿里' }).click()
+      await page.waitForTimeout(2200)
     },
   },
 ]

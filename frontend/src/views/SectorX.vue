@@ -1,740 +1,198 @@
 <script setup lang="ts">
 /**
- * Sector X: The Returners (归零者 / 回归运动)
- * 核心：宇宙质量大称 (Universal Scale) & 全宇宙广播 (The Great Broadcast)
- * 风格：神性、虚无、黑白极简 (Void Minimalist)
+ * Sector X：归零者
+ * 宇宙的质量被无数个小宇宙带走，大宇宙不再能坍缩重启。归零者用无数种语言向所有文明广播：归还质量。
+ * 你是收到广播的文明之一。六轮广播，每一轮你都可以归还、留下一只漂流瓶再归还，或者再等等。
+ * 你看得到总质量和谁已经归还，却永远看不到别人在想什么。
+ * 逻辑见 sim/returners.ts。
  */
-import { ref, onMounted, computed, onUnmounted } from 'vue'
-import { NButton, useMessage } from 'naive-ui'
-import { soundManager } from '@/utils/sound'
-import { useUserStore } from '@/stores/user'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+import SectorHeader from '@/components/SectorHeader.vue'
+import Vitrine from '@/components/Vitrine.vue'
+import HoldButton from '@/components/HoldButton.vue'
+import { sectorByPath } from '@/data/sectors'
+import {
+  ENDINGS,
+  ROUNDS,
+  TOLERANCE,
+  YOU,
+  createReturn,
+  ending,
+  nextRound,
+  returnedMass,
+  type ReturnState,
+  type YourMove,
+} from '@/sim/returners'
 
-const message = useMessage()
-const userStore = useUserStore()
+const question = sectorByPath('/sector-x')?.question
 
-type BroadcastLine = { lang: string; text: string }
-
-// --- Custom Broadcast (Swordholder 插播模组) ---
-const customInput = ref('')
-const isBroadcasting = ref(false)
-const customQueue = ref<BroadcastLine[]>([])
-const introBroadcastOnly = ref(true)
-let introTimer: ReturnType<typeof setTimeout> | undefined
-
-function sendCustomBroadcast() {
-  if (!userStore.checkPermission(3, '全宇宙广播 (Universal Broadcast)')) {
-    return
-  }
-  
-  if (!customInput.value.trim()) return
-  
-  isBroadcasting.value = true
-  soundManager.playConfirm()
-  
-  // 插播队列：不改写归零者主广播列表，只在轮播中临时插入
-  const customMsg: BroadcastLine = {
-    lang: '执剑人 (Swordholder)',
-    text: customInput.value
-  }
-  customQueue.value.push(customMsg)
-  
-  message.success('执剑人广播已加入插播队列，主广播持续运行。')
-  customInput.value = ''
-  
-  setTimeout(() => isBroadcasting.value = false, 3000)
-}
-
-// --- The Great Broadcast (全宇宙广播) ---
-// Simulating 1.57 million languages
-const broadcastText: BroadcastLine[] = [
-  // --- Core ---
-  { lang: '归零者', text: '我是归零者。归还质量，重启宇宙。' },
-  { lang: 'The Returners', text: 'We are the Returners. Return the mass, restart the universe.' },
-  
-  // --- Solar System Humans ---
-  { lang: 'Chinese (Earth)', text: '回归运动声明：为了宇宙的重生，请归还你们拿走的质量。' },
-  { lang: 'English (Earth)', text: 'The Returners: Return the mass, restart the universe.' },
-  { lang: 'French (Earth)', text: 'Déclaration du Mouvement de Retour : Rendez la masse.' },
-  { lang: 'Russian (Earth)', text: 'Декларация Движения Возвращения: Верните массу.' },
-  { lang: 'Spanish (Earth)', text: 'Declaración del Movimiento de Retorno: Devuelvan la masa.' },
-  { lang: 'Japanese (Earth)', text: '回帰運動宣言：宇宙の再生のために、質量を返還してください。' },
-  { lang: 'Arabic (Earth)', text: 'إعلان حركة العودة: أعد الكتلة لإعادة تشغيل الكون.' },
-  { lang: 'Hindi (Earth)', text: 'वापसी आंदोलन घोषणा: द्रव्यमान लौटाएं।' },
-  { lang: 'German (Earth)', text: 'Erklärung der Rückkehrbewegung: Gebt die Masse zurück.' },
-  
-  // --- Galactic Humans ---
-  { lang: 'Galactic Standard', text: 'MASS RECALL PROTOCOL INITIATED. COMPLY IMMEDIATELY.' },
-  { lang: 'Starship Earth', text: 'All mini-universe operators: Return mass for Reboot.' },
-  { lang: 'Blue Space', text: 'For the memory of the past, we return.' },
-  { lang: 'Gravity', text: 'Entropy reversal required. Mass return essential.' },
-
-  // --- Trisolaris ---
-  { lang: 'Trisolaran Fleet', text: '生存是第一需要，但重启是唯一希望。' },
-  { lang: 'Trisolaran (Raw)', text: '⍙⍚⍛⍜⍝⍞⍟⍠⍡⍢⍣⍤⍥⍦⍧⍨⍩⍪⍫⍬⍭⍮⍯⍰' },
-  { lang: 'Sophon', text: 'The Universe must breathe again.' },
-
-  // --- Known High Civs ---
-  { lang: 'Singer', text: '⟒⟓⟔⟕... MASS MUST BE RETURNED ...⟖⟗' },
-  { lang: 'Singer (Seed)', text: '💠 🔆 💢 💤 💠' },
-  { lang: 'Fringe World', text: '我们在时间尽头等待。' },
-  { lang: 'Zero-Homers', text: '000000000000000000000000000000' },
-  { lang: 'Dimensional Ocean', text: 'Dry the sea. Return the water.' },
-  { lang: 'Fourth Dimension', text: 'The bubble must burst.' },
-
-  // --- Unknown / Alien ---
-  { lang: 'Unknown 192', text: '⍙⍚⍛ RESTART ⍜⍝⍞' },
-  { lang: 'Civilization #8492', text: '⍼⍽⍾⍿⎀⎁⎂⎃⎄⎅' },
-  { lang: 'Sector Z', text: '█ █ █ █ █ █ █' },
-  { lang: 'Dark Domain 44', text: '.....................' },
-  { lang: 'Entropy Beings', text: 'The heat death is a lie. Reboot.' },
-  { lang: 'Silicon Life', text: '01010010 01000101 01010011 01010100 01000001 01010010 01010100' },
-  { lang: 'Neutron Life', text: '⚛︎ ⚛︎ ⚛︎ ⚛︎ ⚛︎' },
-  { lang: 'Plasma Mind', text: '⚡︎ ⚡︎ ⚡︎ ⚡︎ ⚡︎' },
-  { lang: 'Void Spirits', text: 'We are tired of the expansion.' },
-  { lang: 'Geometric', text: '△ ▽ ◁ ▷ ◯ ◎ ●' },
-  { lang: 'Braille (Tactile)', text: '⠠⠗⠑⠞⠙⠗⠝ ⠞⠓⠑ ⠍⠁⠎⠎' },
-  { lang: 'Morse', text: '.-. . - ..- .-. -. / -- .- ... ...' },
-  { lang: 'Hex', text: '52 45 54 55 52 4E 20 4D 41 53 53' },
-  
-  // --- More Abstract ---
-  { lang: 'Unknown #9921', text: '⌇ ⌾ ⌿ ⍀ ⍉ ⍊ ⍋' },
-  { lang: 'Unknown #1102', text: '⎛ ⎝ ⎞ ⎠ ⎡ ⎣ ⎤ ⎦' },
-  { lang: 'Unknown #5532', text: '▀ ▂ ▃ ▄ ▅ ▆ ▇ █' },
-  { lang: 'Unknown #0023', text: '░ ▒ ▓ █ ▓ ▒ ░' },
-  { lang: 'Unknown #7719', text: '☺︎ ☹︎ ☺︎ ☹︎ ☺︎' },
-  { lang: 'Unknown #3321', text: '✶ ✷ ✸ ✹ ✺ ✻ ✼ ✽' },
-  { lang: 'Unknown #6612', text: '➔ ➘ ➙ ➚ ➛ ➜ ➝' },
-  { lang: 'Unknown #8819', text: '↉ ↊ ↋ ↌ ↍ ↎ ↏' }
+/* ---------- 广播 ---------- */
+const LINES = [
+  '归还质量。宇宙需要重新开始。',
+  'Return the mass. The universe must begin again.',
+  '回归运动声明：所有小宇宙，请归还你们带走的质量。',
+  '我们知道你们在害怕。我们也是。',
 ]
-
-const currentLine = ref(0) // 归零者主广播索引
-const currentDisplay = ref<BroadcastLine>(broadcastText[0])
-const langCounter = ref(1)
-let broadcastTimer: ReturnType<typeof setTimeout> | undefined
-
-// --- Universal Scale (宇宙质量大称) ---
-const totalMass = ref(0.92) // 初始 Omega 值 (死线)
-const targetMass = 1.05 // 重启阈值
-const isRestarting = ref(false)
-const returnedCount = ref(0)
-const collapseScale = ref(1) // Visual collapse effect
-
-const omegaPercent = computed(() => {
-  return Math.min(100, (totalMass.value / targetMass) * 100)
-})
-
-const statusText = computed(() => {
-  if (isRestarting.value) return '重启程序已启动 (REBOOT INITIATED)'
-  if (totalMass.value >= 1.0) return '临界质量已突破 (Ω > 1)'
-  return '宇宙无限膨胀 (EXPANSION ETERNAL)'
-})
-
-const isPriorityBroadcast = computed(() => {
-  const lang = currentDisplay.value.lang
-  return lang === '归零者' || lang === 'The Returners' || lang.includes('执剑人')
-})
-
-function startBroadcast() {
-  if (broadcastTimer) clearTimeout(broadcastTimer)
-
-  const scheduleNext = () => {
-    // 先消费执剑人插播队列；主广播（归零者）不中断且不被改写
-    if (customQueue.value.length > 0) {
-      currentDisplay.value = customQueue.value.shift() as BroadcastLine
-    } else {
-      currentDisplay.value = broadcastText[currentLine.value]
-      currentLine.value = (currentLine.value + 1) % broadcastText.length
-    }
-
-    const jump = Math.floor(Math.random() * 50000)
-    langCounter.value = (langCounter.value + jump) % 1570000
-    if (langCounter.value < 1) langCounter.value = 1
-
-    const text = currentDisplay.value.text
-    const isChinese = /[\u4e00-\u9fa5]/.test(text)
-    let duration = 1200 + text.length * 30
-    if (isChinese) duration += 300
-    duration = Math.min(duration, 4000)
-
-    broadcastTimer = setTimeout(scheduleNext, duration)
-  }
-
-  // 首次先展示归零者主广播，确保“宇宙级广播”主线恢复
-  currentLine.value = 0
-  currentDisplay.value = broadcastText[currentLine.value]
-  currentLine.value = (currentLine.value + 1) % broadcastText.length
-  broadcastTimer = setTimeout(scheduleNext, 1800)
-}
-
-function returnMass() {
-  if (isRestarting.value) return
-  
-  // 模拟归还小宇宙
-  const gain = Math.random() * 0.03 + 0.01
-  totalMass.value += gain
-  returnedCount.value++
-  
-  if (totalMass.value >= targetMass) {
-    triggerRestart()
-  } else {
-    // 随机的感谢语
-    const thanks = [
-      '小宇宙质量已融合',
-      '大宇宙感谢您的归还',
-      '坍缩进程加速',
-      '时间颗粒度增加',
-      '熵减进行中'
-    ]
-    const t = thanks[Math.floor(Math.random() * thanks.length)]
-    message.info(`${t} [Ω +${gain.toFixed(3)}]`)
-  }
-}
-
-function triggerRestart() {
-  isRestarting.value = true
-  message.success('宇宙质量临界点已突破！回归运动启动！')
-  soundManager.playBigCrunch()
-  
-  // Big Crunch Animation
-  let step = 0
-  const crunch = setInterval(() => {
-    step += 0.01
-    collapseScale.value = 1 + step * 2 // Expand first (brightness)
-    if (step > 1) {
-      clearInterval(crunch)
-      // Collapse
-      collapseScale.value = 0
-    }
-  }, 50)
-}
-
+const line = ref(0)
+let lineTimer: ReturnType<typeof setInterval> | undefined
 onMounted(() => {
-  startBroadcast()
-  soundManager.startAmbient('void')
-  introTimer = setTimeout(() => {
-    introBroadcastOnly.value = false
-  }, 6000)
+  lineTimer = setInterval(() => (line.value = (line.value + 1) % LINES.length), 4200)
 })
+onUnmounted(() => clearInterval(lineTimer))
 
-onUnmounted(() => {
-  if (broadcastTimer) clearTimeout(broadcastTimer)
-  if (introTimer) clearTimeout(introTimer)
-  soundManager.stopAmbient()
-})
+/* ---------- 质量 ---------- */
+const state = ref<ReturnState>(createReturn(Math.floor(Math.random() * 1e6)))
+const you = computed(() => state.value.civs.find((c) => c.id === YOU)!)
+const others = computed(() => state.value.civs.filter((c) => c.id !== YOU))
+const massPct = computed(() => returnedMass(state.value) * 100)
+const finished = computed(() => state.value.round >= ROUNDS)
+const end = computed(() => (finished.value ? ENDINGS[ending(state.value)] : null))
+const lastNews = ref('')
+
+function play(move: YourMove) {
+  const othersBack = () => state.value.civs.filter((c) => c.id !== YOU && c.returned).length
+  const before = othersBack()
+  state.value = nextRound(state.value, move)
+  const n = othersBack() - before
+  lastNews.value =
+    n > 0
+      ? `第 ${state.value.round} 轮广播之后，又有 ${n} 个文明归还了质量。`
+      : `第 ${state.value.round} 轮广播之后，没有新的文明归还。`
+}
+function restart() {
+  state.value = createReturn(Math.floor(Math.random() * 1e6))
+  lastNews.value = ''
+}
 </script>
 
 <template>
-  <div class="sector-x" :class="{ 'reboot-flash': isRestarting && collapseScale > 1 }">
-    <div class="void-container" :style="{ transform: `scale(${isRestarting && collapseScale < 1 ? 0 : 1})`, opacity: isRestarting && collapseScale < 1 ? 0 : 1 }">
-      
-      <!-- Part 1: The Great Broadcast -->
-      <div class="broadcast-layer">
-        <div class="broadcast-headline">THE GREAT BROADCAST</div>
-        <div class="broadcast-subline">UNIVERSAL MASS RECALL CHANNEL · PRIORITY ROUTE ACTIVE</div>
-        <div class="broadcast-content">
-          <div class="broadcast-frame" :class="{ 'broadcast-frame--priority': isPriorityBroadcast }">
-            <div class="broadcast-scanline"></div>
-            <div class="broadcast-line">
-              <span class="lang-tag">
-                [{{ currentDisplay.lang }}]
-                <span class="lang-id">#{{ langCounter.toLocaleString() }}</span>
-              </span>
-              <span class="text-body">{{ currentDisplay.text }}</span>
-            </div>
-            <div class="broadcast-static">DETECTED CIVILIZATIONS: 1,570,000+</div>
+  <div class="sector-x">
+    <SectorHeader
+      title="归零者"
+      subtitle="无数文明把质量带进了自己的小宇宙，躲开时间与战争。大宇宙因此少了太多质量，再也不能坍缩、重新开始。"
+      goal="六轮广播。每一轮你都可以归还全部质量、留下一只漂流瓶再归还，或者再等等，看看别人怎么做。"
+      accent="#d6d2c8"
+      :show-restart="state.round > 0"
+      restart-label="回到第一轮广播"
+      @restart="restart"
+    />
+
+    <Vitrine class="broadcast" caption="归零者的广播，以无数种语言同时发出，覆盖整个宇宙。">
+      <transition name="line" mode="out-in">
+        <p :key="line" class="b-line">{{ LINES[line] }}</p>
+      </transition>
+    </Vitrine>
+
+    <div class="field">
+      <section class="mass" aria-label="宇宙质量">
+        <div class="m-head">
+          <span>已归还的质量</span>
+          <b class="num">{{ massPct.toFixed(1) }}%</b>
+        </div>
+        <div class="m-bar" role="progressbar" :aria-valuenow="Math.round(massPct)" aria-valuemin="0" aria-valuemax="100">
+          <span class="m-fill" :style="{ width: massPct + '%' }"></span>
+          <span class="m-mark" :style="{ left: (1 - TOLERANCE) * 100 + '%' }" aria-hidden="true"></span>
+        </div>
+        <p class="m-note">要让宇宙重新开始，几乎每一份质量都必须回来。刻度线就是那条门槛。</p>
+
+        <ul class="civs">
+          <li class="civ you" :class="{ back: you.returned }">
+            <span class="dot" aria-hidden="true"></span>你<em>{{ you.returned ? (you.bottle ? '已归还，留下了漂流瓶' : '已归还') : '还在小宇宙里' }}</em>
+          </li>
+          <li v-for="c in others" :key="c.id" class="civ" :class="{ back: c.returned }">
+            <span class="dot" aria-hidden="true"></span>{{ c.name }}<em>{{ c.returned ? '已归还' : '沉默' }}</em>
+          </li>
+        </ul>
+      </section>
+
+      <section class="decide" aria-label="你的决定">
+        <p class="round">第 <span class="num">{{ Math.min(state.round + 1, ROUNDS) }}</span> / {{ ROUNDS }} 轮广播</p>
+        <p v-if="lastNews" class="news">{{ lastNews }}</p>
+
+        <template v-if="!finished">
+          <div v-if="!you.returned" class="moves">
+            <HoldButton :hold-ms="2000" @confirm="play('all')">按住，归还全部质量</HoldButton>
+            <HoldButton :hold-ms="2000" @confirm="play('bottle')">按住，归还，但留下一只漂流瓶</HoldButton>
+            <button type="button" class="plain-btn" @click="play('wait')">再等一轮，看看别人</button>
+            <p class="hint">漂流瓶只有几公斤：几行字，几张图，一点点来自旧宇宙的东西。</p>
+          </div>
+          <div v-else class="moves">
+            <p class="hint">你已经回到了大宇宙。现在只能等待别人。</p>
+            <button type="button" class="plain-btn primary" @click="play('wait')">听下一轮广播</button>
+          </div>
+        </template>
+
+        <div v-else-if="end" class="end">
+          <h2 class="end-title">{{ end.title }}</h2>
+          <p>{{ end.text }}</p>
+          <p class="book">在原著的结尾，程心和关一帆收到了这条广播。他们把 647 号小宇宙的质量还给了大宇宙，只留下一个五公斤的生态球，里面有一条鱼、一点水和阳光，作为一只漂流瓶。没有人知道，这五公斤会不会让宇宙差那么一点。</p>
+          <p class="q">{{ question }}</p>
+          <div class="links">
+            <button type="button" class="plain-btn" @click="restart">再听一次广播</button>
+            <RouterLink to="/sector-u" class="plain-btn">那个小宇宙：647 号</RouterLink>
+            <RouterLink to="/sector-m" class="plain-btn">宇宙曾经的样子：田园时代</RouterLink>
           </div>
         </div>
-        
-        <!-- Swordholder Input -->
-        <div class="swordholder-panel">
-          <div class="input-wrapper">
-            <input 
-              v-model="customInput" 
-              type="text" 
-              placeholder="输入广播内容 (执剑人权限)..." 
-              @keydown.enter="sendCustomBroadcast"
-            />
-            <button class="broadcast-btn" @click="sendCustomBroadcast" :disabled="isBroadcasting">
-              {{ isBroadcasting ? 'SENDING...' : 'BROADCAST' }}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Part 2: The Universal Scale -->
-      <div class="scale-layer" :class="{ 'scale-layer--hidden': introBroadcastOnly, 'scale-layer--visible': !introBroadcastOnly }">
-        <div class="scale-circle" :class="{ 'pulse-critical': totalMass >= 1.0 }">
-          <div class="omega-val">Ω = {{ totalMass.toFixed(4) }}</div>
-          <div class="omega-status">{{ statusText }}</div>
-          
-          <svg class="scale-svg" viewBox="0 0 200 200">
-            <!-- Background Ring -->
-            <circle cx="100" cy="100" r="90" fill="none" stroke="#333" stroke-width="1" />
-            <!-- Critical Line (Ω=1) -->
-            <circle cx="100" cy="100" r="90" fill="none" stroke="#fff" stroke-width="1" stroke-dasharray="4 4" opacity="0.3" />
-            <!-- Progress Ring -->
-            <circle 
-              cx="100" cy="100" r="90" 
-              fill="none" 
-              stroke="#fff" 
-              stroke-width="4" 
-              stroke-linecap="square"
-              :stroke-dasharray="565" 
-              :stroke-dashoffset="565 - (565 * omegaPercent / 100)"
-              class="progress-ring"
-            />
-          </svg>
-        </div>
-
-        <div class="actions">
-          <p class="action-desc">
-            我们在这个小宇宙中躲避了这次坍缩，也就意味着我们偷走了大宇宙的一份质量。<br>
-            如果所有人都这么想，大宇宙将会在无限膨胀中死去。
-          </p>
-          <NButton 
-            size="large" 
-            ghost 
-            class="return-btn"
-            :disabled="isRestarting"
-            @click="returnMass"
-          >
-            {{ isRestarting ? '宇宙重启中 (REBOOTING...)' : '归还质量 (RETURN MASS)' }}
-          </NButton>
-        </div>
-      </div>
-
-    </div>
-    
-    <!-- Reboot Whiteout -->
-    <div v-if="isRestarting && collapseScale < 0.1" class="reboot-end">
-      <div class="reboot-text">UNIVERSE REBOOTED</div>
-      <div class="reboot-sub">欢迎来到新纪元</div>
+      </section>
     </div>
   </div>
 </template>
 
 <style scoped>
-.sector-x {
-  min-height: 100%;
-  width: 100%;
-  box-sizing: border-box;
-  background: var(--black);
-  color: var(--white);
-  font-family: var(--font-mono);
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  overflow: visible;
-  position: relative;
-  transition: background 2s;
-}
+.sector-x { padding: 2rem clamp(1rem, 4vw, 3rem) 3rem; max-width: 76rem; }
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 
-.reboot-flash {
-  background: var(--white);
-  color: var(--black);
-}
+.broadcast { margin-bottom: 2rem; }
+.b-line { margin: 0; min-height: 3.5rem; display: flex; align-items: center; font-family: var(--font-serif); font-size: clamp(1.125rem, 2.4vw, 1.5rem); line-height: 1.7; color: #ece8de; letter-spacing: 0.04em; }
+.line-enter-active, .line-leave-active { transition: opacity 0.9s, filter 0.9s; }
+.line-enter-from, .line-leave-to { opacity: 0; filter: blur(4px); }
 
-.reboot-flash .broadcast-line,
-.reboot-flash .omega-val,
-.reboot-flash .scale-svg circle {
-  color: var(--black);
-  stroke: var(--black);
-}
+.field { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 2rem; align-items: start; }
+.m-head { display: flex; justify-content: space-between; align-items: baseline; font-size: 0.9375rem; color: var(--weathered); }
+.m-head b { font-weight: 400; font-size: 1.5rem; color: var(--bone); }
+.m-bar { position: relative; height: 6px; margin: 0.6rem 0; background: var(--incision-soft); }
+.m-fill { position: absolute; inset: 0 auto 0 0; background: #d6d2c8; transition: width 1.2s ease-out; }
+.m-mark { position: absolute; top: -5px; bottom: -5px; width: 1px; background: var(--cherenkov); }
+.m-note { margin: 0 0 1.25rem; font-size: 0.875rem; line-height: 1.7; color: var(--weathered); }
 
-.void-container {
-  width: min(100%, 1000px);
-  max-width: 1000px;
-  box-sizing: border-box;
-  margin: 0 auto;
-  display: grid;
-  grid-template-rows: auto auto;
-  gap: 4rem;
-  padding: 2.2rem 1.2rem 2rem;
-  text-align: center;
-  transition: transform 2s cubic-bezier(0.6, 0, 1, 1), opacity 2s;
-}
+.civs { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 1.5rem; }
+.civ { display: flex; align-items: baseline; gap: 0.6rem; padding: 0.5rem 0; border-bottom: 1px solid var(--incision-soft); font-size: 0.9375rem; color: var(--weathered); }
+.civ em { margin-left: auto; font-style: normal; font-size: 0.8125rem; color: var(--incision); }
+.civ .dot { flex: none; width: 8px; height: 8px; border: 1px solid var(--weathered); border-radius: 50%; }
+.civ.back { color: var(--bone); }
+.civ.back em { color: var(--weathered); }
+.civ.back .dot { background: #d6d2c8; border-color: #d6d2c8; }
+.civ.you { color: var(--bone); font-weight: 600; }
 
-/* Broadcast */
-.broadcast-layer {
-  display: flex;
-  flex-direction: column;
+.round { margin: 0 0 0.5rem; font-size: 0.875rem; color: var(--weathered); }
+.news { margin: 0 0 1rem; font-family: var(--font-serif); font-size: 1.0625rem; line-height: 1.8; color: var(--bone); }
+.moves { display: flex; flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+.hint { margin: 0; font-size: 0.875rem; line-height: 1.7; color: var(--weathered); }
+
+.end-title { margin: 0.5rem 0 1rem; font-family: var(--font-serif); font-weight: 900; font-size: 1.75rem; letter-spacing: 0.12em; color: var(--bone); }
+.end p { margin: 0 0 0.9rem; font-family: var(--font-serif); font-size: 1.0625rem; line-height: 1.9; color: var(--gray-150); }
+.end .book { font-family: var(--font-sans); font-size: 0.9375rem; color: var(--weathered); }
+.end .q { margin-top: 1.25rem; padding-left: 1rem; border-left: 1px solid #d6d2c8; color: var(--bone); }
+.links { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1rem; }
+
+.plain-btn {
+  display: inline-flex;
   align-items: center;
-  justify-content: flex-start;
-  min-height: 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 0.4rem 0 1.6rem;
-}
-
-.broadcast-headline {
-  font-family: var(--font-title-classic);
-  font-size: clamp(1.2rem, 2.6vw, 2.1rem);
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.92);
-  text-shadow: 0 0 28px rgba(255, 255, 255, 0.22);
-}
-
-.broadcast-subline {
-  margin-top: 0.55rem;
-  margin-bottom: 1.1rem;
-  font-size: 0.75rem;
-  letter-spacing: 0.18em;
-  color: rgba(255, 255, 255, 0.34);
-}
-
-.broadcast-content {
-  width: 100%;
-  max-width: 900px;
-}
-
-.broadcast-frame {
-  position: relative;
-  border: 1px solid rgba(255, 255, 255, 0.24);
-  background:
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01)),
-    rgba(0, 0, 0, 0.55);
-  box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.05) inset,
-    0 0 34px rgba(255, 255, 255, 0.08);
-  padding: 1.45rem 1.2rem 1.1rem;
-  overflow: hidden;
-}
-
-.broadcast-frame--priority {
-  border-color: rgba(255, 255, 255, 0.45);
-  box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.14) inset,
-    0 0 42px rgba(255, 255, 255, 0.15);
-}
-
-.broadcast-scanline {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: -24%;
-  height: 48%;
-  background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.1), transparent);
-  animation: scanline 4.2s linear infinite;
-  pointer-events: none;
-}
-
-.broadcast-line {
-  font-family: var(--font-title-classic);
-  font-size: 1.5rem;
-  letter-spacing: 0.1em;
-  text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.8rem;
-  line-height: 1.45;
-  padding: 0 1rem;
-  word-break: break-word;
-  min-height: 106px;
-  justify-content: center;
-}
-
-@keyframes glitch {
-  0% { transform: skewX(0deg); opacity: 1; }
-  25% { transform: skewX(1deg); opacity: 0.9; }
-  50% { transform: skewX(-1deg); opacity: 1; }
-  75% { transform: skewX(0.5deg); opacity: 0.95; }
-  100% { transform: skewX(-0.5deg); opacity: 1; }
-}
-
-.lang-tag {
-  display: block;
-  font-size: 0.8rem;
-  color: var(--gray-400);
-  margin-bottom: 0.8rem;
-  font-family: var(--font-mono);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-}
-
-.lang-id {
-  color: var(--gray-450);
-  font-size: 0.75rem;
-}
-
-.text-body {
-  display: block;
-  max-width: 100%;
-  white-space: normal;
-}
-
-.broadcast-static {
-  margin-top: 0.9rem;
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.38);
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-}
-
-.swordholder-panel {
-  margin-top: 1.15rem;
-  width: 100%;
-  max-width: 600px;
-  opacity: 0.88;
-}
-
-.input-wrapper {
-  display: flex;
-  border: 1px solid var(--gray-700);
-  background: rgba(255,255,255,0.05);
-}
-
-.input-wrapper input {
-  flex: 1;
+  padding: 0.6rem 1.2rem;
+  font: inherit;
+  font-size: 0.9375rem;
+  color: var(--bone);
   background: transparent;
-  border: none;
-  color: var(--white);
-  padding: 1rem;
-  font-family: var(--font-mono);
-  outline: none;
-}
-
-.broadcast-btn {
-  background: var(--gray-700);
-  color: var(--white);
-  border: none;
-  padding: 0 1.5rem;
-  font-family: var(--font-mono);
+  border: 1px solid var(--incision);
+  border-radius: 2px;
   cursor: pointer;
-  transition: all 0.3s;
+  text-decoration: none;
 }
+.plain-btn:hover { border-color: var(--weathered); }
+.plain-btn.primary { border-color: var(--cherenkov); color: var(--cherenkov); }
 
-.broadcast-btn:hover {
-  background: var(--white);
-  color: var(--black);
+@media (max-width: 900px) {
+  .field { grid-template-columns: 1fr; }
+  .civs { grid-template-columns: 1fr; }
 }
-
-/* Scale */
-.scale-layer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3rem;
-  opacity: 0.84;
-  transition: opacity 0.9s ease, transform 0.9s ease, filter 0.9s ease;
-}
-
-.scale-layer--hidden {
-  opacity: 0;
-  transform: translateY(18px);
-  filter: blur(6px);
-  pointer-events: none;
-}
-
-.scale-layer--visible {
-  opacity: 0.84;
-  transform: translateY(0);
-  filter: blur(0);
-  pointer-events: auto;
-}
-
-.scale-circle {
-  position: relative;
-  width: 300px;
-  height: 300px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.omega-val {
-  font-size: 2.5rem;
-  font-weight: bold;
-}
-
-.omega-status {
-  font-size: 0.8rem;
-  color: var(--gray-400);
-  margin-top: 0.5rem;
-}
-
-.scale-svg {
-  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-  transform: rotate(-90deg);
-}
-
-.progress-ring {
-  transition: stroke-dashoffset 0.5s ease-out;
-}
-
-.pulse-critical .omega-val {
-  color: var(--white);
-  text-shadow: 0 0 20px var(--white);
-  animation: pulse 1s infinite;
-}
-
-@keyframes pulse {
-  0% { opacity: 0.8; }
-  50% { opacity: 1; text-shadow: 0 0 30px var(--white); }
-  100% { opacity: 0.8; }
-}
-
-/* Actions */
-.action-desc {
-  color: var(--gray-400);
-  font-size: 0.9rem;
-  line-height: 1.6;
-  max-width: 600px;
-  margin-bottom: 2rem;
-}
-
-.return-btn {
-  font-family: var(--font-mono);
-  letter-spacing: 0.1em;
-  padding: 1.5rem 3rem;
-  font-size: 1.1rem;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  transition: all 0.3s;
-}
-
-.return-btn:hover {
-  background: var(--white);
-  color: var(--black);
-  box-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
-}
-
-/* Reboot End Screen */
-.reboot-end {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: var(--black);
-  color: var(--white);
-  animation: fadeIn 2s ease-in;
-}
-
-.reboot-text {
-  font-size: 3rem;
-  font-family: var(--font-title-classic);
-  letter-spacing: 0.5em;
-  margin-bottom: 1rem;
-}
-
-.reboot-sub {
-  color: var(--gray-400);
-  font-size: 1rem;
-  letter-spacing: 0.2em;
-}
-
-@media (max-width: 768px) {
-  .void-container {
-    gap: 2.25rem;
-    padding: 1.4rem 0.72rem 1.2rem;
-  }
-
-  .broadcast-layer {
-    min-height: 0;
-    padding: 0.2rem 0 1.2rem;
-  }
-
-  .broadcast-headline {
-    letter-spacing: 0.15em;
-    font-size: 1.05rem;
-  }
-
-  .broadcast-subline {
-    font-size: 0.75rem;
-    letter-spacing: 0.12em;
-    margin-bottom: 0.85rem;
-  }
-
-  .broadcast-frame {
-    padding: 1rem 0.5rem 0.75rem;
-  }
-
-  .broadcast-line {
-    font-size: 1rem;
-    letter-spacing: 0.04em;
-    line-height: 1.35;
-    min-height: 86px;
-    padding: 0 0.3rem;
-  }
-
-  .lang-tag {
-    margin-bottom: 0.2rem;
-    font-size: 0.75rem;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-  }
-
-  .broadcast-static {
-    margin-top: 0.55rem;
-    font-size: 0.75rem;
-    letter-spacing: 0.08em;
-  }
-
-  .swordholder-panel {
-    margin-top: 1rem;
-  }
-
-  .input-wrapper {
-    flex-direction: column;
-  }
-
-  .input-wrapper input {
-    padding: 0.78rem 0.9rem;
-    font-size: 0.86rem;
-  }
-
-  .broadcast-btn {
-    min-height: 42px;
-    padding: 0 1rem;
-    font-size: 0.82rem;
-  }
-
-  .scale-layer {
-    gap: 1.4rem;
-    opacity: 0.78;
-  }
-
-  .scale-layer--visible {
-    opacity: 0.78;
-  }
-
-  .scale-circle {
-    width: min(76vw, 280px);
-    height: min(76vw, 280px);
-  }
-
-  .omega-val {
-    font-size: clamp(1.85rem, 9vw, 2.45rem);
-  }
-
-  .omega-status {
-    font-size: 0.75rem;
-  }
-
-  .action-desc {
-    max-width: 100%;
-    font-size: 0.875rem;
-    line-height: 1.55;
-    margin-bottom: 1.1rem;
-    padding: 0 0.1rem;
-  }
-
-  .return-btn {
-    width: 100%;
-    max-width: 360px;
-    padding: 0.95rem 1rem;
-    font-size: 0.95rem;
-  }
-}
-
-@keyframes scanline {
-  0% { top: -35%; }
-  100% { top: 115%; }
-}
-
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 </style>
