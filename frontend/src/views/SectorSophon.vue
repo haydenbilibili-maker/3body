@@ -6,11 +6,11 @@
  * - 对话：与智子说话（大模型流式回复，见 api/chat）。
  */
 import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
-import { NSlider } from 'naive-ui'
 import { streamChat } from '@/api/chat'
 import type { Message } from '@/types/sophon'
 import SectorHeader from '@/components/SectorHeader.vue'
 import Vitrine from '@/components/Vitrine.vue'
+import SophonUnfold from '@/components/SophonUnfold.vue'
 import { sectorByPath } from '@/data/sectors'
 
 const question = sectorByPath('/sector-a')?.question
@@ -67,7 +67,6 @@ const DIM_TEXT: Record<number, string> = {
   2: '二维：展开成一张薄膜，覆盖整个行星的面积。工程师在上面刻下电路，然后把它重新折叠回去。',
   1: '一维：一根无限细的弦。展开过头了，它什么也做不了。',
 }
-const unfoldScale = computed(() => (dimension.value >= 3 ? (12 - dimension.value) / 9 : 1))
 
 /* ---------- 对话 ---------- */
 const messages = ref<Message[]>([])
@@ -172,36 +171,17 @@ onUnmounted(() => clearInterval(tick))
           <p v-if="research === 'stopped'" class="v-question">{{ question }}</p>
         </Vitrine>
 
-        <Vitrine>
-          <h2 class="v-title">展开</h2>
-          <svg class="unfold" viewBox="0 0 200 120" role="img" :aria-label="`智子的${dimension}维形态`">
-            <rect x="0" y="0" width="200" height="120" fill="none" />
-            <g v-if="dimension >= 5" :transform="`translate(100 60) scale(${0.3 + unfoldScale})`">
-              <path
-                v-for="k in 6"
-                :key="k"
-                :d="`M ${-12 + k} 0 C -10 ${-14 + k * 2}, 10 ${14 - k * 2}, ${12 - k} 0 S -10 ${-10 + k}, ${-12 + k} 0`"
-                fill="none"
-                stroke="rgba(125,184,255,0.7)"
-                stroke-width="0.6"
-                :transform="`rotate(${k * 30})`"
-              />
-            </g>
-            <circle v-else-if="dimension >= 3" cx="100" cy="60" :r="14 + unfoldScale * 40" fill="rgba(125,184,255,0.06)" stroke="rgba(125,184,255,0.7)" stroke-width="0.8" />
-            <g v-else-if="dimension === 2">
-              <rect x="6" y="10" width="188" height="100" fill="rgba(125,184,255,0.05)" stroke="rgba(125,184,255,0.6)" stroke-width="0.6" />
-              <path d="M20 30 H70 V55 H120 V30 H180 M40 90 H90 V70 H150 V95 H170 M70 55 V90 M120 55 V70" fill="none" stroke="rgba(125,184,255,0.8)" stroke-width="0.8" />
-            </g>
-            <line v-else x1="4" y1="60" x2="196" y2="60" stroke="rgba(125,184,255,0.8)" stroke-width="0.6" />
-          </svg>
-          <label class="dim">
-            <span>维度 <b class="num">{{ dimension }}</b></span>
-            <NSlider v-model:value="dimension" :min="1" :max="11" :step="1" :tooltip="false" reverse />
-          </label>
-          <p class="v-text small">{{ DIM_TEXT[dimension] }}</p>
-        </Vitrine>
       </div>
     </div>
+
+    <Vitrine class="unfold-vitrine" caption="三体世界用一个质子造出了智子：把它从十一维展开到二维，在膜上刻好电路，再折叠回去。">
+      <div class="unfold-head">
+        <h2 class="v-title">展开</h2>
+        <span class="dim-read">维度 <b class="num">{{ dimension }}</b></span>
+      </div>
+      <SophonUnfold @dim="(d) => (dimension = d)" />
+      <p class="v-text small">{{ DIM_TEXT[dimension] }}</p>
+    </Vitrine>
   </div>
 </template>
 
@@ -293,4 +273,8 @@ onUnmounted(() => clearInterval(tick))
   .layout { grid-template-columns: 1fr; }
   .chat { height: 60vh; }
 }
+.unfold-vitrine { margin-top: 1.5rem; }
+.unfold-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 0.75rem; }
+.dim-read { font-size: 0.875rem; color: var(--weathered); }
+.dim-read b { font-weight: 400; font-size: 1.25rem; color: var(--cherenkov); }
 </style>

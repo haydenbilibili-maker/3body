@@ -334,7 +334,8 @@ const STATES = [
       await page.waitForTimeout(1900)
       await page.mouse.up()
       await page.getByRole('button', { name: '跳过等待' }).click({ timeout: 5000 })
-      await page.waitForTimeout(8200)
+      await page.getByRole('button', { name: '让监听员调谐' }).click({ timeout: 5000 })
+      await page.waitForTimeout(11000)
     },
   },
   {
@@ -544,10 +545,10 @@ const STATES = [
       await page.getByLabel('爱人').check({ timeout: 8000 })
       await page.getByRole('button', { name: '按住，躺进冬眠舱' }).focus()
       await page.keyboard.press('Enter')
-      await page.waitForTimeout(2800)
+      await page.waitForTimeout(4000)
       await page.getByRole('button', { name: '按住，再睡一次' }).focus()
       await page.keyboard.press('Enter')
-      await page.waitForTimeout(2800)
+      await page.waitForTimeout(4000)
       await page.getByRole('button', { name: '留下来，在这个时代生活' }).click()
       await page.waitForTimeout(500)
     },
@@ -648,6 +649,50 @@ const STATES = [
         await page.getByRole('button', { name: '田园时代' }).first().click({ timeout: 4000 })
       })
       await page.waitForTimeout(450)
+    },
+  },
+  {
+    // 智子：键盘把质子展开到二维，松手刻电路（网格扫过整页）
+    name: 'desktop-sophon-unfold',
+    viewport: 'desktop',
+    slug: 'sector-a',
+    act: async (page) => {
+      const cv = page.locator('.unfold-box canvas')
+      await cv.scrollIntoViewIfNeeded({ timeout: 8000 })
+      await cv.focus()
+      for (let i = 0; i < 9; i += 1) {
+        await page.keyboard.press('ArrowUp')
+        await page.waitForTimeout(120)
+      }
+      await page.waitForTimeout(600)
+      await page.keyboard.press('Enter')
+      await page.waitForTimeout(1400)
+    },
+  },
+  {
+    // 红岸：回信到来前的瀑布图（监听员正在调谐）
+    name: 'desktop-redcoast-waterfall',
+    viewport: 'desktop',
+    slug: 'sector-r',
+    act: async (page) => {
+      await page.getByRole('button', { name: '自动追踪太阳' }).click({ timeout: 8000 })
+      await page.waitForTimeout(3500)
+      await page.getByRole('switch').first().click()
+      await page.getByRole('button', { name: '按住，向太阳发射' }).focus()
+      await page.keyboard.press('Enter')
+      await page.getByRole('button', { name: '跳过等待' }).click({ timeout: 5000 })
+      await page.waitForTimeout(3500)
+    },
+  },
+  {
+    // 冬眠者：睡眠中，屏幕结霜
+    name: 'desktop-sleep-frost',
+    viewport: 'desktop',
+    slug: 'sector-sleep',
+    act: async (page) => {
+      await page.getByRole('button', { name: '按住，躺进冬眠舱' }).focus({ timeout: 8000 })
+      await page.keyboard.press('Enter')
+      await page.waitForTimeout(2600)
     },
   },
 ]

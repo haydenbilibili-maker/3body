@@ -13,6 +13,7 @@ import SectorHeader from '@/components/SectorHeader.vue'
 import Vitrine from '@/components/Vitrine.vue'
 import HoldButton from '@/components/HoldButton.vue'
 import ETOAssembly from '@/components/ETOAssembly.vue'
+import RadioWaterfall from '@/components/RadioWaterfall.vue'
 import { sectorByPath } from '@/data/sectors'
 import {
   ALIGNED_AT,
@@ -92,9 +93,21 @@ const beats = computed(() => beatsUntil(progress.value))
 /* ---------- 第三幕：回答 ---------- */
 const replyShown = ref(0)
 let replyTimer: ReturnType<typeof setInterval> | undefined
+/* 回信要先在瀑布图里调谐、锁定，才开始逐行译出 */
+const tuned = ref(false)
+function onLocked() {
+  setTimeout(() => {
+    tuned.value = true
+    beginDecode()
+  }, 700)
+}
 function openReply() {
   if (phase.value === 'reply') return
   phase.value = 'reply'
+  tuned.value = false
+  replyShown.value = 0
+}
+function beginDecode() {
   replyShown.value = 0
   clearInterval(replyTimer)
   replyTimer = setInterval(() => {
@@ -222,7 +235,8 @@ watch(phase, (p) => {
     <!-- 第三幕：回答 -->
     <Vitrine v-else-if="phase === 'reply'">
       <div class="reply">
-        <p class="reply-head">1979 年。接收器里出现了一段有规律的信号，来源是半人马座 α。</p>
+        <p class="reply-head">1979 年。值班的接收器上，噪声里似乎有一条很细的、断续的线。</p>
+        <RadioWaterfall v-if="!tuned" class="wf" @locked="onLocked" />
         <transition-group name="beat" tag="div" class="reply-lines">
           <p v-for="(line, i) in REPLY_LINES.slice(0, replyShown)" :key="i" :class="{ warn: line.includes('不要回答') }">
             {{ line }}
@@ -407,4 +421,5 @@ watch(phase, (p) => {
   .acts { gap: 1rem; font-size: 0.875rem; }
   .track { margin: 0 2.5rem 1.5rem; }
 }
+.reply .wf { margin: 1rem 0 0.5rem; }
 </style>

@@ -9,6 +9,7 @@ import { computed, onUnmounted, ref } from 'vue'
 import SectorHeader from '@/components/SectorHeader.vue'
 import Vitrine from '@/components/Vitrine.vue'
 import HoldButton from '@/components/HoldButton.vue'
+import FrostOverlay from '@/components/FrostOverlay.vue'
 import { sectorByPath } from '@/data/sectors'
 import { recordAnswer } from '@/data/answers'
 import { PEOPLE, STATIONS, alive, elapsed, formatYears, summary } from '@/sim/hibernation'
@@ -36,7 +37,7 @@ function sleep() {
   const to = elapsed(index.value + 1)
   const t0 = performance.now()
   const tick = (now: number) => {
-    const p = Math.min(1, (now - t0) / 2200)
+    const p = Math.min(1, (now - t0) / 3400)
     counter.value = Math.round(from + (to - from) * (1 - Math.pow(1 - p, 3)))
     if (p < 1) raf = requestAnimationFrame(tick)
     else {
@@ -73,6 +74,7 @@ function noteOf(id: string) {
 
 <template>
   <div class="sector-sleep">
+    <FrostOverlay :active="sleeping" />
     <SectorHeader
       title="冬眠者"
       subtitle="冬眠技术让人可以跳过岁月：躺下，醒来，就是一两百年之后。很多人这样去看人类的结局，程心也是。"
