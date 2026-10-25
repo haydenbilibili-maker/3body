@@ -538,21 +538,22 @@ watch(fleetDown, (d) => {
 
 .hud-overlay {
   position: absolute;
-  bottom: 2rem;
-  left: 2rem;
-  background: rgba(0,0,0,0.5);
-  padding: 1rem;
-  border: 1px solid var(--c-cyan);
-  color: var(--c-cyan);
+  top: 1rem;
+  left: 1rem;
+  z-index: 2;
+  max-width: 18rem;
+  padding: 0.75rem 1rem;
+  color: var(--weathered);
   font-family: var(--font-mono);
+  font-size: 0.8125rem;
 }
 
 .data-row { margin-bottom: 0.5rem; }
-.data-row.highlight .label { color: #9fb39a; }
+.data-row.highlight .label { color: var(--bone); }
 .label { opacity: 0.7; margin-right: 1rem; }
-.val { color: var(--c-cyan); }
+.val { color: var(--bone); }
 .reason { color: var(--weathered); font-size: 0.8125rem; }
-.hint-text { margin-top: 0.5rem; font-size: 0.75rem; opacity: 0.8; }
+.hint-text { margin-top: 0.5rem; font-family: var(--font-sans); font-size: 0.75rem; line-height: 1.6; color: var(--weathered); }
 
 /* Tab 2: Game */
 .game-container {
@@ -729,6 +730,6 @@ watch(fleetDown, (d) => {
 @media (max-width: 760px) {
   .scene-3d { display: flex; flex-direction: column; }
   .mirror-gl { position: relative; height: 22rem; }
-  .journey-panel, .mirror-act { position: static; max-width: none; margin: 0.75rem 0 0; }
+  .journey-panel, .mirror-act, .hud-overlay { position: static; max-width: none; margin: 0.75rem 0 0; }
 }
 </style>

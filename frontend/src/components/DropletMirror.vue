@@ -53,10 +53,12 @@ float map(vec3 p){
   return d * 0.55;
 }
 
+// 值噪声用的散列：比星点用的 hash 更均匀，避免星云出现棋盘格
+float h3(vec3 p){ return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43758.5453); }
 float noise(vec3 p){
   vec3 i = floor(p); vec3 f = fract(p); f = f * f * (3.0 - 2.0 * f);
-  return mix(mix(mix(hash(i), hash(i + vec3(1,0,0)), f.x), mix(hash(i + vec3(0,1,0)), hash(i + vec3(1,1,0)), f.x), f.y),
-             mix(mix(hash(i + vec3(0,0,1)), hash(i + vec3(1,0,1)), f.x), mix(hash(i + vec3(0,1,1)), hash(i + vec3(1,1,1)), f.x), f.y), f.z);
+  return mix(mix(mix(h3(i), h3(i + vec3(1.0, 0.0, 0.0)), f.x), mix(h3(i + vec3(0.0, 1.0, 0.0)), h3(i + vec3(1.0, 1.0, 0.0)), f.x), f.y),
+             mix(mix(h3(i + vec3(0.0, 0.0, 1.0)), h3(i + vec3(1.0, 0.0, 1.0)), f.x), mix(h3(i + vec3(0.0, 1.0, 1.0)), h3(i + vec3(1.0, 1.0, 1.0)), f.x), f.y), f.z);
 }
 float fbm(vec3 p){ float a = 0.5, s = 0.0; for (int i = 0; i < 4; i++) { s += a * noise(p); p *= 2.03; a *= 0.5; } return s; }
 
@@ -76,7 +78,10 @@ float disc(vec3 d, vec3 c, float r, out vec3 q){
   float k = dot(d, c);
   vec3 off = d - c * k;
   float m = length(off) / r;
-  q = vec3(off / r, sqrt(max(0.0, 1.0 - m * m)));
+  // 球面上的局部坐标：x、y 在球面切平面里，z 朝向观察者
+  vec3 tu = normalize(cross(c, vec3(0.0, 1.0, 0.0)));
+  vec3 tv = cross(tu, c);
+  q = vec3(dot(off, tu) / r, dot(off, tv) / r, sqrt(max(0.0, 1.0 - m * m)));
   return step(0.0, k) * smoothstep(1.0, 0.985, m);
 }
 
@@ -116,8 +121,8 @@ vec3 envStage(vec3 d, float st){
     return mix(base + stars(d, 0.9) + vec3(1.0, 0.9, 0.75) * sun * 2.0, bands, cov);
   } else if (st < 5.5) {
     // 小行星带：碎石与冰尘
-    vec3 g = d * 38.0; vec3 id = floor(g); float h = hash(id);
-    float rock = step(0.93, h) * smoothstep(0.5, 0.15, length(fract(g) - 0.5 + 0.1 * (hash(id + 3.0) - 0.5)));
+    vec3 g = d * 70.0; vec3 id = floor(g); float h = hash(id);
+    float rock = step(0.96, h) * smoothstep(0.42, 0.12, length(fract(g) - 0.5 + 0.1 * (hash(id + 3.0) - 0.5)));
     float dust = exp(-pow(dot(d, normalize(vec3(0.1, 1.0, 0.2))) * 5.0, 2.0)) * 0.12;
     return base + vec3(0.45, 0.42, 0.38) * rock * (0.4 + h) + vec3(0.5, 0.48, 0.44) * dust + stars(d, 0.7) + vec3(1.0, 0.9, 0.75) * sun * 3.0;
   } else if (st < 6.5) {

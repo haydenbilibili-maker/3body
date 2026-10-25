@@ -155,6 +155,8 @@ onUnmounted(() => {
   flex: 1 1 0;
   min-height: 0;
   overflow: auto;
+  /* 展厅入场的模糊会被 Chrome 算进可滚动宽度，手机上闪出一条横向滚动条；横向不滚动（scrollWidth 仍可用于溢出检测） */
+  overflow-x: hidden;
   padding: 2rem 3rem;
   position: relative;
   z-index: 10;
