@@ -177,7 +177,9 @@ function nameOf(id: SpecimenId | 'upload') {
                 backgroundImage: src ? `url(${src})` : 'none',
                 backgroundSize: `${SIZE}px ${SIZE}px`,
                 backgroundPosition: `0 -${l.srcY}px`,
-                transform: `translate(${l.x}px, ${l.y + (flat ? SIZE / 2 - SIZE / LAYERS / 2 : 0)}px)`,
+                transform: flat
+                  ? `translate(${l.x}px, ${SIZE / 2 - (SIZE / LAYERS) * 2}px) scaleY(4)`
+                  : `translate(${l.x}px, ${l.y}px)`,
                 transitionDelay: flat ? i * 80 + 'ms' : '0ms',
               }"
             ></span>
@@ -237,6 +239,7 @@ function nameOf(id: SpecimenId | 'upload') {
   left: 0;
   top: 0;
   background-repeat: no-repeat;
+  transform-origin: 0 0;
   transition: transform 2.4s cubic-bezier(0.6, 0, 0.2, 1), filter 2.4s;
 }
 .flat .layer { filter: saturate(1.35) contrast(1.1); }
