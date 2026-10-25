@@ -44,6 +44,7 @@ const navGroups = [
       { path: '/sector-pdc', label: '行星防御', code: 'PDC' },
       { path: '/sector-ravine', label: '大低谷', code: 'RAVINE' },
       { path: '/sector-f', label: '面壁计划', code: 'WALLFACER' },
+      { path: '/sector-stamp', label: '钢印', code: 'STAMP' },
       { path: '/sector-s', label: '阶梯', code: 'STAIRCASE' },
       { path: '/sector-w', label: '水滴', code: 'DROPLET' },
       { path: '/sector-ns', label: '自然选择号', code: 'NATURAL-SELECTION' },

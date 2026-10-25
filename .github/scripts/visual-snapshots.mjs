@@ -60,6 +60,7 @@ const ROUTES = [
   ['sector-sword', '执剑人'],
   ['sector-ns', '自然选择号'],
   ['sector-tale', '童话'],
+  ['sector-stamp', '钢印'],
 ]
 
 const VIEWPORTS = [
@@ -254,6 +255,51 @@ const STATES = [
     },
   },
   {
+    // 钢印：钢印之后去选另一边，那一项被划掉
+    name: 'mobile-stamp-slip',
+    viewport: 'mobile',
+    slug: 'sector-stamp',
+    act: async (page) => {
+      // 钢印之前：五个处境都选「失败」那一边
+      for (let i = 0; i < 5; i += 1) {
+        await page.locator('.opt').nth(1).click()
+        await page.waitForTimeout(120)
+      }
+      const hold = page.getByRole('button', { name: '按住，接受钢印' })
+      await hold.focus()
+      await page.keyboard.press('Enter')
+      await page.waitForTimeout(3000)
+      // 钢印之后：去够「失败」那一边，手落到另一边
+      await page.locator('.opt').nth(1).click()
+      await page.waitForTimeout(700)
+    },
+  },
+  {
+    // 钢印：五个回答前后对照
+    name: 'stamp-end',
+    viewport: 'desktop',
+    slug: 'sector-stamp',
+    act: async (page) => {
+      // 钢印之前：五个处境都选「失败」那一边
+      for (let i = 0; i < 5; i += 1) {
+        await page.locator('.opt').nth(1).click()
+        await page.waitForTimeout(120)
+      }
+      const hold = page.getByRole('button', { name: '按住，接受钢印' })
+      await hold.focus()
+      await page.keyboard.press('Enter')
+      await page.waitForTimeout(3000)
+      // 钢印之后：去够「失败」那一边，手落到另一边
+      await page.locator('.opt').nth(1).click()
+      await page.waitForTimeout(700)
+      for (let i = 1; i < 5; i += 1) {
+        await page.waitForTimeout(2300)
+        await page.locator('.opt').nth(1).click()
+      }
+      await page.waitForTimeout(2600)
+    },
+  },
+  {
     // 童话：点开一个意象，委员会的三种读法展开
     name: 'tale-council-open',
     viewport: 'desktop',
@@ -388,7 +434,8 @@ const STATES = [
     slug: 'sector-u',
     act: async (page) => {
       await page.getByRole('button', { name: '接收广播' }).click({ timeout: 20000 })
-      await page.getByRole('button', { name: '跳过' }).click({ timeout: 5000 })
+      // 前进四的过载动画持续 4.6 秒，动画中按钮在动，等它稳定
+      await page.getByRole('button', { name: '跳过' }).click({ timeout: 9000 })
       await page.getByRole('button', { name: '归还质量' }).click({ timeout: 5000 })
       await page.waitForTimeout(600)
     },
@@ -677,7 +724,8 @@ const STATES = [
       await page.getByRole('radio', { name: '前进三' }).click({ timeout: 8000 })
       await page.getByRole('button', { name: '按住，前进四' }).focus()
       await page.keyboard.press('Enter')
-      await page.getByRole('button', { name: '跳过' }).click({ timeout: 5000 })
+      // 前进四的过载动画持续 4.6 秒，动画中按钮在动，等它稳定
+      await page.getByRole('button', { name: '跳过' }).click({ timeout: 9000 })
       await page.waitForTimeout(800)
     },
   },

@@ -96,7 +96,7 @@ const nodeY = (i: number) => (firstIdx.value >= 0 && i >= firstIdx.value ? MINE_
 .t-canon, .t-room { fill: var(--weathered); font-family: var(--font-serif); font-size: 13px; }
 .t-mine { fill: var(--cherenkov); font-family: var(--font-serif); font-size: 13px; }
 
-.wl-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: 0.75rem; }
+.wl-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr)); gap: 0.75rem; }
 .wl-list li { padding: 0.75rem 0.9rem; background: var(--slab); border: 1px solid var(--incision-soft); }
 .wl-list li.div { border-color: var(--cherenkov); }
 .wl-head { display: flex; align-items: baseline; gap: 0.6rem; }

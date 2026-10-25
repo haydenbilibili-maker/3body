@@ -52,6 +52,7 @@ export const SECTORS: Sector[] = [
   { path: '/sector-j', name: '掩体', era: 'bunker', question: '躲起来，是生存还是放弃？' },
   { path: '/sector-l', name: '曲率驱动', era: 'bunker', question: '人类为什么曾经禁止自己飞向光速？' },
   { path: '/sector-g', name: '四维碎片', era: 'deterrence', question: '如果墙只在它的维度里成立，什么才是「内部」？' },
+  { path: '/sector-stamp', name: '钢印', era: 'crisis', question: '一个被改写过的信念，还是你自己的吗？' },
   { path: '/sector-blind', name: '盲区', era: 'crisis', question: '唯一无法被看见的是思想，它是武器还是牢笼？' },
   { path: '/sector-b', name: '编年史', era: 'all', question: '历史是发生过的事，还是被记住的事？' },
   { path: '/sector-library', name: '原著阅读', era: 'all', question: '文字能比文明活得更久吗？' },
