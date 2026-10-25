@@ -1,471 +1,331 @@
 <script setup lang="ts">
 /**
- * Sector: The Great Ravine (大低谷)
- * 文字生存冒险 — 危机纪元中人类文明最黑暗的时期，在地下城挣扎求生。
- * 风格：老式终端 / 生存日志
+ * 大低谷：一个普通人在地下城的三十天。
+ * 每天一个选择，在饥饿、健康与理智之间取舍；不时有人敲门。
+ * 结局记下你活下来的方式，以及你分给别人的口粮——然后回到本页的问题。
  */
-import { ref, nextTick } from 'vue'
+import { computed, nextTick, ref } from 'vue'
 import SectorHeader from '@/components/SectorHeader.vue'
-import { NScrollbar, NModal, NCard, NButton } from 'naive-ui'
+import Vitrine from '@/components/Vitrine.vue'
+import { sectorByPath } from '@/data/sectors'
 
-interface PlayerStats {
+const question = sectorByPath('/sector-ravine')?.question
+
+interface Stats {
   health: number
   hunger: number
   sanity: number
   day: number
 }
-
-const stats = ref<PlayerStats>({
-  health: 100,
-  hunger: 0,
-  sanity: 100,
-  day: 1,
-})
-
-type LogType = 'normal' | 'danger' | 'success'
-
-const logs = ref<{ text: string; type?: LogType }[]>([
-  { text: '危机纪元 47 年。大低谷已经持续了五年。', type: 'normal' },
-  { text: '资源向太空防御倾斜，地表农业崩溃，地下城配给一减再减。人口从八十亿跌到不足一半。', type: 'normal' },
-  { text: '你在地下城的狭窄公寓中醒来。空气中弥漫着霉味和合成食品的甜腻味。', type: 'normal' },
-  { text: '肚子在叫。你已经两天没吃东西了。', type: 'danger' },
-])
-
-interface Choice {
-  id: string
+type Tone = 'plain' | 'bad' | 'good'
+interface Entry {
+  day: number
   text: string
-  action: () => void
+  tone: Tone
 }
 
-const DEFAULT_CHOICES: Choice[] = [
-  { id: 'search', text: '搜寻房间', action: () => handleChoice('search') },
-  { id: 'rest', text: '继续睡觉（保存体力）', action: () => handleChoice('rest') },
-  { id: 'outside', text: '去救济站排队', action: () => handleChoice('outside') },
-  { id: 'blackmarket', text: '去黑市碰运气', action: () => handleChoice('blackmarket') },
-  { id: 'build', text: '去建设队报名（换口粮）', action: () => handleChoice('build') },
-  { id: 'read', text: '在屋里读旧书', action: () => handleChoice('read') },
-]
+const stats = ref<Stats>({ health: 100, hunger: 30, sanity: 100, day: 1 })
+const diary = ref<Entry[]>([])
+const shared = ref(0)
+const refused = ref(0)
+const knock = ref<null | Knock>(null)
+const ended = ref<null | { survived: boolean; text: string }>(null)
+const diaryEl = ref<HTMLElement | null>(null)
 
-const currentChoices = ref<Choice[]>([...DEFAULT_CHOICES])
-
-const isDead = ref(false)
-const showEndModal = ref(false)
-const endMessage = ref('')
-const endIsWin = ref(false)
-const scrollbarRef = ref<InstanceType<typeof NScrollbar> | null>(null)
-const lastMilestone = ref(0)
-
-function addLog(text: string, type: LogType = 'normal') {
-  logs.value.push({ text, type })
-  nextTick(() => {
-    const el = scrollbarRef.value?.$el?.querySelector?.('.n-scrollbar-container')
-    if (el) el.scrollTo({ top: 99999, behavior: 'smooth' })
-  })
+function write(text: string, tone: Tone = 'plain') {
+  diary.value.push({ day: stats.value.day, text, tone })
+  nextTick(() => diaryEl.value?.scrollTo({ top: diaryEl.value.scrollHeight, behavior: 'smooth' }))
 }
-
-function refreshChoices() {
-  currentChoices.value = [...DEFAULT_CHOICES]
-}
-
-function triggerMilestone(day: number) {
-  if (lastMilestone.value >= day) return
-  lastMilestone.value = day
-  if (day === 5) {
-    addLog('广播：本周配给再次削减。请市民保持秩序。', 'danger')
-  } else if (day === 10) {
-    addLog('传闻：第七区有人吃人。你不敢多想。', 'danger')
-  } else if (day === 15) {
-    addLog('你在救济站听到有人说：技术复兴在望，再撑几年就好。', 'success')
-  } else if (day === 20) {
-    addLog('建设队发了一份额外的合成蛋白。这是几个月来唯一的好消息。', 'success')
-  } else if (day === 25) {
-    addLog('广播里开始提到「后危机纪元」和「舰队计划」。希望像一根细线。', 'success')
+const clamp = (n: number) => Math.max(0, Math.min(100, n))
+function change(d: Partial<Stats>) {
+  stats.value = {
+    ...stats.value,
+    health: clamp(stats.value.health + (d.health ?? 0)),
+    hunger: clamp(stats.value.hunger + (d.hunger ?? 0)),
+    sanity: clamp(stats.value.sanity + (d.sanity ?? 0)),
   }
 }
 
-function handleChoice(id: string) {
-  stats.value.day++
-  stats.value.hunger = Math.min(100, stats.value.hunger + 10)
+function start() {
+  stats.value = { health: 100, hunger: 30, sanity: 100, day: 1 }
+  diary.value = []
+  shared.value = 0
+  refused.value = 0
+  knock.value = null
+  ended.value = null
+  write('危机纪元的头几十年。资源全部倾向太空防御，地表农业崩溃，配给一减再减。')
+  write('你在地下城的公寓里醒来。空气里是霉味和合成食品甜腻的气味。你已经两天没吃东西了。', 'bad')
+}
+start()
 
-  if (id === 'search') {
-    if (Math.random() > 0.55) {
-      addLog('你在床底发现了一块过期的压缩饼干。', 'success')
-      stats.value.hunger = Math.max(0, stats.value.hunger - 30)
+/* ---------- 每天的选择 ---------- */
+const ACTIONS = [
+  { id: 'queue', label: '去救济站排队', hint: '能领到口粮，也可能遇上骚乱' },
+  { id: 'work', label: '去建设队搬砖', hint: '换两份口粮，很累' },
+  { id: 'market', label: '去黑市碰运气', hint: '可能换到罐头，也可能被抓' },
+  { id: 'rest', label: '躺着保存体力', hint: '饿得慢一些' },
+  { id: 'read', label: '读一本旧书', hint: '让脑子离开地下城' },
+] as const
+
+function act(id: (typeof ACTIONS)[number]['id']) {
+  if (ended.value || knock.value) return
+  stats.value = { ...stats.value, day: stats.value.day + 1 }
+  change({ hunger: 10 })
+  const r = Math.random()
+  if (id === 'queue') {
+    if (r < 0.4) {
+      write('救济站发生了骚乱。你被推倒，受了伤，但抢到了一碗粥。', 'bad')
+      change({ health: -12, hunger: -35, sanity: -8 })
     } else {
-      addLog('什么也没找到，只有灰尘和一只死老鼠。', 'normal')
-      stats.value.sanity -= 5
+      write('队伍很长。你排了六个小时，领到一天的配给。', 'good')
+      change({ hunger: -45 })
+    }
+  } else if (id === 'work') {
+    write('建设队让你搬了一整天砖。腰快断了，但领到了两份口粮。', 'plain')
+    change({ health: -6, hunger: -50, sanity: 4 })
+  } else if (id === 'market') {
+    if (r < 0.45) {
+      write('你被巡逻队撞见，东西被没收，还挨了一顿打。', 'bad')
+      change({ health: -16, sanity: -10 })
+    } else {
+      write('你用最后一个零件换到一罐肉罐头。', 'good')
+      change({ hunger: -40 })
     }
   } else if (id === 'rest') {
-    addLog('你睡了一整天。梦见了大低谷前的世界：阳光、草地、没有配给。', 'normal')
-    stats.value.health = Math.min(100, stats.value.health + 5)
-    stats.value.hunger = Math.min(100, stats.value.hunger + 5)
-    stats.value.sanity = Math.min(100, stats.value.sanity + 3)
-  } else if (id === 'outside') {
-    if (Math.random() > 0.5) {
-      addLog('救济站爆发了骚乱。你被人推倒，受了点伤，但抢到了一碗粥。', 'danger')
-      stats.value.health -= 10
-      stats.value.hunger = Math.max(0, stats.value.hunger - 40)
-      stats.value.sanity -= 10
-    } else {
-      addLog('队伍很长。你排了六个小时，终于领到了配给粮。', 'success')
-      stats.value.hunger = Math.max(0, stats.value.hunger - 50)
-    }
-  } else if (id === 'blackmarket') {
-    if (Math.random() > 0.6) {
-      addLog('黑市上你用仅剩的零件换到一罐罐头。', 'success')
-      stats.value.hunger = Math.max(0, stats.value.hunger - 35)
-    } else {
-      addLog('你被巡逻队发现，东西被没收，还挨了一顿揍。', 'danger')
-      stats.value.health -= 15
-      stats.value.sanity -= 10
-    }
-  } else if (id === 'build') {
-    addLog('建设队让你搬了一整天砖。累得半死，但领到了两份口粮。', 'normal')
-    stats.value.health -= 5
-    stats.value.hunger = Math.max(0, stats.value.hunger - 45)
-    stats.value.sanity = Math.min(100, stats.value.sanity + 5)
-  } else if (id === 'read') {
-    addLog('你翻出一本旧书，读了一整天。思绪暂时离开了地下城。', 'normal')
-    stats.value.sanity = Math.min(100, stats.value.sanity + 12)
-    stats.value.hunger = Math.min(100, stats.value.hunger + 8)
-  }
-
-  triggerMilestone(stats.value.day)
-
-  if (Math.random() > 0.75) {
-    addLog('有人敲门。「为了人类文明，分我一点吃的吧……」', 'danger')
-    currentChoices.value = [
-      { id: 'open', text: '开门分享', action: () => handleEvent('share') },
-      { id: 'ignore', text: '保持沉默', action: () => handleEvent('ignore') },
-    ]
-    return
-  }
-
-  checkStatus()
-  if (!isDead.value) refreshChoices()
-}
-
-function handleEvent(id: string) {
-  if (id === 'share') {
-    addLog('你打开门。那人冲进来抢走了你所有的存粮，并打伤了你。', 'danger')
-    stats.value.health -= 30
-    stats.value.sanity -= 20
-    stats.value.hunger = Math.min(100, stats.value.hunger + 20)
+    write('你睡了一整天，梦见了大低谷之前的世界：阳光，草地，没有配给。', 'plain')
+    change({ health: 5, hunger: -4, sanity: 2 })
   } else {
-    addLog('敲门声持续了很久，最后变成了哭声，然后消失了。', 'normal')
-    stats.value.sanity -= 15
+    write('你翻出一本旧书，读了一整天。有那么几个小时，你不在这里。', 'plain')
+    change({ sanity: 14, hunger: 4 })
   }
-  checkStatus()
-  refreshChoices()
+  milestone()
+  if (!check() && Math.random() < 0.28) openKnock()
 }
 
-function checkStatus() {
-  if (stats.value.hunger >= 100) {
-    end('你饿死了。大低谷吞没了又一个灵魂。', false)
-    return
+function milestone() {
+  const d = stats.value.day
+  const lines: Record<number, [string, Tone]> = {
+    6: ['广播：本周配给再次削减。请市民保持秩序。', 'bad'],
+    12: ['传闻第七区出了人吃人的事。你不敢多想。', 'bad'],
+    18: ['救济站有人说，地表的农场又开始试种了。', 'good'],
+    24: ['广播里第一次提到「复兴」这个词。像一根很细的线。', 'good'],
   }
-  if (stats.value.health <= 0) {
-    end('你因伤重不治而亡。', false)
-    return
-  }
-  if (stats.value.sanity <= 0) {
-    end('你疯了。在幻觉中走出了地下城，被冻死在荒原上。', false)
-    return
-  }
-  if (stats.value.day > 30) {
-    end('你熬过了大低谷最黑暗的时期。文明正在复苏，技术爆炸即将到来。', true)
-  }
+  if (lines[d]) write(lines[d][0], lines[d][1])
 }
 
-function end(reason: string, win: boolean) {
-  isDead.value = true
-  endMessage.value = reason
-  endIsWin.value = win
-  addLog(reason, win ? 'success' : 'danger')
-  currentChoices.value = [{ id: 'restart', text: '重新开始', action: resetGame }]
-  showEndModal.value = true
+/* ---------- 敲门 ---------- */
+interface Knock {
+  who: string
+  ask: string
+  /** 分享后的结果 */
+  share: { text: string; tone: Tone; d: Partial<Stats> }
+  refuse: { text: string; d: Partial<Stats> }
+}
+const KNOCKS: Knock[] = [
+  {
+    who: '一个孩子',
+    ask: '门外是一个很瘦的孩子：「阿姨……叔叔……有吃的吗？」',
+    share: { text: '你把半份口粮给了他。他没说谢谢，跑得很快。你饿着，但那天晚上睡得很踏实。', tone: 'good', d: { hunger: 18, sanity: 8 } },
+    refuse: { text: '你没有开门。脚步声在门外停了很久。', d: { sanity: -14 } },
+  },
+  {
+    who: '一个老人',
+    ask: '「我不是来要饭的。」一个老人隔着门说，「我只想要一点热水。」',
+    share: { text: '你给了她热水，又给了一块饼干。她留下一张写着地表农场地址的纸条。', tone: 'good', d: { hunger: 10, sanity: 10 } },
+    refuse: { text: '你告诉她没有热水。她说了声「好」，走了。', d: { sanity: -10 } },
+  },
+  {
+    who: '一个陌生男人',
+    ask: '「为了人类文明，分我一点吧……」门外的男人声音很急。',
+    share: { text: '门一开，他冲进来抢走了你所有的存粮，还打伤了你。', tone: 'bad', d: { health: -25, hunger: 25, sanity: -12 } },
+    refuse: { text: '敲门声越来越重，后来变成了哭声，最后消失了。', d: { sanity: -12 } },
+  },
+  {
+    who: '隔壁的女人',
+    ask: '隔壁的女人敲门：「我男人病了。你要是有多余的口粮，我用这件棉衣跟你换。」',
+    share: { text: '你换了。那件棉衣让你在停暖的夜里活了下来。', tone: 'good', d: { hunger: 15, health: 10 } },
+    refuse: { text: '你说你也没有。隔壁那夜很安静。', d: { sanity: -8 } },
+  },
+]
+function openKnock() {
+  knock.value = KNOCKS[Math.floor(Math.random() * KNOCKS.length)]
+  write(knock.value.ask, 'plain')
+}
+function answer(share: boolean) {
+  const k = knock.value
+  if (!k) return
+  knock.value = null
+  if (share) {
+    shared.value += 1
+    write(k.share.text, k.share.tone)
+    change(k.share.d)
+  } else {
+    refused.value += 1
+    write(k.refuse.text, 'plain')
+    change(k.refuse.d)
+  }
+  check()
 }
 
-function resetGame() {
-  stats.value = { health: 100, hunger: 0, sanity: 100, day: 1 }
-  lastMilestone.value = 0
-  logs.value = [
-    { text: '再次醒来。无论如何，活下去。', type: 'normal' },
-    { text: '肚子又在叫了。新的一天，同样的选择。', type: 'normal' },
-  ]
-  isDead.value = false
-  showEndModal.value = false
-  refreshChoices()
+function check(): boolean {
+  const s = stats.value
+  if (s.hunger >= 100) return finish(false, '你饿死在第 ' + s.day + ' 天。大低谷又吞没了一个人。')
+  if (s.health <= 0) return finish(false, '你在第 ' + s.day + ' 天伤重不治。')
+  if (s.sanity <= 0) return finish(false, '第 ' + s.day + ' 天，你走出了地下城，再也没有回来。')
+  if (s.day > 30) return finish(true, '你熬过了大低谷最黑暗的三十天。')
+  return false
+}
+function finish(survived: boolean, text: string): boolean {
+  ended.value = { survived, text }
+  write(text, survived ? 'good' : 'bad')
+  return true
 }
 
-const RAVINE_QUOTE = '「大低谷时期，人类曾一度将生存置于文明之上。但文明最终没有消失。」'
+const reflection = computed(() => {
+  if (!ended.value) return ''
+  if (shared.value === 0 && refused.value === 0) return '这些天里没有人来敲你的门。'
+  if (shared.value === 0) return `有 ${refused.value} 次，有人敲门，你没有开。`
+  if (refused.value === 0) return `有人敲门时，你每一次都开了门，一共分出去 ${shared.value} 次口粮。`
+  return `有人敲门时，你开过 ${shared.value} 次门，也有 ${refused.value} 次没有开。`
+})
+const bars = computed(() => [
+  { id: 'health', label: '健康', v: stats.value.health, bad: stats.value.health < 30 },
+  { id: 'hunger', label: '饥饿', v: stats.value.hunger, bad: stats.value.hunger > 75 },
+  { id: 'sanity', label: '理智', v: stats.value.sanity, bad: stats.value.sanity < 30 },
+])
 </script>
 
 <template>
   <div class="sector-ravine">
     <SectorHeader
-      code="SECTOR RAVINE · THE GREAT RAVINE"
       title="大低谷"
-      subtitle="危机纪元中人类文明最黑暗的时期"
-      goal="每天做一个选择，在饥饿、健康与理智之间取舍——活过第 30 天。"
+      subtitle="为了四百年后的舰队，人类曾让一代人挨饿。这是那一代人里，一个普通人的三十天。"
+      goal="每天做一个选择，在饥饿、健康与理智之间取舍，活过第 30 天。有人敲门时，决定开还是不开。"
       accent="#c8a96a"
       show-restart
-      @restart="resetGame"
+      restart-label="重新开始"
+      @restart="start"
     />
 
-    <div class="terminal-screen">
-      <div class="terminal-title-bar">SURVIVAL LOG // 地下城 · 第 {{ stats.day }} 天</div>
+    <div class="room">
+      <Vitrine class="diary-v">
+        <div class="diary-head">
+          <span class="diary-title">地下城日记</span>
+          <span class="diary-day">第 <span class="num">{{ Math.min(30, stats.day) }}</span> / 30 天</span>
+        </div>
+        <div ref="diaryEl" class="diary" aria-live="polite">
+          <p v-for="(e, i) in diary" :key="i" class="entry" :class="e.tone">
+            <span class="entry-day num">{{ e.day }}</span>{{ e.text }}
+          </p>
+        </div>
+      </Vitrine>
 
-      <div class="status-bar">
-        <div class="stat-item">
-          <span class="stat-label">HEALTH</span>
-          <div class="stat-bar"><div class="stat-fill health" :style="{ width: stats.health + '%' }" /></div>
-        </div>
-        <div class="stat-item">
-          <span class="stat-label">HUNGER</span>
-          <div class="stat-bar"><div class="stat-fill hunger" :class="{ critical: stats.hunger > 80 }" :style="{ width: stats.hunger + '%' }" /></div>
-        </div>
-        <div class="stat-item">
-          <span class="stat-label">SANITY</span>
-          <div class="stat-bar"><div class="stat-fill sanity" :style="{ width: stats.sanity + '%' }" /></div>
-        </div>
-      </div>
+      <div class="side">
+        <dl class="bars">
+          <div v-for="b in bars" :key="b.id" :class="{ bad: b.bad }">
+            <dt>{{ b.label }}</dt>
+            <dd><span class="bar"><span :style="{ width: b.v + '%' }"></span></span><span class="num">{{ b.v }}</span></dd>
+          </div>
+        </dl>
 
-      <NScrollbar ref="scrollbarRef" class="log-window">
-        <div class="log-content">
-          <div
-            v-for="(log, i) in logs"
-            :key="i"
-            class="log-line"
-            :class="`type-${log.type ?? 'normal'}`"
-          >
-            &gt; {{ log.text }}
+        <div v-if="ended" class="ending">
+          <h2>{{ ended.survived ? '你活了下来' : '你没能活下来' }}</h2>
+          <p>{{ reflection }}</p>
+          <p v-if="ended.survived">大低谷结束时，人口只剩下不到一半。活下来的人后来很少谈起这些年。</p>
+          <p class="q">{{ question }}</p>
+          <div class="row">
+            <button type="button" class="plain-btn" @click="start">再过一次这三十天</button>
+            <RouterLink to="/sector-pdc" class="plain-btn">换个位置：做理事会的预算</RouterLink>
           </div>
         </div>
-      </NScrollbar>
 
-      <div class="input-area">
-        <div class="choices">
-          <button
-            v-for="c in currentChoices"
-            :key="c.id"
-            class="cmd-btn"
-            @click="c.action()"
-          >
-            [ {{ c.text }} ]
-          </button>
+        <div v-else-if="knock" class="knock" role="group" :aria-label="`${knock.who}在敲门`">
+          <p class="knock-who">有人敲门：{{ knock.who }}</p>
+          <div class="row">
+            <button type="button" class="plain-btn primary" @click="answer(true)">开门，分一点出去</button>
+            <button type="button" class="plain-btn" @click="answer(false)">不开</button>
+          </div>
         </div>
+
+        <ul v-else class="actions">
+          <li v-for="a in ACTIONS" :key="a.id">
+            <button type="button" @click="act(a.id)">
+              <span class="a-label">{{ a.label }}</span>
+              <span class="a-hint">{{ a.hint }}</span>
+            </button>
+          </li>
+        </ul>
       </div>
     </div>
-
-    <NModal v-model:show="showEndModal" display-directive="show">
-      <NCard
-        :title="endIsWin ? '幸存' : '终结'"
-        class="end-card"
-        :class="{ 'end-card--win': endIsWin }"
-        size="huge"
-        bordered
-      >
-        <p class="end-message">{{ endMessage }}</p>
-        <p class="end-quote">{{ RAVINE_QUOTE }}</p>
-        <template #footer>
-          <NButton type="primary" block @click="resetGame">重新开始</NButton>
-        </template>
-      </NCard>
-    </NModal>
   </div>
 </template>
 
 <style scoped>
-.sector-ravine {
-  min-height: 0;
-  background: #050508;
-  padding: 1.5rem 2rem 2rem;
-  font-family: var(--font-mono);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1.5rem;
-}
+.sector-ravine { --ochre: #c8a96a; padding: 2rem clamp(1rem, 4vw, 3rem) 3rem; max-width: 76rem; }
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.room { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(16rem, 1fr); gap: 1.5rem; align-items: start; }
+.diary-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.75rem; }
+.diary-title { font-family: var(--font-serif); font-size: 1.125rem; font-weight: 600; letter-spacing: 0.1em; color: var(--bone); }
+.diary-day { font-size: 0.875rem; color: var(--weathered); }
+.diary-day .num { font-size: 1.25rem; color: var(--bone); }
+.diary { height: min(56vh, 30rem); overflow-y: auto; padding-right: 0.5rem; }
+.entry { display: flex; gap: 0.9rem; margin: 0 0 0.9rem; font-family: var(--font-serif); font-size: 1.0625rem; line-height: 1.85; color: var(--gray-150); }
+.entry-day { flex: 0 0 1.6rem; padding-top: 0.15rem; font-size: 0.8125rem; color: var(--weathered); text-align: right; }
+.entry.bad { color: #d9a08f; }
+.entry.good { color: var(--bone); }
 
+.side { display: flex; flex-direction: column; gap: 1.5rem; }
+.bars { margin: 0; display: flex; flex-direction: column; gap: 0.6rem; }
+.bars div { display: grid; grid-template-columns: 3rem 1fr; align-items: center; }
+.bars dt { font-size: 0.875rem; color: var(--weathered); }
+.bars dd { margin: 0; display: flex; align-items: center; gap: 0.6rem; }
+.bar { flex: 1; height: 4px; background: var(--incision-soft); }
+.bar span { display: block; height: 100%; background: var(--ochre); transition: width 0.4s; }
+.bars .bad .bar span { background: var(--rust-bright); }
+.bars .num { width: 2rem; text-align: right; font-size: 0.875rem; color: var(--bone); }
 
-
-
-
-
-
-.terminal-screen {
+.actions { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.4rem; }
+.actions button {
   width: 100%;
-  max-width: 720px;
-  height: 75vh;
-  min-height: 420px;
-  border: 1px solid #4a5d2a;
-  background: #0a0f08;
-  box-shadow: 0 0 30px rgba(74, 93, 42, 0.15);
   display: flex;
   flex-direction: column;
-  padding: 0;
-  color: #7d9a3c;
-  position: relative;
-}
-
-.terminal-screen::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(0, 0, 0, 0.12) 2px,
-    rgba(0, 0, 0, 0.12) 4px
-  );
-  pointer-events: none;
-  z-index: 1;
-}
-
-.terminal-title-bar {
-  padding: 0.5rem 1rem;
-  font-size: 0.75rem;
-  letter-spacing: 0.15em;
-  color: rgba(125, 154, 60, 0.9);
-  border-bottom: 1px dashed #3d4e20;
-  flex-shrink: 0;
-}
-
-.status-bar {
-  display: flex;
-  gap: 1.5rem;
-  padding: 0.6rem 1rem;
-  border-bottom: 1px dashed #3d4e20;
-  flex-shrink: 0;
-}
-
-.stat-item {
-  flex: 1;
-  min-width: 0;
-}
-
-.stat-label {
-  display: block;
-  font-size: 0.75rem;
-  color: rgba(125, 154, 60, 0.8);
-  margin-bottom: 0.25rem;
-}
-
-.stat-bar {
-  height: 6px;
-  background: rgba(0, 0, 0, 0.5);
-  border: 1px solid #3d4e20;
-  overflow: hidden;
-}
-
-.stat-fill {
-  height: 100%;
-  transition: width 0.3s ease;
-}
-
-.stat-fill.health {
-  background: #5a7a2e;
-}
-
-.stat-fill.hunger {
-  background: #8b6b2e;
-}
-
-.stat-fill.hunger.critical {
-  background: #a03020;
-  animation: blink 1s infinite;
-}
-
-.stat-fill.sanity {
-  background: #3d5a4a;
-}
-
-.log-window {
-  flex: 1;
-  min-height: 0;
-  padding: 1rem;
-}
-
-.log-window :deep(.n-scrollbar-container) {
-  padding-right: 0.5rem;
-}
-
-.log-content {
-  padding-bottom: 1rem;
-}
-
-.log-line {
-  margin-bottom: 0.65rem;
-  line-height: 1.55;
-  font-size: 0.9rem;
-}
-
-.type-normal {
-  color: #7d9a3c;
-}
-
-.type-danger {
-  color: #c05040;
-}
-
-.type-success {
-  color: #b8a030;
-}
-
-.input-area {
-  border-top: 1px dashed #3d4e20;
-  padding: 1rem;
-  flex-shrink: 0;
-}
-
-.choices {
-  display: flex;
-  gap: 0.6rem;
-  flex-wrap: wrap;
-}
-
-.cmd-btn {
+  gap: 0.15rem;
+  padding: 0.65rem 0.9rem;
+  font: inherit;
+  text-align: left;
+  color: var(--bone);
   background: transparent;
-  border: 1px solid #4a5d2a;
-  color: #7d9a3c;
-  font-family: inherit;
-  font-size: 0.85rem;
+  border: 1px solid var(--incision);
+  border-radius: 2px;
   cursor: pointer;
-  padding: 0.45rem 0.85rem;
-  transition: background 0.2s, color 0.2s;
 }
-
-.cmd-btn:hover {
-  background: rgba(125, 154, 60, 0.2);
-  color: #9fb85a;
+.actions button:hover { border-color: var(--ochre); }
+.a-label { font-family: var(--font-serif); font-size: 1rem; }
+.a-hint { font-size: 0.8125rem; color: var(--weathered); }
+.knock { padding: 1rem; border: 1px solid var(--ochre); background: rgba(200, 169, 106, 0.06); }
+.knock-who { margin: 0 0 0.9rem; font-family: var(--font-serif); font-size: 1.0625rem; color: var(--bone); }
+.row { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+.plain-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.55rem 1.1rem;
+  font: inherit;
+  font-size: 0.9375rem;
+  color: var(--bone);
+  background: transparent;
+  border: 1px solid var(--incision);
+  border-radius: 2px;
+  cursor: pointer;
+  text-decoration: none;
 }
+.plain-btn:hover { border-color: var(--weathered); }
+.plain-btn.primary { border-color: var(--ochre); color: var(--ochre); }
+.ending h2 { margin: 0 0 0.75rem; font-family: var(--font-title); font-weight: 900; font-size: 1.75rem; letter-spacing: 0.08em; color: var(--bone); }
+.ending p { margin: 0 0 0.75rem; font-family: var(--font-serif); font-size: 1.0625rem; line-height: 1.85; color: var(--gray-150); }
+.ending .q { margin-top: 1rem; padding-left: 1rem; border-left: 1px solid var(--ochre); color: var(--bone); }
 
-.end-card {
-  width: 100%;
-  max-width: 440px;
-}
-
-.end-card--win {
-  border-color: rgba(90, 122, 46, 0.5);
-}
-
-.end-message {
-  font-size: 1rem;
-  line-height: 1.6;
-  margin-bottom: 1rem;
-  color: #1f2937;
-}
-
-.end-quote {
-  font-size: 0.85rem;
-  color: #6b7280;
-  font-style: italic;
-  margin: 0;
-}
-
-@keyframes blink {
-  50% { opacity: 0.6; }
+@media (max-width: 900px) {
+  .room { grid-template-columns: 1fr; }
+  .diary { height: 44vh; }
 }
 </style>
