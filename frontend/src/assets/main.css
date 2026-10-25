@@ -385,6 +385,8 @@ button, a, input, .card {
     --cherenkov: #1f5fae;
     --era-archive: #6a5a36;
   }
-  body { background: #fff; }
-  .archive-nav, .deep-time, .app-footer, .no-print { display: none !important; }
+  html, body, .app-layout, .app-body, .app-main { background: #ece7dc !important; }
+  /* 宇宙背景、画布与全屏特效都不进拓片 */
+  .cosmic-void, canvas, .app-header, .app-rail, .archive-nav, .deep-time, .app-footer, .no-print { display: none !important; }
+  .app-main { border: 0 !important; }
 }
