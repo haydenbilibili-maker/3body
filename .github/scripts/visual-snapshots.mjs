@@ -255,6 +255,53 @@ const STATES = [
     },
   },
   {
+    // 掩体：太空城图鉴，滚筒式的内景
+    name: 'bunker-city-atlas',
+    viewport: 'desktop',
+    slug: 'sector-j',
+    act: async (page) => {
+      await page.getByRole('button', { name: /^掩体计划/ }).click({ timeout: 8000 })
+      await page.getByRole('button', { name: '看看人类要住进去的城市' }).click()
+      await page.getByRole('tab', { name: /北美一号/ }).click()
+      await page.getByRole('radio', { name: '内景' }).click()
+      await page.locator('.atlas').scrollIntoViewIfNeeded()
+      await page.waitForTimeout(600)
+    },
+  },
+  {
+    // 掩体：手机上的太空城图鉴，球形的外观
+    name: 'mobile-bunker-city-atlas',
+    viewport: 'mobile',
+    slug: 'sector-j',
+    act: async (page) => {
+      await page.getByRole('button', { name: /^掩体计划/ }).click({ timeout: 8000 })
+      await page.getByRole('button', { name: '看看人类要住进去的城市' }).click()
+      await page.getByRole('tab', { name: /天王星城/ }).click()
+      await page.locator('.atlas').scrollIntoViewIfNeeded()
+      await page.waitForTimeout(600)
+    },
+  },
+  {
+    // 水滴：航程到了木星，镜面里是木星的条纹
+    name: 'droplet-jupiter',
+    viewport: 'desktop',
+    slug: 'sector-w',
+    act: async (page) => {
+      await page.getByRole('button', { name: '木星阴影', exact: true }).click({ timeout: 8000 })
+      await page.waitForTimeout(2200)
+    },
+  },
+  {
+    // 水滴：航程终点，镜面里是联合舰队的阵列
+    name: 'droplet-fleet',
+    viewport: 'desktop',
+    slug: 'sector-w',
+    act: async (page) => {
+      await page.getByRole('button', { name: '联合舰队', exact: true }).click({ timeout: 8000 })
+      await page.waitForTimeout(2200)
+    },
+  },
+  {
     // 钢印：钢印之后去选另一边，那一项被划掉
     name: 'mobile-stamp-slip',
     viewport: 'mobile',
@@ -505,6 +552,7 @@ const STATES = [
     slug: 'sector-j',
     act: async (page) => {
       await page.getByRole('button', { name: /^掩体计划/ }).click({ timeout: 8000 })
+      await page.getByRole('button', { name: '看看人类要住进去的城市' }).click()
       await page.getByRole('button', { name: '按住，把人类搬进阴影' }).focus()
       await page.keyboard.press('Enter')
       await page.waitForTimeout(6000)

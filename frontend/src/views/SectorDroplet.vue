@@ -34,29 +34,28 @@ function launch() {
 const magnification = ref(1)
 const cameraZ = ref(5)
 
-// 水滴航程：模拟航行中经过的星体与宇宙现象，镜面反射随之变化（核心玩法）
-// 九站推荐反射图资源与 URL 见：docs/水滴航程-站点反射图资源.md
-type EnvPresetKey = 'night' | 'sunset' | 'dawn' | 'city' | 'studio' | 'snow' | 'modern'
+// 水滴航程：它从三体星系飞向地球，镜面倒映出沿途的每一处（DropletMirror 的 stage 与这里的顺序一一对应）
 interface Waypoint {
   id: string
   name: string
-  desc: string
-  preset: EnvPresetKey
+  /** 镜面里此刻倒映着什么 */
+  mirror: string
+  /** 这一段航程里发生的事 */
+  story: string
 }
 const WAYPOINTS: Waypoint[] = [
-  { id: 'deep', name: '深空', desc: '星际空间，只有微弱星光', preset: 'night' },
-  { id: 'earth', name: '地球附近', desc: '蓝色星球与人类空间站', preset: 'city' },
-  { id: 'cislunar', name: '地月空间', desc: '荒凉与日光', preset: 'studio' },
-  { id: 'belt', name: '小行星带', desc: '碎片与冰尘', preset: 'snow' },
-  { id: 'jupiter', name: '木星阴影', desc: '气态巨行星的辉光', preset: 'sunset' },
-  { id: 'nebula', name: '星云边缘', desc: '恒星诞生区的光芒', preset: 'dawn' },
-  { id: 'stellar', name: '掠过恒星', desc: '恒星光晕', preset: 'sunset' },
-  { id: 'oort', name: '奥尔特云', desc: '冰冻与远方', preset: 'snow' },
-  { id: 'station', name: '人类前哨', desc: '空间站与金属结构', preset: 'modern' },
+  { id: 'deep', name: '深空', mirror: '银河的一条暗带，和稀疏的星点。', story: '它比三体舰队早出发，在星际空间里独自飞了很多年。没有人看见它。' },
+  { id: 'nebula', name: '星云边缘', mirror: '远处恒星诞生区的气体，在镜面上拉成一道彩色的弧。', story: '镜面把一切都还给宇宙，自己不留下一点颜色。' },
+  { id: 'stellar', name: '掠过恒星', mirror: '一个巨大的日面和翻卷的日冕。', story: '离一颗恒星这么近，它的表面温度仍然接近绝对零度：没有一个分子在振动。' },
+  { id: 'oort', name: '奥尔特云', mirror: '冰冷、稀疏的冰尘，远处一颗暗淡的太阳和一颗彗星。', story: '它进入了太阳系最外层。人类的观测站第一次捕捉到它，把它叫做「探测器」。' },
+  { id: 'jupiter', name: '木星阴影', mirror: '木星的条纹铺满了它的半边。', story: '它在减速。人类计算出它的轨道，认定它会被俘获。' },
+  { id: 'belt', name: '小行星带', mirror: '碎石与冰尘从它身边掠过。', story: '没有一块碎石能在它表面留下痕迹。人类还不知道，这意味着什么。' },
+  { id: 'cislunar', name: '地月空间', mirror: '灰白的月面，和一束刺眼的日光。', story: '人们第一次看清它：一滴水银，头圆尾尖，完美得像一件艺术品。' },
+  { id: 'earth', name: '地球附近', mirror: '蓝色的海、白色的云、一圈薄薄的大气。', story: '有人说它像一滴眼泪。有人提议，把它当作三体世界的善意。' },
+  { id: 'station', name: '联合舰队', mirror: '两千艘恒星级战舰的灯光，排成整齐的阵列。', story: '舰队派出一艘战舰去俘获它，其余的列阵观礼。接下来发生的事，在「末日战役」里。' },
 ]
 const currentWaypointIndex = ref(0)
 const currentWaypoint = computed(() => WAYPOINTS[currentWaypointIndex.value] ?? WAYPOINTS[0])
-const envPreset = computed(() => currentWaypoint.value.preset)
 
 function goToWaypoint(index: number) {
   const i = Math.max(0, Math.min(index, WAYPOINTS.length - 1))
@@ -238,7 +237,7 @@ watch(fleetDown, (d) => {
       <!-- Tab 1: Mirror -->
       <NTabPane name="mirror" tab="绝对光滑">
         <div class="scene-3d" @wheel="handleWheel">
-          <DropletMirror :go="go" class="mirror-gl" />
+          <DropletMirror :go="go" :stage="currentWaypointIndex" class="mirror-gl" />
           <div class="mirror-act">
             <HoldButton :hold-ms="1200" :disabled="going" @confirm="launch">按住，让它动起来</HoldButton>
             <span class="mirror-hint">拖动可以转动它。它的表面光滑到分子级别：你看到的不是它，是它周围的宇宙。</span>
@@ -246,15 +245,17 @@ watch(fleetDown, (d) => {
           
           <div class="journey-panel">
             <h3 class="journey-title">水滴航程 · 镜面反射</h3>
-            <p class="journey-desc">水滴在航行中经过不同星体与宇宙现象，表面将反射当时的环境。选择一站，观察镜面变化。</p>
+            <p class="journey-desc">它从三体星系飞向地球。镜面里倒映着它此刻经过的地方：换一站，看它表面的世界怎么变。</p>
             <div class="journey-current">
               <span class="journey-label">当前经过</span>
               <div class="journey-name">{{ currentWaypoint.name }}</div>
-              <div class="journey-detail reason">{{ currentWaypoint.desc }}</div>
+              <div class="journey-detail reason">镜中：{{ currentWaypoint.mirror }}</div>
+              <p class="journey-story" aria-live="polite">{{ currentWaypoint.story }}</p>
               <div class="journey-nav">
                 <button type="button" class="journey-btn" :disabled="currentWaypointIndex <= 0" @click="prevWaypoint">上一站</button>
                 <span class="journey-progress">{{ currentWaypointIndex + 1 }} / {{ WAYPOINTS.length }}</span>
-                <button type="button" class="journey-btn" :disabled="currentWaypointIndex >= WAYPOINTS.length - 1" @click="nextWaypoint">下一站</button>
+                <button v-if="currentWaypointIndex < WAYPOINTS.length - 1" type="button" class="journey-btn" @click="nextWaypoint">下一站</button>
+                <button v-else type="button" class="journey-btn" @click="activeTab = 'strike'">进入末日战役</button>
               </div>
             </div>
             <div class="waypoint-list">
@@ -283,7 +284,7 @@ watch(fleetDown, (d) => {
               <span class="label">{{ surfaceInfo }}</span>
             </div>
             <div class="hint-text">
-              滚动鼠标滚轮放大观察表面细节 · 航程中切换站点体验不同反射
+              滚动鼠标滚轮放大观察表面细节；换一站，镜面里就是另一个世界
             </div>
           </div>
         </div>
@@ -407,61 +408,69 @@ watch(fleetDown, (d) => {
   position: relative;
 }
 
-/* 水滴航程：主玩法面板 */
+/* 水滴航程：主玩法面板（VI：碑面、刻痕、衬线站名） */
 .journey-panel {
   position: absolute;
   top: 1rem;
   left: auto;
   right: 1rem;
   max-width: 320px;
-  background: rgba(0, 0, 0, 0.75);
-  border: 1px solid rgba(var(--cherenkov-rgb), 0.35);
-  color: var(--gray-100);
-  padding: 1rem;
-  font-family: var(--font-mono);
+  background: rgba(19, 20, 22, 0.86);
+  border: 1px solid var(--incision);
+  color: var(--bone);
+  padding: 1rem 1.1rem;
   z-index: 10;
   border-radius: var(--radius-cut);
 }
 
 .journey-title {
   margin: 0 0 0.4rem;
+  font-family: var(--font-serif);
+  font-weight: 900;
   font-size: 1rem;
-  color: var(--c-cyan);
-  letter-spacing: 0.05em;
+  letter-spacing: 0.12em;
+  color: var(--bone);
 }
 
 .journey-desc {
   margin: 0 0 0.75rem;
   font-size: 0.875rem;
-  color: #9ab;
-  line-height: 1.45;
+  color: var(--weathered);
+  line-height: 1.6;
 }
 
 .journey-current {
   margin-bottom: 0.75rem;
-  padding: 0.5rem 0.6rem;
-  background: rgba(0, 40, 50, 0.3);
-  border-radius: var(--radius-cut);
-  border-left: 3px solid var(--c-cyan);
+  padding: 0.6rem 0 0.6rem 0.8rem;
+  border-left: 1px solid var(--era-crisis);
 }
 
 .journey-label {
   font-size: 0.75rem;
-  color: #7a9;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  color: var(--weathered);
+  letter-spacing: 0.1em;
 }
 
 .journey-name {
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: var(--white);
-  margin: 0.2rem 0 0.25rem;
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  color: var(--bone);
+  margin: 0.15rem 0 0.3rem;
 }
 
 .journey-detail {
-  font-size: 0.8rem;
-  margin-bottom: 0.5rem;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--weathered);
+  margin-bottom: 0.4rem;
+}
+
+.journey-story {
+  margin: 0 0 0.6rem;
+  font-family: var(--font-serif);
+  font-size: 0.9375rem;
+  line-height: 1.8;
+  color: var(--gray-150);
 }
 
 .journey-nav {
@@ -475,9 +484,8 @@ watch(fleetDown, (d) => {
   border: 1px solid var(--c-cyan);
   background: transparent;
   color: var(--c-cyan);
-  padding: 0.25rem 0.6rem;
-  font-size: 0.8rem;
-  font-family: var(--font-mono);
+  padding: 0.3rem 0.7rem;
+  font-size: 0.8125rem;
   cursor: pointer;
   border-radius: var(--radius-cut);
   transition: background 0.2s;
@@ -493,8 +501,9 @@ watch(fleetDown, (d) => {
 }
 
 .journey-progress {
+  font-family: var(--font-mono);
   font-size: 0.75rem;
-  color: #8ab;
+  color: var(--weathered);
 }
 
 .waypoint-list {
@@ -505,12 +514,11 @@ watch(fleetDown, (d) => {
 
 .waypoint-chip {
   appearance: none;
-  border: 1px solid #334;
-  background: rgba(0, 20, 30, 0.5);
-  color: #9ab;
+  border: 1px solid var(--incision);
+  background: transparent;
+  color: var(--weathered);
   padding: 0.25rem 0.5rem;
   font-size: 0.75rem;
-  font-family: var(--font-mono);
   cursor: pointer;
   border-radius: var(--radius-cut);
   transition: border-color 0.2s, color 0.2s, background 0.2s;
@@ -543,7 +551,7 @@ watch(fleetDown, (d) => {
 .data-row.highlight .label { color: #9fb39a; }
 .label { opacity: 0.7; margin-right: 1rem; }
 .val { color: var(--c-cyan); }
-.reason { color: #8ab; font-size: 0.8rem; }
+.reason { color: var(--weathered); font-size: 0.8125rem; }
 .hint-text { margin-top: 0.5rem; font-size: 0.75rem; opacity: 0.8; }
 
 /* Tab 2: Game */

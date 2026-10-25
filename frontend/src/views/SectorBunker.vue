@@ -2,8 +2,9 @@
 /**
  * Sector J：掩体纪元
  * 一 表决：掩体、黑域、光速飞船，人类只能选一条路
- * 二 守影：太空城藏在巨行星的阴影里，摄动会把它们推出去；预警响起后八秒，太阳被击中
- * 三 真相：来的不是光粒——躲起来的人，躲开了他们以为的那种死亡
+ * 二 太空城：人类要住进去的六座城，每种构型的外观、内景与自转重力（components/SpaceCityAtlas.vue）
+ * 三 守影：太空城藏在巨行星的阴影里，摄动会把它们推出去；预警响起后八秒，太阳被击中
+ * 四 真相：来的不是光粒——躲起来的人，躲开了他们以为的那种死亡
  * 逻辑见 sim/bunker.ts。（原先的三维城市与阴影模拟占用主线程过重，已改为二维沙盘。）
  */
 import { computed, onUnmounted, ref, shallowRef, watch } from 'vue'
@@ -11,6 +12,8 @@ import { recordAnswer } from '@/data/answers'
 import SectorHeader from '@/components/SectorHeader.vue'
 import Vitrine from '@/components/Vitrine.vue'
 import HoldButton from '@/components/HoldButton.vue'
+import SpaceCityAtlas from '@/components/SpaceCityAtlas.vue'
+import { cityByName } from '@/sim/spaceCity'
 import { sectorByPath } from '@/data/sectors'
 import {
   MAX_FUEL,
@@ -29,7 +32,7 @@ import {
 
 const question = sectorByPath('/sector-j')?.question
 
-type Act = 'vote' | 'hold' | 'struck' | 'truth'
+type Act = 'vote' | 'atlas' | 'hold' | 'struck' | 'truth'
 const act = ref<Act>('vote')
 const chosen = ref<Plan | null>(null)
 
@@ -146,12 +149,19 @@ watch(act, (a) => {
       <transition name="fade">
         <div v-if="chosen" class="vote-result">
           <p>{{ VOTE_NOTE[chosen] }}</p>
-          <HoldButton :hold-ms="1600" @confirm="startHold">按住，把人类搬进阴影</HoldButton>
+          <button type="button" class="plain-btn primary" @click="act = 'atlas'">看看人类要住进去的城市</button>
         </div>
       </transition>
     </section>
 
-    <!-- 二 守影 / 三 打击 -->
+    <!-- 二 太空城 -->
+    <section v-else-if="act === 'atlas'" class="atlas-act">
+      <p class="lede">人类在木星、土星、天王星和海王星背后建起了六座太空城。它们靠自转产生重力：城越大，转得越慢。</p>
+      <SpaceCityAtlas />
+      <HoldButton :hold-ms="1600" @confirm="startHold">按住，把人类搬进阴影</HoldButton>
+    </section>
+
+    <!-- 三 守影 / 打击 -->
     <div v-else-if="act === 'hold' || act === 'struck'" class="hold">
       <Vitrine flush class="orrery-frame" :class="{ alert: ph === 'alert', struck: act === 'struck' }">
         <svg class="orrery" viewBox="-360 -360 720 720" role="img" aria-label="太阳系沙盘：四颗巨行星与它们阴影里的太空城">
@@ -195,7 +205,7 @@ watch(act, (a) => {
         </p>
         <ul class="cities">
           <li v-for="c in state.cities" :key="c.id" :class="{ out: !safe(c), dead: act === 'struck' && !c.alive }">
-            <span class="c-name">{{ c.name }}</span>
+            <span class="c-name">{{ c.name }}<small>{{ cityByName(c.name)?.type }}</small></span>
             <span class="c-margin" aria-hidden="true"><span :style="{ width: margin(c) * 100 + '%' }"></span></span>
             <button
               v-if="act === 'hold'"
@@ -226,6 +236,7 @@ watch(act, (a) => {
           <RouterLink to="/sector-d" class="plain-btn">看那幅画：二向箔画廊</RouterLink>
           <RouterLink to="/sector-l" class="plain-btn">那条被禁止的路：曲率驱动</RouterLink>
           <button type="button" class="plain-btn" @click="startHold">再守一次</button>
+          <button type="button" class="plain-btn" @click="act = 'atlas'">再看一次这些城市</button>
         </div>
       </div>
     </Vitrine>
@@ -283,10 +294,13 @@ watch(act, (a) => {
 .fuel-bar span { display: block; height: 100%; background: var(--cherenkov); transition: width 0.2s; }
 .cities { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--incision-soft); }
 .cities li { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0; border-bottom: 1px solid var(--incision-soft); }
-.c-name { width: 5.5rem; font-family: var(--font-serif); color: var(--bone); }
+.c-name { width: 6rem; display: flex; flex-direction: column; font-family: var(--font-serif); color: var(--bone); }
 .c-margin { flex: 1; height: 3px; background: var(--incision-soft); }
 .c-margin span { display: block; height: 100%; background: var(--cherenkov); }
 .cities li.out .c-margin span { background: var(--rust-bright); }
+.c-name small { font-family: var(--font-sans); font-size: 0.75rem; color: var(--weathered); }
+.atlas-act { display: flex; flex-direction: column; align-items: flex-start; }
+.atlas-act .atlas { align-self: stretch; }
 .cities li.dead .c-name { color: var(--weathered); text-decoration: line-through; }
 .c-fix {
   padding: 0.25rem 0.7rem;
