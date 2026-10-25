@@ -649,6 +649,21 @@ const STATES = [
     },
   },
   {
+    // 银河人类：同一条航程，结局里的演化树与读者这一支
+    name: 'mobile-galaxy-tree',
+    viewport: 'mobile',
+    slug: 'sector-human',
+    act: async (page) => {
+      await page.getByRole('button', { name: '继续向深空前进' }).click({ timeout: 8000 })
+      await page.getByRole('button', { name: '按住，先开火，夺取别的船上的物资' }).focus()
+      await page.keyboard.press('Enter')
+      await page.getByRole('button', { name: '军事化管理，一切服从生存' }).click()
+      await page.getByRole('button', { name: '不回去，这里就是我们的家' }).click()
+      await page.locator('.branch').scrollIntoViewIfNeeded()
+      await page.waitForTimeout(500)
+    },
+  },
+  {
     // 人物志：一个人的选择，翻开第一条后果
     name: 'mobile-figures-choices',
     viewport: 'mobile',
