@@ -434,7 +434,8 @@ const STATES = [
     slug: 'sector-u',
     act: async (page) => {
       await page.getByRole('button', { name: '接收广播' }).click({ timeout: 20000 })
-      await page.getByRole('button', { name: '跳过' }).click({ timeout: 5000 })
+      // 前进四的过载动画持续 4.6 秒，动画中按钮在动，等它稳定
+      await page.getByRole('button', { name: '跳过' }).click({ timeout: 9000 })
       await page.getByRole('button', { name: '归还质量' }).click({ timeout: 5000 })
       await page.waitForTimeout(600)
     },
@@ -723,7 +724,8 @@ const STATES = [
       await page.getByRole('radio', { name: '前进三' }).click({ timeout: 8000 })
       await page.getByRole('button', { name: '按住，前进四' }).focus()
       await page.keyboard.press('Enter')
-      await page.getByRole('button', { name: '跳过' }).click({ timeout: 5000 })
+      // 前进四的过载动画持续 4.6 秒，动画中按钮在动，等它稳定
+      await page.getByRole('button', { name: '跳过' }).click({ timeout: 9000 })
       await page.waitForTimeout(800)
     },
   },
