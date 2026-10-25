@@ -241,7 +241,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey))
 
 <style scoped>
 .flatland {
-  --fl-accent: #c58bff;
+  --fl-accent: #a99cc4;
   --fl-wall: #3a3550;
   display: flex;
   flex-direction: column;
@@ -262,15 +262,15 @@ onUnmounted(() => window.removeEventListener('keydown', onKey))
   flex-direction: column;
   gap: 0.15rem;
   padding: 0.5rem 0.8rem;
-  background: rgba(197, 139, 255, 0.05);
-  border: 1px solid rgba(197, 139, 255, 0.2);
+  background: rgba(169, 156, 196, 0.05);
+  border: 1px solid rgba(169, 156, 196, 0.2);
   color: var(--gray-200);
   font: inherit;
   font-size: 0.85rem;
   text-align: left;
   cursor: pointer;
 }
-.fl-level.active { border-color: var(--fl-accent); color: var(--white); background: rgba(197, 139, 255, 0.12); }
+.fl-level.active { border-color: var(--fl-accent); color: var(--white); background: rgba(169, 156, 196, 0.12); }
 .fl-level-stars { font-size: 0.75rem; color: var(--c-gold); letter-spacing: 0.1em; }
 
 .fl-stage {
@@ -288,8 +288,8 @@ onUnmounted(() => window.removeEventListener('keydown', onKey))
   aspect-ratio: auto;
   margin: 0 auto;
   background: #05030a;
-  border: 1px solid rgba(197, 139, 255, 0.25);
-  box-shadow: 0 0 40px rgba(120, 60, 200, 0.15) inset;
+  border: 1px solid rgba(169, 156, 196, 0.25);
+  box-shadow: 0 0 40px rgba(169, 156, 196, 0.1) inset;
 }
 .fl-cell {
   position: relative;
@@ -309,11 +309,11 @@ onUnmounted(() => window.removeEventListener('keydown', onKey))
 .fl-cell.exit.visible::after { content: '出口'; font-size: 0.75rem; color: var(--holo-blue); opacity: 0.8; }
 
 /* 升维：墙退化成细线，所有内部一览无余 */
-.lifted .fl-board { box-shadow: 0 0 60px rgba(197, 139, 255, 0.25) inset; }
-.lifted .fl-cell.visible { background: #1a1428; }
+.lifted .fl-board { box-shadow: 0 0 60px rgba(169, 156, 196, 0.25) inset; }
+.lifted .fl-cell.visible { background: #1c1d20; }
 .lifted .fl-cell.visible.wall {
-  background: #1a1428;
-  box-shadow: inset 0 0 0 1px rgba(197, 139, 255, 0.55);
+  background: #1c1d20;
+  box-shadow: inset 0 0 0 1px rgba(169, 156, 196, 0.55);
 }
 
 .fl-item {
@@ -328,13 +328,13 @@ onUnmounted(() => window.removeEventListener('keydown', onKey))
   height: 56%;
   border-radius: 50%;
   background: radial-gradient(circle at 35% 35%, #fff, var(--fl-accent));
-  box-shadow: 0 0 12px rgba(197, 139, 255, 0.8);
+  box-shadow: 0 0 12px rgba(169, 156, 196, 0.8);
   transition: transform 0.25s, box-shadow 0.25s;
   z-index: 2;
 }
 .fl-player.up {
   transform: translateY(-22%) scale(1.15);
-  box-shadow: 0 0 22px rgba(197, 139, 255, 1), 0 14px 10px -6px rgba(0, 0, 0, 0.8);
+  box-shadow: 0 0 22px rgba(169, 156, 196, 1), 0 14px 10px -6px rgba(0, 0, 0, 0.8);
 }
 @keyframes pulse { 50% { opacity: 0.55; } }
 
@@ -371,7 +371,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey))
   cursor: pointer;
   text-decoration: none;
 }
-.fl-btn.primary { color: #0b0612; background: var(--fl-accent); border-color: var(--fl-accent); font-weight: 600; }
+.fl-btn.primary { color: #0d0e10; background: var(--fl-accent); border-color: var(--fl-accent); font-weight: 600; }
 .fl-btn.ghost { width: 100%; justify-content: center; }
 
 .fl-side { display: flex; flex-direction: column; gap: 1rem; }
@@ -393,7 +393,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey))
   line-height: 1.6;
   color: var(--gray-150);
   border-left: 2px solid var(--fl-accent);
-  background: rgba(197, 139, 255, 0.06);
+  background: rgba(169, 156, 196, 0.06);
 }
 .fl-retina-head .muted { font-size: 0.75rem; }
 .fl-retina-strip {
@@ -422,13 +422,13 @@ onUnmounted(() => window.removeEventListener('keydown', onKey))
   cursor: pointer;
   touch-action: manipulation;
 }
-.fl-key:active { background: rgba(197, 139, 255, 0.2); }
+.fl-key:active { background: rgba(169, 156, 196, 0.2); }
 .fl-key.up { grid-area: up; }
 .fl-key.down { grid-area: down; }
 .fl-key.left { grid-area: left; }
 .fl-key.right { grid-area: right; }
-.fl-key.lift { grid-area: lift; font-size: 0.85rem; color: var(--fl-accent); border-color: rgba(197, 139, 255, 0.5); }
-.fl-key.lift.on { background: var(--fl-accent); color: #0b0612; }
+.fl-key.lift { grid-area: lift; font-size: 0.85rem; color: var(--fl-accent); border-color: rgba(169, 156, 196, 0.5); }
+.fl-key.lift.on { background: var(--fl-accent); color: #0d0e10; }
 .fl-key:disabled { opacity: 0.35; cursor: not-allowed; }
 
 .fade-enter-active, .fade-leave-active { transition: opacity 0.3s; }
