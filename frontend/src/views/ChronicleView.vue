@@ -1,10 +1,14 @@
 <script setup lang="ts">
 /**
- * 扇区 B：文明全息档案系统 (Chronicle + Archive + Encyclopedia + Apocrypha)
- * 整合四大知识模块，通过顶部维度切换器进行导航。
+ * Sector B：编年史
+ * 主视图「时间之流」：按公元纪年排列全部事件；拖动「从多远的未来回看」，没有刻进石碑的事件逐渐风化。
+ * 冥王星的石碑只刻得下五件事——历史是发生过的事，还是被记住的事？
+ * 另有档案馆、百科、外传三个分册；条目管理沿用后端接口。风化逻辑见 sim/erosion.ts。
  */
 import { ref, onMounted, computed, reactive } from 'vue'
-import TechCard from '@/components/TechCard.vue'
+import SectorHeader from '@/components/SectorHeader.vue'
+import { sectorByPath } from '@/data/sectors'
+import { CARVE_SLOTS, VANTAGES, erode, toggleCarve } from '@/sim/erosion'
 import GalleryModule from '@/components/GalleryModule.vue'
 import WikiModule from '@/components/WikiModule.vue'
 import ApocryphaModule from '@/components/ApocryphaModule.vue'
@@ -122,15 +126,15 @@ const timelineData = computed(() => {
   return [...events.value].sort((a, b) => eventYearCE(a.era, a.year) - eventYearCE(b.era, b.year))
 })
 
-/** 纪元对应强调色（时间轴卡片左边框与节点点缀） */
+/** 纪元对应的刻痕色：低饱和，只用在节点上 */
 const ERA_ACCENT: Record<string, string> = {
-  '黄金时代': '#fbbf24',
-  '危机纪元': '#ff4444',
-  '威慑纪元': '#00ffff',
-  '掩体纪元': '#a78bfa',
-  '广播纪元': '#4ade80',
-  '乱纪元': '#f97316',
-  '银河纪元': '#e879f9',
+  '黄金时代': '#c9b48a',
+  '危机纪元': '#b0432f',
+  '威慑纪元': '#8fa7c4',
+  '掩体纪元': '#a99cc4',
+  '广播纪元': '#9fb39a',
+  '乱纪元': '#c08a5a',
+  '银河纪元': '#b7a2b8',
 }
 
 function isSuperposition(ev: ChronicleEvent) {
@@ -138,7 +142,7 @@ function isSuperposition(ev: ChronicleEvent) {
 }
 
 function eraAccent(era: string): string {
-  return ERA_ACCENT[era] ?? 'var(--holo-blue)'
+  return ERA_ACCENT[era] ?? 'var(--weathered)'
 }
 
 /** 编年史视觉记录图 URL：优先 API，否则本地 /images/chronicles/{slug}.webp */
@@ -153,172 +157,142 @@ function hideBrokenImage(e: Event) {
 }
 
 onMounted(loadEvents)
+
+/* ---------- 风化与石碑 ---------- */
+const question = sectorByPath('/sector-b')?.question
+const vantage = ref(0)
+const carved = ref<number[]>([])
+const level = computed(() => VANTAGES[vantage.value].level)
+const isCarved = (ev: ChronicleEvent) => carved.value.includes(ev.id)
+function carve(ev: ChronicleEvent) {
+  carved.value = toggleCarve(carved.value, ev.id)
+}
+function worn(ev: ChronicleEvent, text: string, salt: number) {
+  return isCarved(ev) ? text : erode(text, level.value, ev.id * 31 + salt)
+}
+/** 完全风化的事件：在最远的未来只留下一道刻痕 */
+const gone = (ev: ChronicleEvent) => !isCarved(ev) && level.value >= 1
+const carvedEvents = computed(() => timelineData.value.filter(isCarved))
+const VIEWS: { id: DimensionView; name: string }[] = [
+  { id: 'TIMELINE', name: '时间之流' },
+  { id: 'ARCHIVE', name: '档案馆' },
+  { id: 'ENCYCLOPEDIA', name: '百科' },
+  { id: 'APOCRYPHA', name: '外传' },
+]
 </script>
 
 <template>
   <div class="sector-chronicle">
-    <div class="chronicle-bg"></div>
-    
-    <header class="sector-header">
-      <div class="header-left">
-        <h1 class="title">CHRONICLE_System // 文明全息档案</h1>
-        
-        <!-- 维度切换器 -->
-        <div class="dimension-switch">
-          <button 
-            class="dim-btn" 
-            :class="{ active: currentView === 'TIMELINE' }"
-            @click="currentView = 'TIMELINE'"
-          >
-            时间之流 [T]
-          </button>
-          <div class="dim-sep"></div>
-          <button 
-            class="dim-btn" 
-            :class="{ active: currentView === 'ARCHIVE' }"
-            @click="currentView = 'ARCHIVE'"
-          >
-            宇宙档案馆 [M]
-          </button>
-          <div class="dim-sep"></div>
-          <button 
-            class="dim-btn" 
-            :class="{ active: currentView === 'ENCYCLOPEDIA' }"
-            @click="currentView = 'ENCYCLOPEDIA'"
-          >
-            三体百科 [K]
-          </button>
-          <div class="dim-sep"></div>
-          <button 
-            class="dim-btn" 
-            :class="{ active: currentView === 'APOCRYPHA' }"
-            @click="currentView = 'APOCRYPHA'"
-          >
-            三体外传 [A]
-          </button>
-        </div>
-      </div>
+    <SectorHeader
+      title="编年史"
+      subtitle="从红岸到 647 号小宇宙，人类文明的全部记录。可是记录也会老去。"
+      goal="选出最多五件事刻进冥王星的石碑，然后拖动「从多远的未来回看」，看看还剩下什么。"
+      accent="#c9b48a"
+    />
 
-      <div class="header-right">
-        <div v-if="currentView === 'TIMELINE'" class="legend">
-          <span class="legend-item"><span class="dot solid"></span> 坍缩态</span>
-          <span class="legend-item"><span class="dot dashed"></span> 叠加态</span>
-          <span class="legend-hint">节点色＝纪元</span>
-        </div>
-        <NButton v-if="currentView === 'TIMELINE'" size="small" type="primary" ghost @click="showManageModal = true">
-          <template #icon>⚡</template>
-          管理条目
-        </NButton>
-      </div>
-    </header>
+    <nav class="volumes" aria-label="分册">
+      <button
+        v-for="v in VIEWS"
+        :key="v.id"
+        type="button"
+        :class="{ on: currentView === v.id }"
+        :aria-pressed="currentView === v.id"
+        @click="currentView = v.id"
+      >{{ v.name }}</button>
+      <button v-if="currentView === 'TIMELINE'" type="button" class="manage" @click="showManageModal = true">管理条目</button>
+    </nav>
 
-    <!-- 视图容器 -->
-    <div class="view-container">
-      <transition name="dimension-fold" mode="out-in">
-        
-        <!-- 视图 A: 时间轴 -->
-        <div v-if="currentView === 'TIMELINE'" key="timeline" class="timeline-container">
-          <div class="timeline-track">
-            <!-- 垂直中轴线 -->
-            <div class="axis-line"></div>
-
-            <div 
-              v-for="(ev, index) in timelineData" 
-              :key="ev.id"
-              class="timeline-node"
-              :class="{ 
-                'is-superposition': isSuperposition(ev),
-                'is-left': index % 2 === 0,
-                'is-right': index % 2 !== 0,
-                'is-selected': selectedEvent?.id === ev.id
-              }"
-              @click="selectedEvent = ev"
-            >
-              <!-- 时间标记：纪元 + 年份，紧凑 -->
-              <div class="node-year" :style="{ color: eraAccent(ev.era) }">
-                {{ ev.era }} · {{ ev.year }}
-              </div>
-              <div class="node-year-ce">公元 {{ eventYearCE(ev.era, ev.year) }}</div>
-              
-              <!-- 节点圆点 -->
-              <div class="node-point">
-                <div class="point-core" :style="{ background: eraAccent(ev.era), boxShadow: `0 0 10px ${eraAccent(ev.era)}` }"></div>
-                <div class="point-ring"></div>
-              </div>
-
-              <!-- 事件卡片摘要：信息密度提升 -->
-              <div class="node-content">
-                <div class="content-box" :style="{ '--era-accent': eraAccent(ev.era) }">
-                  <img
-                    v-if="chronicleEventImageUrl(ev)"
-                    class="ev-thumb"
-                    :src="chronicleEventImageUrl(ev)"
-                    :alt="ev.title"
-                    loading="lazy"
-                    decoding="async"
-                    @error="hideBrokenImage"
-                  />
-                  <div class="ev-text">
-                  <div class="ev-meta">
-                    <span class="ev-type-badge" :class="ev.event_type === 'ugc' ? 'badge-ugc' : 'badge-pgc'">
-                      {{ ev.event_type === 'ugc' ? '变体' : '正典' }}
-                    </span>
-                  </div>
-                  <h3 class="ev-title">{{ normalizeEraYearInText(ev.era, ev.year, ev.title) }}</h3>
-                  <p class="ev-summary line-clamp-3">{{ normalizeEraYearInText(ev.era, ev.year, ev.summary || ev.content) }}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+    <div v-if="currentView === 'TIMELINE'" class="stream">
+      <div class="main">
+        <section class="vantage" aria-label="从多远的未来回看">
+          <div class="v-head">
+            <span>从多远的未来回看</span>
+            <b>{{ VANTAGES[vantage].label }}</b>
           </div>
-        </div>
+          <input
+            v-model.number="vantage"
+            type="range"
+            min="0"
+            :max="VANTAGES.length - 1"
+            step="1"
+            class="v-range"
+            aria-label="从多远的未来回看"
+            :aria-valuetext="VANTAGES[vantage].label"
+          />
+          <ol class="v-ticks" aria-hidden="true">
+            <li v-for="v in VANTAGES" :key="v.id" :class="{ on: v.id <= vantage }">{{ v.label }}</li>
+          </ol>
+          <p class="v-note">{{ VANTAGES[vantage].note }}</p>
+        </section>
 
-        <!-- 视图 B: 档案馆 -->
-        <div v-else-if="currentView === 'ARCHIVE'" key="archive" class="gallery-container">
-          <GalleryModule />
-        </div>
+        <p v-if="loading" class="muted">正在调阅……</p>
+        <p v-else-if="!timelineData.length" class="muted">档案馆暂时没有收到任何记录。</p>
+        <ol v-else class="events">
+          <li
+            v-for="ev in timelineData"
+            :key="ev.id"
+            class="event"
+            :class="{ carved: isCarved(ev), gone: gone(ev), selected: selectedEvent?.id === ev.id, variant: isSuperposition(ev) }"
+            :style="{ '--era': eraAccent(ev.era) }"
+          >
+            <div class="when">
+              <span class="era">{{ ev.era }}</span>
+              <span class="num">公元 {{ eventYearCE(ev.era, ev.year) }}</span>
+            </div>
+            <div class="what">
+              <button type="button" class="ev-open" :disabled="gone(ev)" @click="selectedEvent = ev">
+                <span class="ev-title">{{ gone(ev) ? '　' : worn(ev, normalizeEraYearInText(ev.era, ev.year, ev.title), 1) }}</span>
+                <span v-if="!gone(ev)" class="ev-summary">{{ worn(ev, normalizeEraYearInText(ev.era, ev.year, ev.summary || ev.content), 2) }}</span>
+              </button>
+              <span v-if="ev.event_type === 'ugc'" class="tag">同人变体</span>
+            </div>
+            <button
+              type="button"
+              class="carve"
+              :aria-pressed="isCarved(ev)"
+              :disabled="!isCarved(ev) && carved.length >= CARVE_SLOTS"
+              @click="carve(ev)"
+            >{{ isCarved(ev) ? '已刻入' : '刻入石碑' }}</button>
+          </li>
+        </ol>
+      </div>
 
-        <!-- 视图 C: 三体百科 -->
-        <div v-else-if="currentView === 'ENCYCLOPEDIA'" key="encyclopedia" class="wiki-container">
-          <WikiModule />
-        </div>
+      <aside class="side">
+        <section class="stone" aria-label="冥王星石碑">
+          <h2 class="stone-title">冥王星石碑</h2>
+          <p class="stone-count"><span class="num">{{ carved.length }}</span> / {{ CARVE_SLOTS }}</p>
+          <ol v-if="carvedEvents.length" class="stone-lines">
+            <li v-for="ev in carvedEvents" :key="ev.id">{{ normalizeEraYearInText(ev.era, ev.year, ev.title) }}</li>
+          </ol>
+          <p v-else class="muted">还没有刻下任何一件事。</p>
+          <div v-if="vantage === VANTAGES.length - 1" class="verdict">
+            <p v-if="carvedEvents.length">一千八百九十万年后的读者，只知道这 {{ carvedEvents.length }} 件事。对他们来说，人类的历史就是你选的这几行字。</p>
+            <p v-else>一千八百九十万年后，什么都没有留下。人类曾经存在过，这件事本身也被忘记了。</p>
+            <p class="q">{{ question }}</p>
+            <RouterLink to="/sector-tomb" class="plain-btn">去给后来者留言：文明墓碑</RouterLink>
+          </div>
+        </section>
 
-        <!-- 视图 D: 三体外传 -->
-        <div v-else key="apocrypha" class="apocrypha-container">
-          <ApocryphaModule />
-        </div>
-
-      </transition>
+        <section v-if="selectedEvent" class="detail" aria-label="事件详情">
+          <p class="d-when">{{ selectedEvent.era }} {{ selectedEvent.year }} 年 · 公元 <span class="num">{{ eventYearCE(selectedEvent.era, selectedEvent.year) }}</span></p>
+          <h2 class="d-title">{{ worn(selectedEvent, normalizeEraYearInText(selectedEvent.era, selectedEvent.year, selectedEvent.title), 1) }}</h2>
+          <p class="d-text">{{ worn(selectedEvent, normalizeEraYearInText(selectedEvent.era, selectedEvent.year, selectedEvent.content), 3) }}</p>
+          <img
+            v-if="chronicleEventImageUrl(selectedEvent) && level === 0"
+            class="d-img"
+            :src="chronicleEventImageUrl(selectedEvent)"
+            :alt="selectedEvent.title"
+            loading="lazy"
+            @error="hideBrokenImage"
+          />
+          <button type="button" class="plain-btn" @click="selectedEvent = null">合上</button>
+        </section>
+      </aside>
     </div>
 
-    <!-- 侧边详情面板 (仅时间轴使用) -->
-    <transition name="slide-panel">
-      <div v-if="selectedEvent && currentView === 'TIMELINE'" class="detail-panel">
-        <TechCard :title="normalizeEraYearInText(selectedEvent.era, selectedEvent.year, selectedEvent.title)" subtitle="EVENT_DETAIL" class="h-full">
-          <div class="detail-body">
-            <div class="meta-row">
-              <span class="meta-tag meta-era" :style="{ color: eraAccent(selectedEvent.era), borderColor: eraAccent(selectedEvent.era) }">{{ selectedEvent.era }}</span>
-              <span class="meta-tag">年份 {{ selectedEvent.year }}</span>
-              <span class="meta-tag">公元 {{ eventYearCE(selectedEvent.era, selectedEvent.year) }}</span>
-              <span class="meta-tag status-tag" :class="isSuperposition(selectedEvent) ? 'tag-warn' : 'tag-success'">
-                {{ isSuperposition(selectedEvent) ? '叠加态' : '坍缩态' }}
-              </span>
-            </div>
-            
-            <div class="detail-text">
-              {{ normalizeEraYearInText(selectedEvent.era, selectedEvent.year, selectedEvent.content) }}
-            </div>
-
-            <div v-if="chronicleEventImageUrl(selectedEvent)" class="detail-media">
-              <img :src="chronicleEventImageUrl(selectedEvent)" alt="Event Visual" />
-              <div class="media-overlay">视觉记录</div>
-            </div>
-
-            <button class="close-btn" @click="selectedEvent = null">关闭面板</button>
-          </div>
-        </TechCard>
-      </div>
-    </transition>
+    <div v-else-if="currentView === 'ARCHIVE'" class="volume"><GalleryModule /></div>
+    <div v-else-if="currentView === 'ENCYCLOPEDIA'" class="volume"><WikiModule /></div>
+    <div v-else class="volume"><ApocryphaModule /></div>
 
     <!-- 管理模态框 -->
     <NModal v-model:show="showManageModal" preset="card" title="编年史数据库 // 编辑器" style="width: 800px; max-width: 90vw;">
@@ -389,210 +363,105 @@ onMounted(loadEvents)
 </template>
 
 <style scoped>
-.sector-chronicle {
-  position: relative;
-  /* Allow natural height */
-  display: flex;
-  flex-direction: column;
-}
+.sector-chronicle { padding: 2rem clamp(1rem, 4vw, 3rem) 3rem; max-width: 80rem; }
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.muted { color: var(--weathered); }
 
-.chronicle-bg {
-  position: fixed;
-  inset: 0;
-  background: 
-    linear-gradient(90deg, rgba(var(--cherenkov-rgb),0.03) 1px, transparent 1px),
-    linear-gradient(rgba(var(--cherenkov-rgb),0.03) 1px, transparent 1px);
-  background-size: 40px 40px;
-  pointer-events: none;
-  z-index: 0;
+.volumes { display: flex; flex-wrap: wrap; gap: 0.25rem; margin-bottom: 1.75rem; border-bottom: 1px solid var(--incision-soft); }
+.volumes button {
+  padding: 0.6rem 1rem;
+  font: inherit;
+  font-size: 0.9375rem;
+  color: var(--weathered);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid transparent;
+  margin-bottom: -1px;
+  cursor: pointer;
 }
+.volumes button.on { color: var(--bone); border-bottom-color: var(--bone); }
+.volumes .manage { margin-left: auto; font-size: 0.875rem; }
 
-.sector-header {
-  position: relative;
-  z-index: 10;
-  padding: 1rem 2rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid var(--border-tech);
-  background: rgba(2,6,23,0.8);
-  backdrop-filter: blur(10px);
+.stream { display: grid; grid-template-columns: minmax(0, 1fr) minmax(16rem, 22rem); gap: 2rem; align-items: start; }
+
+.vantage { margin-bottom: 1.75rem; padding: 1.25rem; background: var(--slab); border: 1px solid var(--incision-soft); }
+.v-head { display: flex; justify-content: space-between; align-items: baseline; font-size: 0.9375rem; color: var(--weathered); }
+.v-head b { font-family: var(--font-serif); font-weight: 600; font-size: 1.125rem; color: var(--bone); }
+.v-range { width: 100%; margin: 0.9rem 0 0.4rem; accent-color: var(--cherenkov); }
+.v-ticks { display: flex; justify-content: space-between; list-style: none; margin: 0; padding: 0; font-size: 0.8125rem; color: var(--incision); }
+.v-ticks li.on { color: var(--weathered); }
+.v-note { margin: 0.75rem 0 0; font-family: var(--font-serif); color: var(--gray-150); }
+
+.events { list-style: none; margin: 0; padding: 0; border-left: 1px solid var(--incision); }
+.event { position: relative; display: grid; grid-template-columns: 9rem minmax(0, 1fr) auto; gap: 1rem; align-items: start; padding: 0.9rem 0 0.9rem 1.25rem; border-bottom: 1px solid var(--incision-soft); transition: opacity 0.6s; }
+.event::before { content: ''; position: absolute; left: -4px; top: 1.3rem; width: 7px; height: 7px; background: var(--era); }
+.event.carved::before { left: -5px; width: 9px; height: 9px; background: var(--bone); }
+.event.gone { opacity: 0.25; }
+.when { display: flex; flex-direction: column; gap: 0.15rem; font-size: 0.8125rem; color: var(--weathered); }
+.era { color: var(--era); }
+.what { min-width: 0; }
+.ev-open { display: flex; flex-direction: column; gap: 0.3rem; width: 100%; padding: 0; text-align: left; font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+.ev-open:disabled { cursor: default; }
+.ev-title { font-family: var(--font-serif); font-size: 1.0625rem; font-weight: 600; color: var(--bone); }
+.ev-summary { font-size: 0.9375rem; line-height: 1.75; color: var(--gray-200); display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+.event.selected .ev-title { color: var(--cherenkov); }
+.event.carved .ev-title { letter-spacing: 0.04em; }
+.tag { display: inline-block; margin-top: 0.35rem; font-size: 0.75rem; color: var(--weathered); border: 1px solid var(--incision); padding: 0 0.35rem; }
+.carve {
+  padding: 0.3rem 0.75rem;
+  font: inherit;
+  font-size: 0.8125rem;
+  color: var(--weathered);
+  background: transparent;
+  border: 1px solid var(--incision);
+  border-radius: 2px;
+  cursor: pointer;
+  white-space: nowrap;
 }
+.carve[aria-pressed='true'] { color: var(--bone); border-color: var(--bone); }
+.carve:disabled { opacity: 0.35; cursor: not-allowed; }
 
-.title {
-  font-family: var(--font-tech);
-  color: var(--holo-blue);
-  font-size: 1.2rem;
-  letter-spacing: 0.1em;
-  margin: 0;
-  margin-bottom: 0.5rem;
+.side { position: sticky; top: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem; }
+.stone {
+  padding: 1.25rem;
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.03), transparent 60%),
+    #26272a;
+  border: 1px solid var(--incision);
 }
+.stone-title { margin: 0; font-family: var(--font-serif); font-weight: 900; font-size: 1.25rem; letter-spacing: 0.12em; color: var(--bone); }
+.stone-count { margin: 0.25rem 0 1rem; font-size: 0.8125rem; color: var(--weathered); }
+.stone-lines { margin: 0 0 0.5rem; padding-left: 1.25rem; font-family: var(--font-serif); font-size: 1rem; line-height: 1.9; color: var(--bone); }
+.verdict { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--incision); }
+.verdict p { margin: 0 0 0.75rem; font-family: var(--font-serif); line-height: 1.85; color: var(--gray-150); }
+.verdict .q { padding-left: 0.9rem; border-left: 1px solid #c9b48a; color: var(--bone); }
 
-/* 维度切换器 */
-.dimension-switch {
+.detail { padding: 1.25rem; background: var(--slab); border: 1px solid var(--incision-soft); }
+.d-when { margin: 0 0 0.5rem; font-size: 0.8125rem; color: var(--weathered); }
+.d-title { margin: 0 0 0.75rem; font-family: var(--font-serif); font-size: 1.25rem; color: var(--bone); }
+.d-text { margin: 0 0 1rem; font-family: var(--font-serif); font-size: 1rem; line-height: 1.9; color: var(--gray-150); max-height: 22rem; overflow-y: auto; white-space: pre-line; }
+.d-img { display: block; width: 100%; margin-bottom: 1rem; filter: grayscale(0.4); }
+
+.plain-btn {
   display: inline-flex;
   align-items: center;
-  border: 1px solid var(--border-tech);
-  border-radius: 4px;
-  background: rgba(var(--cherenkov-rgb), 0.05);
-  padding: 2px;
-}
-
-.dim-btn {
+  padding: 0.55rem 1.1rem;
+  font: inherit;
+  font-size: 0.9375rem;
+  color: var(--bone);
   background: transparent;
-  border: none;
-  color: var(--text-muted);
-  font-family: var(--font-tech);
-  font-size: 0.75rem;
-  padding: 0.4rem 1rem;
-  cursor: pointer;
-  transition: all 0.3s;
+  border: 1px solid var(--incision);
   border-radius: 2px;
+  cursor: pointer;
+  text-decoration: none;
 }
-
-.dim-btn.active {
-  background: rgba(var(--cherenkov-rgb), 0.15);
-  color: var(--holo-blue);
-  text-shadow: 0 0 5px var(--holo-blue);
-  box-shadow: 0 0 10px rgba(var(--cherenkov-rgb), 0.1);
-}
-
-.dim-sep {
-  width: 1px;
-  height: 12px;
-  background: var(--border-tech);
-  margin: 0 4px;
-}
-
-.legend {
-  display: flex;
-  gap: 1rem;
-  font-family: var(--font-tech);
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  margin-right: 1.5rem;
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-}
-.dot.solid { background: var(--holo-blue); box-shadow: 0 0 5px var(--holo-blue); }
-.dot.dashed { border: 1px solid var(--holo-green); background: transparent; }
-.legend-hint { font-size: 0.75rem; color: var(--text-muted); margin-left: 0.5rem; }
-
-/* View Container */
-.view-container {
-  position: relative;
-  min-height: 80vh;
-}
-
-.timeline-container {
-  padding: 4rem 0;
-  position: relative;
-  z-index: 1;
-}
-
-.gallery-container, .wiki-container, .apocrypha-container {
-  padding: 2rem 0;
-}
-
-/* 维度折叠转场 */
-.dimension-fold-enter-active,
-.dimension-fold-leave-active {
-  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.dimension-fold-enter-from {
-  opacity: 0;
-  transform: scaleY(0.01) scaleX(1.5); /* 从一条线展开 */
-  filter: blur(10px);
-}
-
-.dimension-fold-leave-to {
-  opacity: 0;
-  transform: scaleY(0.01) scaleX(1.5); /* 压缩成一条线 */
-  filter: blur(10px);
-}
-
-/* 时间之流：信息密度与展示样式优化，避免文字被遮挡 */
-.timeline-track { position: relative; max-width: 900px; margin: 0 auto; padding-top: 1rem; padding-bottom: 3rem; }
-.axis-line { position: absolute; top: 0; bottom: 0; left: 50%; width: 2px; background: linear-gradient(180deg, transparent, var(--holo-blue), transparent); transform: translateX(-50%); box-shadow: 0 0 12px var(--holo-blue); overflow: hidden; }
-.axis-line::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 50%; background: linear-gradient(180deg, transparent, rgba(255,255,255,0.4), transparent); opacity: 0.4; animation: flow 3s linear infinite; }
-@keyframes flow { 0% { top: -50%; } 100% { top: 100%; } }
-.node-point { position: absolute; left: 50%; top: 2.5rem; transform: translateX(-50%); width: 22px; height: 22px; z-index: 2; display: flex; align-items: center; justify-content: center; background: var(--bg-deep); border-radius: 50%; }
-.point-core { width: 8px; height: 8px; border-radius: 50%; z-index: 2; transition: transform 0.25s ease; }
-.point-ring { position: absolute; width: 100%; height: 100%; border: 1px solid var(--holo-blue); border-radius: 50%; animation: spin 10s linear infinite; box-shadow: 0 0 5px rgba(var(--cherenkov-rgb), 0.2); }
-.point-ring::before { content: ''; position: absolute; top: -2px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; background: var(--holo-blue); border-radius: 50%; }
-.is-superposition .point-ring { border-color: var(--holo-green); border-style: dashed; animation: spin 5s linear infinite reverse; }
-.is-superposition .point-ring::before { background: var(--holo-green); }
-.timeline-node { position: relative; min-height: 130px; margin-bottom: 3.5rem; width: 100%; display: flex; justify-content: center; cursor: pointer; transition: all 0.25s ease; }
-.timeline-node:hover { filter: brightness(1.15); }
-.timeline-node.is-selected .content-box { border-color: var(--holo-blue); box-shadow: 0 0 20px rgba(var(--cherenkov-rgb), 0.25); }
-.node-year { position: absolute; left: 50%; top: 0; transform: translateX(-50%); font-family: var(--font-tech); font-size: 0.75rem; font-weight: 600; letter-spacing: 0.05em; background: rgba(2,6,23,0.9); padding: 0.25rem 0.6rem; border: 1px solid var(--border-tech); border-radius: 2px; white-space: nowrap; z-index: 1; }
-.node-year-ce { position: absolute; left: 50%; top: 1.35rem; transform: translateX(-50%); font-family: var(--font-tech); font-size: 0.75rem; color: var(--text-muted); opacity: 0.9; z-index: 1; }
-.node-content { width: 42%; min-width: 260px; position: absolute; top: 2rem; bottom: 0; }
-.is-left .node-content { left: 0; text-align: right; }
-.is-right .node-content { right: 0; left: auto; text-align: left; }
-.content-box { background: rgba(2, 6, 23, 0.88); border: 1px solid var(--border-tech); padding: 1rem 1.15rem 1.2rem; border-radius: 3px; transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); position: relative; overflow: hidden; min-height: 4.5rem; }
-.content-box::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--era-accent, var(--holo-blue)); opacity: 0.7; }
-.is-superposition .content-box::before { background: var(--holo-green); }
-.timeline-node:hover .content-box { transform: translateY(-2px) scale(1.02); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45); }
-.timeline-node:hover .content-box::before { opacity: 1; }
-.timeline-node:hover .point-core { transform: scale(1.4); }
-.ev-meta { margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem; }
-/* 事件配图：放在靠近时间轴的一侧，文字向外展开（仓库内 31 张事件图此前从未在时间轴上使用） */
-.content-box { display: flex; gap: 0.9rem; align-items: flex-start; }
-.is-left .content-box { flex-direction: row-reverse; }
-.ev-text { flex: 1; min-width: 0; }
-.ev-thumb { flex: 0 0 72px; width: 72px; height: 72px; object-fit: cover; border-radius: 2px; border: 1px solid rgba(var(--cherenkov-rgb), 0.18); filter: saturate(0.85) contrast(1.05); }
-.is-right .ev-meta { justify-content: flex-start; }
-.is-left .ev-meta { justify-content: flex-end; }
-.ev-type-badge { font-family: var(--font-tech); font-size: 0.75rem; padding: 0.15rem 0.4rem; border-radius: 2px; letter-spacing: 0.05em; }
-.ev-type-badge.badge-pgc { background: rgba(var(--cherenkov-rgb), 0.12); color: var(--holo-blue); border: 1px solid rgba(var(--cherenkov-rgb), 0.4); }
-.ev-type-badge.badge-ugc { background: rgba(0, 255, 65, 0.1); color: var(--holo-green); border: 1px solid rgba(0, 255, 65, 0.4); }
-.ev-title { font-family: var(--font-tech); color: var(--holo-blue); margin: 0 0 0.5rem; font-size: 0.95rem; font-weight: 600; line-height: 1.3; text-shadow: 0 0 6px rgba(var(--cherenkov-rgb), 0.25); }
-.is-superposition .ev-title { color: var(--holo-green); text-shadow: 0 0 6px rgba(0, 255, 65, 0.25); }
-.ev-summary { font-size: 0.78rem; color: var(--text-muted); margin: 0 0 0.25rem; line-height: 1.5; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
-
-/* Detail Panel */
-.detail-panel { position: fixed; top: 60px; right: 0; bottom: 0; width: 400px; max-width: 90vw; z-index: 50; padding: 1rem; }
-.detail-body { display: flex; flex-direction: column; gap: 1.5rem; height: 100%; }
-.meta-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-.meta-tag { font-family: var(--font-tech); font-size: 0.75rem; padding: 0.2rem 0.5rem; border: 1px solid var(--border-tech); color: var(--holo-blue); }
-.status-tag.tag-warn { color: var(--holo-green); border-color: var(--holo-green); }
-.status-tag.tag-success { color: var(--holo-blue); border-color: var(--holo-blue); }
-.detail-text { font-size: 0.9rem; line-height: 1.6; color: var(--text); flex: 1; overflow-y: auto; }
-.detail-media { position: relative; border: 1px solid var(--border-tech); overflow: hidden; }
-.detail-media img { width: 100%; display: block; }
-.media-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.7); padding: 0.3rem; font-family: var(--font-tech); font-size: 0.75rem; color: var(--holo-blue); text-align: center; }
-.close-btn { width: 100%; padding: 0.8rem; background: transparent; border: 1px solid var(--border-tech); color: var(--text-muted); font-family: var(--font-tech); cursor: pointer; transition: all 0.2s; }
-.close-btn:hover { background: rgba(255,255,255,0.1); color: var(--text); }
-
-/* Transitions & Anim */
-.slide-panel-enter-active, .slide-panel-leave-active { transition: transform 0.3s ease; }
-.slide-panel-enter-from, .slide-panel-leave-to { transform: translateX(100%); }
-@keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: 0; } 100% { transform: scale(1); opacity: 0; } }
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-.header-left { display: flex; flex-direction: column; gap: 0.5rem; }
-.header-right { display: flex; align-items: center; }
+.plain-btn:hover { border-color: var(--weathered); }
 .manage-container { max-height: 70vh; overflow-y: auto; }
 
-/* 小屏：页头纵向排列；维度切换器横向滑动，按钮不再被挤成逐字竖排 */
-@media (max-width: 768px) {
-  .sector-header { flex-direction: column; align-items: stretch; gap: 0.75rem; padding: 0.75rem; }
-  .header-left { min-width: 0; }
-  .dimension-switch { display: flex; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
-  .dim-btn { white-space: nowrap; flex: 0 0 auto; padding: 0.4rem 0.75rem; }
-  .header-right { justify-content: space-between; }
-  .legend { margin-right: 0.75rem; gap: 0.75rem; }
-  .legend-hint { display: none; }
+@media (max-width: 960px) {
+  .stream { grid-template-columns: 1fr; }
+  .side { position: static; order: -1; }
+  .event { grid-template-columns: minmax(0, 1fr) auto; }
+  .when { grid-column: 1 / -1; flex-direction: row; gap: 0.75rem; }
 }
 </style>
