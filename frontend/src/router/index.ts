@@ -197,6 +197,12 @@ const router = createRouter({
       meta: { title: '执剑人', sector: 'sword' },
     },
     {
+      path: '/sector-stamp',
+      name: 'sector-stamp',
+      component: () => import('@/views/SectorStamp.vue'),
+      meta: { title: '钢印', sector: 'stamp' },
+    },
+    {
       path: '/sector-tale',
       name: 'sector-tale',
       component: () => import('@/views/SectorTale.vue'),

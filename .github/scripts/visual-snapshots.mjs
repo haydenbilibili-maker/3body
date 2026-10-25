@@ -60,6 +60,7 @@ const ROUTES = [
   ['sector-sword', '执剑人'],
   ['sector-ns', '自然选择号'],
   ['sector-tale', '童话'],
+  ['sector-stamp', '钢印'],
 ]
 
 const VIEWPORTS = [
@@ -251,6 +252,51 @@ const STATES = [
     act: async (page) => {
       await page.click('.nav-hamburger')
       await page.waitForTimeout(600)
+    },
+  },
+  {
+    // 钢印：钢印之后去选另一边，那一项被划掉
+    name: 'mobile-stamp-slip',
+    viewport: 'mobile',
+    slug: 'sector-stamp',
+    act: async (page) => {
+      // 钢印之前：五个处境都选「失败」那一边
+      for (let i = 0; i < 5; i += 1) {
+        await page.locator('.opt').nth(1).click()
+        await page.waitForTimeout(120)
+      }
+      const hold = page.getByRole('button', { name: '按住，接受钢印' })
+      await hold.focus()
+      await page.keyboard.press('Enter')
+      await page.waitForTimeout(3000)
+      // 钢印之后：去够「失败」那一边，手落到另一边
+      await page.locator('.opt').nth(1).click()
+      await page.waitForTimeout(700)
+    },
+  },
+  {
+    // 钢印：五个回答前后对照
+    name: 'stamp-end',
+    viewport: 'desktop',
+    slug: 'sector-stamp',
+    act: async (page) => {
+      // 钢印之前：五个处境都选「失败」那一边
+      for (let i = 0; i < 5; i += 1) {
+        await page.locator('.opt').nth(1).click()
+        await page.waitForTimeout(120)
+      }
+      const hold = page.getByRole('button', { name: '按住，接受钢印' })
+      await hold.focus()
+      await page.keyboard.press('Enter')
+      await page.waitForTimeout(3000)
+      // 钢印之后：去够「失败」那一边，手落到另一边
+      await page.locator('.opt').nth(1).click()
+      await page.waitForTimeout(700)
+      for (let i = 1; i < 5; i += 1) {
+        await page.waitForTimeout(2300)
+        await page.locator('.opt').nth(1).click()
+      }
+      await page.waitForTimeout(2600)
     },
   },
   {
