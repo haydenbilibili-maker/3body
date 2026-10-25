@@ -431,7 +431,8 @@ onUnmounted(() => {
 .talk {
   position: fixed;
   inset: 0;
-  z-index: 880;
+  /* 盖在人物档案弹窗（naive-ui 的模态层从 2000 起）之上；离开对话室后回到档案 */
+  z-index: 3000;
   display: grid;
   grid-template-columns: minmax(15rem, 19rem) minmax(0, 1fr);
   background: var(--void);
