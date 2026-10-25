@@ -157,7 +157,7 @@ async function send(text: string) {
       figure_role: props.figure.role || undefined,
       figure_description: props.figure.description || undefined,
       message: q,
-      history: [{ role: 'assistant', content: s.opening }, ...history].slice(-16),
+      history: [{ role: 'assistant' as const, content: s.opening }, ...history].slice(-16),
       scene: {
         title: s.title,
         era: s.era,
