@@ -374,16 +374,30 @@ button, a, input, .card {
 }
 
 @media print {
+  /* 打印即拓片：与 [data-theme='rubbing'] 同一组值 */
   :root {
-    --void: #ece7dc;
-    --slab: #e3ddd0;
-    --incision: #a8a090;
-    --incision-soft: #cfc8b8;
-    --bone: #1d1e21;
-    --gray-150: #2c2d30;
-    --weathered: #5f5a50;
-    --cherenkov: #1f5fae;
-    --era-archive: #6a5a36;
+  --void: #ece7dc;
+  --slab: #e3ddd0;
+  --slab-raised: #d9d2c3;
+  --incision: #a8a090;
+  --incision-soft: #cfc8b8;
+  --bone: #1d1e21;
+  --gray-150: #2c2d30;
+  --gray-200: #2c2d30;
+  --weathered: #5f5a50;
+  --cherenkov: #1f5fae;
+  --cherenkov-rgb: 31, 95, 174;
+  --rust: #9a3524;
+  --rust-bright: #a83a27;
+  --era-pastoral: #7a6514;
+  --era-common: #7a5a1c;
+  --era-crisis: #3c5a80;
+  --era-deterrence: #5a4a7a;
+  --era-broadcast: #8a3f5c;
+  --era-bunker: #7a5220;
+  --era-galaxy: #6a4f6c;
+  --era-beyond: #4a4740;
+  --era-archive: #6a5a36;
   }
   html, body, .app-layout, .app-body, .app-main { background: #ece7dc !important; }
   /* 宇宙背景、画布与全屏特效都不进拓片 */
