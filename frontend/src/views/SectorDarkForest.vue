@@ -6,6 +6,7 @@
 import { ref, onMounted, onUnmounted, reactive, watch, computed } from 'vue'
 import { recordAnswer } from '@/data/answers'
 import SectorHeader from '@/components/SectorHeader.vue'
+import DarkForestLamp from '@/components/DarkForestLamp.vue'
 import { sectorByPath } from '@/data/sectors'
 import { useRouter } from 'vue-router'
 import { NInput, NButton, NModal, useMessage, NTabs, NTabPane, NProgress } from 'naive-ui'
@@ -897,6 +898,8 @@ watch(gameStatus, (g) => {
       subtitle="宇宙是一座黑暗森林，每个文明都是带枪的猎人"
       goal="在暴露与沉默之间做选择：沙盒里观察文明如何互相清除，博弈中让你的文明活到最后。"
     />
+
+    <DarkForestLamp />
 
     <NTabs v-model:value="activeTab" type="segment" class="df-tabs">
       <!-- Tab 1: Hunter Simulator -->

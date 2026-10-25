@@ -590,6 +590,66 @@ const STATES = [
       await page.waitForTimeout(800)
     },
   },
+  {
+    // 首页：抓住一颗太阳甩出去，等轨迹画出来
+    name: 'desktop-home-gravity',
+    viewport: 'desktop',
+    slug: 'sector-c',
+    act: async (page) => {
+      await page.waitForTimeout(3000)
+      await page.mouse.move(900, 400)
+      await page.waitForTimeout(3000)
+    },
+  },
+  {
+    // 水滴：镜面着色器
+    name: 'desktop-droplet-mirror',
+    viewport: 'desktop',
+    slug: 'sector-w',
+    act: async (page) => {
+      await page.waitForTimeout(2500)
+    },
+  },
+  {
+    // 黑暗森林：灯在画布里移动几秒
+    name: 'desktop-forest-lamp',
+    viewport: 'desktop',
+    slug: 'sector-e',
+    act: async (page) => {
+      const box = await page.locator('section.lamp canvas').boundingBox({ timeout: 8000 })
+      for (let i = 0; i < 30; i += 1) {
+        await page.mouse.move(box.x + box.width * (0.2 + 0.6 * (i / 30)), box.y + box.height * (0.5 + 0.3 * Math.sin(i / 4)))
+        await page.waitForTimeout(120)
+      }
+    },
+  },
+  {
+    // 二向箔画廊：展品跌入二维，然后整页跌进去
+    name: 'desktop-gallery-page-fall',
+    viewport: 'desktop',
+    slug: 'sector-d',
+    act: async (page) => {
+      await page.getByRole('button', { name: '按住，让它跌入二维' }).focus({ timeout: 8000 })
+      await page.keyboard.press('Enter')
+      await page.waitForTimeout(4200)
+      await page.getByRole('button', { name: '按住，让这一页也跌进去' }).focus({ timeout: 5000 })
+      await page.keyboard.press('Enter')
+      await page.waitForTimeout(1800)
+    },
+  },
+  {
+    // 深时跃迁：从首页的展厅索引去「田园时代」，转场进行中
+    name: 'desktop-warp',
+    viewport: 'desktop',
+    slug: 'sector-r',
+    act: async (page) => {
+      await page.waitForTimeout(600)
+      await page.getByRole('link', { name: '田园时代' }).first().click({ timeout: 4000 }).catch(async () => {
+        await page.getByRole('button', { name: '田园时代' }).first().click({ timeout: 4000 })
+      })
+      await page.waitForTimeout(450)
+    },
+  },
 ]
 
 async function snapshotState(browser, state) {

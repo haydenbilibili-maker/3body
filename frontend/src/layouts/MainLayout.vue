@@ -9,6 +9,7 @@ import { useUniverseStore } from '@/stores/universe'
 import { useUserStore } from '@/stores/user'
 import AppNav from '@/components/AppNav.vue'
 import DeepTimeRail from '@/components/DeepTimeRail.vue'
+import WarpTransition from '@/components/WarpTransition.vue'
 import SophonIntercept from '@/components/commercial/SophonIntercept.vue'
 import { soundManager } from '@/utils/sound'
 
@@ -75,6 +76,7 @@ onUnmounted(() => {
       <AppNav />
     </header>
 
+    <WarpTransition />
     <div class="app-body">
     <aside v-if="!isHome" class="app-rail">
       <DeepTimeRail />
