@@ -19,7 +19,7 @@ const factions = [
     leader: '麦克·伊文斯',
     slogan: '消灭人类暴政，世界属于三体。',
     desc: '对人类文明彻底绝望，渴望主降临并通过强制手段改造地球。',
-    color: '#ff4444'
+    color: '#d2553f'
   },
   {
     id: 'REDEMPTIONIST',

@@ -145,7 +145,7 @@ function runSimulation() {
       .attr('y1', 0)
       .attr('x2', x)
       .attr('y2', height)
-      .attr('stroke', 'rgba(0,255,255,0.04)')
+      .attr('stroke', 'rgba(125, 184, 255,0.04)')
       .attr('stroke-width', 1)
   }
   for (let y = 0; y <= height; y += gridSize) {
@@ -154,7 +154,7 @@ function runSimulation() {
       .attr('y1', y)
       .attr('x2', width)
       .attr('y2', y)
-      .attr('stroke', 'rgba(0,255,255,0.04)')
+      .attr('stroke', 'rgba(125, 184, 255,0.04)')
       .attr('stroke-width', 1)
   }
 
@@ -172,7 +172,7 @@ function runSimulation() {
     .selectAll('line')
     .data(linksCopy)
     .join('line')
-    .attr('stroke', 'rgba(0,255,255,0.15)')
+    .attr('stroke', 'rgba(125, 184, 255,0.15)')
     .attr('stroke-width', 1.5)
     .attr('stroke-dasharray', '2 4')
     .attr('stroke-linecap', 'round')
@@ -185,7 +185,7 @@ function runSimulation() {
     .data(linksCopy)
     .join('text')
     .attr('font-size', 9)
-    .attr('fill', 'rgba(0,255,255,0.35)')
+    .attr('fill', 'rgba(125, 184, 255,0.35)')
     .attr('text-anchor', 'middle')
     .attr('pointer-events', 'none')
     .text((d: GraphLink) => d.relation_type)
@@ -223,7 +223,7 @@ function runSimulation() {
     .attr('r', (d: GraphNode) => (d.figure ? 24 : 18))
     .attr('fill', 'none')
     .attr('stroke', (d: GraphNode) =>
-      d.figure ? 'rgba(0,255,255,0.4)' : 'rgba(255,180,0,0.25)'
+      d.figure ? 'rgba(125, 184, 255,0.4)' : 'rgba(255,180,0,0.25)'
     )
     .attr('stroke-width', 2)
     .attr('filter', 'url(#glow)')
@@ -237,7 +237,7 @@ function runSimulation() {
       d.figure ? 'rgba(0,40,50,0.9)' : 'rgba(40,30,0,0.8)'
     )
     .attr('stroke', (d: GraphNode) =>
-      d.figure ? '#00ffff' : 'rgba(255,180,0,0.6)'
+      d.figure ? '#7db8ff' : 'rgba(255,180,0,0.6)'
     )
     .attr('stroke-width', 1.5)
     .attr('class', 'node-dot')
@@ -248,7 +248,7 @@ function runSimulation() {
     .attr('dy', (d: GraphNode) => (d.figure ? 32 : 26))
     .attr('text-anchor', 'middle')
     .attr('fill', (d: GraphNode) =>
-      d.figure ? 'rgba(0,255,255,0.9)' : 'rgba(255,180,0,0.7)'
+      d.figure ? 'rgba(125, 184, 255,0.9)' : 'rgba(255,180,0,0.7)'
     )
     .attr('font-size', (d: GraphNode) => (d.figure ? 11 : 9))
     .attr('font-family', 'monospace')
@@ -262,15 +262,15 @@ function runSimulation() {
   node.on('mouseenter', function (ev: MouseEvent, d: GraphNode) {
     hoveredNodeId.value = d.id
     const gEl = ev.currentTarget as SVGGElement
-    d3.select(gEl).select('.node-glow').attr('stroke', 'rgba(0,255,255,0.9)')
+    d3.select(gEl).select('.node-glow').attr('stroke', 'rgba(125, 184, 255,0.9)')
     d3.select(gEl).select('.node-dot').attr('stroke-width', 2.5)
     link.attr('stroke', (l: unknown) => {
       const edge = l as GraphLink
       const s = (edge.source as GraphNode)?.id ?? edge.source
       const t = (edge.target as GraphNode)?.id ?? edge.target
       return s === d.id || t === d.id
-        ? 'rgba(0,255,255,0.7)'
-        : 'rgba(0,255,255,0.06)'
+        ? 'rgba(125, 184, 255,0.7)'
+        : 'rgba(125, 184, 255,0.06)'
     })
     link.attr('stroke-width', (l: unknown) => {
       const edge = l as GraphLink
@@ -284,10 +284,10 @@ function runSimulation() {
     hoveredNodeId.value = null
     const gEl = ev.currentTarget as SVGGElement
     d3.select<SVGGElement, GraphNode>(gEl).select<SVGElement>('.node-glow').attr('stroke', (d) =>
-      d.figure ? 'rgba(0,255,255,0.4)' : 'rgba(255,180,0,0.25)'
+      d.figure ? 'rgba(125, 184, 255,0.4)' : 'rgba(255,180,0,0.25)'
     )
     d3.select(gEl).select('.node-dot').attr('stroke-width', 1.5)
-    link.attr('stroke', 'rgba(0,255,255,0.15)').attr('stroke-width', 1.5)
+    link.attr('stroke', 'rgba(125, 184, 255,0.15)').attr('stroke-width', 1.5)
   })
 
   simulation.on('tick', () => {
@@ -405,7 +405,7 @@ onUnmounted(() => {
 .legend-item .dot.external {
   background: rgba(40, 30, 0, 0.8);
   border-color: rgba(255, 180, 0, 0.6);
-  box-shadow: 0 0 6px rgba(255, 180, 0, 0.3);
+  box-shadow: none;
 }
 
 .legend-hint {

@@ -89,7 +89,7 @@ defineProps<{
   width: 60%;
   height: 5px;
   background: var(--holo-blue);
-  box-shadow: 0 0 20px 5px var(--holo-blue);
+  box-shadow: none;
   opacity: 0;
   transition: opacity 0.4s;
   border-radius: 50%;

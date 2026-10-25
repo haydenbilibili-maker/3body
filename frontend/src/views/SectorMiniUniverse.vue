@@ -597,7 +597,7 @@ onUnmounted(() => {
 .u-noise { display: flex; gap: 3px; height: 24px; align-items: flex-end; margin-bottom: 0.6rem; }
 .u-noise span { flex: 1; background: rgba(243, 230, 211, 0.25); animation: noise 0.9s steps(3) infinite alternate; height: 30%; }
 @keyframes noise { 0% { height: 20%; } 50% { height: 55%; } 100% { height: 35%; } }
-.u-receiver.live { border-color: rgba(150, 190, 255, 0.55); box-shadow: 0 0 24px rgba(150, 190, 255, 0.15); }
+.u-receiver.live { border-color: rgba(150, 190, 255, 0.55); box-shadow: none; }
 .u-receiver.live .u-noise span { background: rgba(150, 190, 255, 0.7); animation-duration: 0.35s; }
 
 /* 广播 */

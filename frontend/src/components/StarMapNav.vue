@@ -212,9 +212,7 @@ function go(path: string) {
     rgba(184, 245, 255, 0.95),
     rgba(125, 249, 255, 0.7)
   );
-  box-shadow:
-    0 0 8px rgba(125, 249, 255, 0.5),
-    0 0 20px rgba(125, 249, 255, 0.2);
+  box-shadow: none;
 }
 
 .node-aura {
@@ -240,9 +238,7 @@ function go(path: string) {
 }
 
 .star-node.active .node-core {
-  box-shadow:
-    0 0 12px rgba(125, 249, 255, 0.8),
-    0 0 30px rgba(125, 249, 255, 0.3);
+  box-shadow: none;
 }
 
 /* ========== 标签：优雅无衬线 ========== */
@@ -260,7 +256,7 @@ function go(path: string) {
   white-space: nowrap;
   opacity: 0;
   transition: opacity 1s ease;
-  text-shadow: 0 0 16px rgba(125, 249, 255, 0.4);
+  text-shadow: none;
 }
 
 .star-node:hover .node-label,
@@ -275,7 +271,7 @@ function go(path: string) {
 /* PRD 扇区 X：未知区域，视觉上弱化表示预留 */
 .star-node-dim .node-core {
   opacity: 0.5;
-  box-shadow: 0 0 4px rgba(125, 249, 255, 0.3);
+  box-shadow: none;
 }
 .star-node-dim:hover .node-core,
 .star-node-dim.active .node-core {

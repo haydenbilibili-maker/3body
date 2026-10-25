@@ -160,8 +160,8 @@ onMounted(loadItems)
   <div class="gallery-module">
     <div class="gallery-header">
       <div class="header-info">
-        <h2 class="module-title">COSMIC_ARCHIVES // 宇宙档案馆</h2>
-        <span class="module-subtitle">绝密历史档案 [{{ items.length }}] · 智子视网膜投影</span>
+        <h2 class="module-title">档案馆</h2>
+        <span class="module-subtitle">历史档案 {{ items.length }} 件</span>
       </div>
     </div>
 
@@ -178,7 +178,7 @@ onMounted(loadItems)
       >
         <div class="foil-frame">
           <div class="foil-media">
-            <div class="archive-seal">TOP SECRET</div>
+            
             <div v-if="item.status === 'cleansed'" class="cleansed-overlay">
               <span class="text-xs text-red-500 font-mono">[已封存]</span>
             </div>
@@ -190,7 +190,7 @@ onMounted(loadItems)
           <div class="foil-info">
             <h3 class="foil-title">{{ item.title }}</h3>
             <div class="foil-meta">
-              <span>REF: {{ String(item.id).slice(-6).toUpperCase() }}</span>
+              <span>编号 {{ String(item.id).slice(-6).toUpperCase() }}</span>
               <button class="action-btn">读取</button>
             </div>
           </div>
@@ -223,8 +223,8 @@ onMounted(loadItems)
           </div>
           
           <div class="retina-footer">
-            <span>SOPHON_LAYER_PROJECTION // VERIFIED</span>
-            <span>TRANSMISSION_RATE: 100%</span>
+            <span>档案已核验</span>
+            
           </div>
         </div>
       </div>
@@ -392,7 +392,7 @@ onMounted(loadItems)
   color: var(--holo-blue);
   margin: 0;
   letter-spacing: 0.1em;
-  text-shadow: 0 0 10px var(--holo-blue);
+  text-shadow: none;
 }
 .retina-close {
   background: transparent; border: 1px solid var(--holo-red);
@@ -436,7 +436,7 @@ onMounted(loadItems)
   font-size: 1rem;
   line-height: 1.8;
   white-space: pre-wrap;
-  text-shadow: 0 0 2px var(--holo-blue);
+  text-shadow: none;
 }
 
 .cursor-block {

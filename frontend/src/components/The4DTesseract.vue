@@ -103,13 +103,13 @@ onBeforeRender(({ elapsed }) => {
   <TresGroup>
     <!-- Wireframe: Pass geometry instance via prop -->
     <TresLineSegments :geometry="geometry">
-      <TresLineBasicMaterial color="#00ffff" :linewidth="2" :opacity="0.8" transparent />
+      <TresLineBasicMaterial color="#7db8ff" :linewidth="2" :opacity="0.8" transparent />
     </TresLineSegments>
     
     <!-- Inner Glow -->
     <TresMesh>
       <TresBoxGeometry :args="[0.5, 0.5, 0.5]" />
-      <TresMeshBasicMaterial color="#ff00ff" :opacity="0.2" transparent />
+      <TresMeshBasicMaterial color="#a99cc4" :opacity="0.2" transparent />
     </TresMesh>
   </TresGroup>
 </template>
