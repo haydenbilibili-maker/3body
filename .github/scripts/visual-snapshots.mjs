@@ -57,6 +57,8 @@ const ROUTES = [
   ['sector-guzheng', '古筝计划'],
   ['sector-sleep', '冬眠者'],
   ['sector-ledger', '读者的档案'],
+  ['sector-sword', '执剑人'],
+  ['sector-ns', '自然选择号'],
 ]
 
 const VIEWPORTS = [
@@ -559,6 +561,33 @@ const STATES = [
       await page.getByRole('button', { name: '不执行' }).click({ timeout: 8000 })
       await page.goto(new URL('sector-ledger', BASE_URL).toString(), { waitUntil: 'domcontentloaded' })
       await page.waitForTimeout(1500)
+    },
+  },
+  {
+    // 执剑人：四个处境都选最温和的回答 → 接过开关 → 水滴来袭，倒计时中
+    name: 'desktop-sword-alarm',
+    viewport: 'desktop',
+    slug: 'sector-sword',
+    act: async (page) => {
+      for (const t of ['在发抖，迟迟没有伸出去', '不愿意。没有什么值得两个世界陪葬', '两个世界里所有的孩子', '不会的，别怕']) {
+        await page.getByRole('button', { name: t }).click({ timeout: 8000 })
+      }
+      await page.getByRole('button', { name: '按住，从罗辑手里接过开关' }).focus()
+      await page.keyboard.press('Enter')
+      await page.waitForTimeout(2500)
+    },
+  },
+  {
+    // 自然选择号：拨到前进三，然后按住「前进四」，跳过追击
+    name: 'mobile-ns-fled',
+    viewport: 'mobile',
+    slug: 'sector-ns',
+    act: async (page) => {
+      await page.getByRole('radio', { name: '前进三' }).click({ timeout: 8000 })
+      await page.getByRole('button', { name: '按住，前进四' }).focus()
+      await page.keyboard.press('Enter')
+      await page.getByRole('button', { name: '跳过' }).click({ timeout: 5000 })
+      await page.waitForTimeout(800)
     },
   },
 ]

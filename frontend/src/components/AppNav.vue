@@ -45,7 +45,9 @@ const navGroups = [
       { path: '/sector-f', label: '面壁计划', code: 'WALLFACER' },
       { path: '/sector-s', label: '阶梯', code: 'STAIRCASE' },
       { path: '/sector-w', label: '水滴', code: 'DROPLET' },
+      { path: '/sector-ns', label: '自然选择号', code: 'NATURAL-SELECTION' },
       { path: '/sector-e', label: '黑暗森林', code: 'FOREST' },
+      { path: '/sector-sword', label: '执剑人', code: 'SWORDHOLDER' },
     ]
   },
   {

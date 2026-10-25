@@ -4,6 +4,7 @@
  * 包含四位面壁者的战略计划与思想钢印
  */
 import { ref, reactive, onMounted, watch, nextTick, computed } from 'vue'
+import { recordAnswer } from '@/data/answers'
 import SectorHeader from '@/components/SectorHeader.vue'
 import { useRoute, useRouter } from 'vue-router'
 import { NButton, NTabs, NTabPane, NSlider, NProgress, NInput, useMessage, NModal, NTag } from 'naive-ui'
@@ -825,6 +826,11 @@ onMounted(() => {
   } catch {}
   creationPool.value = loadVersionedState<string[]>(LOCAL_CREATION_POOL, [])
   runPoisoning().catch(() => { pollutedText.value = sourceText.value })
+})
+
+/* ---------- 读者的档案 ---------- */
+watch(breachTriggered, (b) => {
+  if (b) recordAnswer('/sector-f', '面壁计划被破壁人看穿了')
 })
 </script>
 

@@ -4,7 +4,8 @@
  * 每天一个选择，在饥饿、健康与理智之间取舍；不时有人敲门。
  * 结局记下你活下来的方式，以及你分给别人的口粮——然后回到本页的问题。
  */
-import { computed, nextTick, ref } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
+import { recordAnswer } from '@/data/answers'
 import SectorHeader from '@/components/SectorHeader.vue'
 import Vitrine from '@/components/Vitrine.vue'
 import { sectorByPath } from '@/data/sectors'
@@ -193,6 +194,11 @@ const bars = computed(() => [
   { id: 'hunger', label: '饥饿', v: stats.value.hunger, bad: stats.value.hunger > 75 },
   { id: 'sanity', label: '理智', v: stats.value.sanity, bad: stats.value.sanity < 30 },
 ])
+
+/* ---------- 读者的档案 ---------- */
+watch(ended, (e) => {
+  if (e) recordAnswer('/sector-ravine', `${e.survived ? '活过了大低谷' : '没能活过大低谷'}；分出食物 ${shared.value} 次，拒绝 ${refused.value} 次`)
+})
 </script>
 
 <template>

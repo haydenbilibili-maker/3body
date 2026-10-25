@@ -4,7 +4,8 @@
  * 核心：绝对光滑 (Mirror), 动态打击 (Strike), 太阳封锁 (Blockade)
  * 技术：TresJS (3D), Canvas (2D Game)
  */
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
+import { recordAnswer } from '@/data/answers'
 import { NTabs, NTabPane } from 'naive-ui'
 import SectorHeader from '@/components/SectorHeader.vue'
 import { sectorByPath } from '@/data/sectors'
@@ -200,6 +201,11 @@ onMounted(() => {
   initFleet()
 })
 
+
+/* ---------- 读者的档案 ---------- */
+watch(fleetDown, (d) => {
+  if (d) recordAnswer('/sector-w', '看着舰队在末日战役里被一个水滴摧毁')
+})
 </script>
 
 <template>
