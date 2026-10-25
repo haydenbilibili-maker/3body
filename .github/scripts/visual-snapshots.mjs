@@ -764,6 +764,35 @@ const STATES = [
       await page.waitForTimeout(6000)
     },
   },
+  {
+    // 自然选择号：前进四，整页被压向深处、深海状态液涌上来
+    name: 'desktop-ns-gforce',
+    viewport: 'desktop',
+    slug: 'sector-ns',
+    act: async (page) => {
+      await page.getByRole('button', { name: '按住，前进四' }).focus({ timeout: 8000 })
+      await page.keyboard.press('Enter')
+      await page.waitForTimeout(1800)
+    },
+  },
+  {
+    // 盲区：慢慢打一句话、移动鼠标，看智子记下的节奏与手的轨迹
+    name: 'desktop-blind-hand',
+    viewport: 'desktop',
+    slug: 'sector-blind',
+    act: async (page) => {
+      for (let i = 0; i < 20; i += 1) {
+        await page.mouse.move(300 + i * 40, 300 + Math.sin(i / 2) * 120)
+        await page.waitForTimeout(40)
+      }
+      await page.locator('input[aria-label=念头]').click()
+      await page.keyboard.type('我不', { delay: 120 })
+      await page.waitForTimeout(1500)
+      await page.keyboard.type('相信', { delay: 120 })
+      await page.keyboard.press('Enter')
+      await page.waitForTimeout(500)
+    },
+  },
 ]
 
 async function snapshotState(browser, state) {

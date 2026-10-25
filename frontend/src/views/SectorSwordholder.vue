@@ -56,6 +56,9 @@ function restart() {
 
 <template>
   <div class="sector-sword">
+    <Teleport to="body">
+      <div v-if="act === 'alarm'" class="tunnel" :style="{ '--k': 1 - left / WINDOW }" aria-hidden="true"></div>
+    </Teleport>
     <SectorHeader
       title="执剑人"
       subtitle="引力波发射器的开关在执剑人手里：一按下去，三体世界和太阳系的坐标会同时广播给整个宇宙。威慑能不能成立，取决于三体世界相不相信你会按。"
@@ -85,7 +88,7 @@ function restart() {
       <HoldButton tone="rust" :hold-ms="2200" @confirm="takeSword">按住，从罗辑手里接过开关</HoldButton>
     </section>
 
-    <Vitrine v-else-if="act === 'alarm'" class="alarm">
+    <Vitrine v-else-if="act === 'alarm'" class="alarm shake">
       <p class="a-head">交接完成。水滴正在加速，朝引力波天线飞来。</p>
       <p class="a-count num">{{ left.toFixed(1) }} 秒</p>
       <HoldButton tone="rust" :hold-ms="1200" @confirm="finish('pressed')">按住，发射引力波</HoldButton>
@@ -159,4 +162,22 @@ function restart() {
   text-decoration: none;
 }
 .plain-btn:hover { border-color: var(--weathered); }
+/* 倒计时里，视野一点点收窄，只剩下那个开关 */
+.tunnel {
+  position: fixed;
+  inset: 0;
+  z-index: 860;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 55%, transparent calc(62% - var(--k) * 42%), rgba(0, 0, 0, 0.92) calc(80% - var(--k) * 40%));
+  transition: background 0.1s linear;
+}
+.shake { animation: shake 0.12s linear infinite; }
+@keyframes shake {
+  25% { transform: translate(0.6px, -0.4px); }
+  50% { transform: translate(-0.5px, 0.5px); }
+  75% { transform: translate(0.4px, 0.3px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .shake { animation: none; }
+}
 </style>
