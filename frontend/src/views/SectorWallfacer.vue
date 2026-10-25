@@ -22,6 +22,12 @@ const message = useMessage()
 
 const activeTab = ref<string>('tyler')
 
+/** 面壁者的中文名（界面显示用） */
+function cnName(id: string): string {
+  const names: Record<string, string> = { tyler: '泰勒', diaz: '雷迪亚兹', hines: '希恩斯', luoji: '罗辑' }
+  return names[id] ?? id
+}
+
 // --- Wallbreaker System ---
 const wallbreakers = {
   tyler: {
@@ -519,7 +525,7 @@ function generateWallbreakerReport() {
       newReport.inferredTruth = finalInferredTruth
       newReport.confidence = finalConfidence
       newReport.typing = false
-      message.warning(`破壁报告已生成：${({ tyler: '泰勒', diaz: '雷迪亚兹', hines: '希恩斯', luoji: '罗辑' } as Record<string, string>)[target] ?? target}`)
+      message.warning(`破壁报告已生成：${cnName(target)}`)
     }
   }, 50)
 }
@@ -1100,7 +1106,7 @@ onMounted(() => {
                           :class="{ active: wallbreakerTarget === t }"
                           @click="setWallbreakerTarget(t)"
                         >
-                          {{ ({ tyler: '泰勒', diaz: '雷迪亚兹', hines: '希恩斯', luoji: '罗辑' } as Record<string, string>)[t] }}
+                          {{ cnName(t) }}
                         </button>
                       </div>
                       <div v-if="wallbreakerReports.length === 0" class="wb-empty">
@@ -1110,7 +1116,7 @@ onMounted(() => {
                         <div v-for="r in wallbreakerReports" :key="r.id" class="wb-item">
                           <div class="wb-row">
                             <span class="wb-time">[{{ r.time }}]</span>
-                            <span class="wb-tag">{{ r.target.toUpperCase() }}</span>
+                            <span class="wb-tag">{{ cnName(r.target) }}</span>
                             <span class="wb-threat" :class="r.threat.toLowerCase()">{{ r.threat }}</span>
                           </div>
                           <p class="wb-facade">表层计划：{{ r.facade }}</p>
