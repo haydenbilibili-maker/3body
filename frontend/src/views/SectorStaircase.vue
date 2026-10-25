@@ -497,7 +497,6 @@ watch(
       title="阶梯计划"
       subtitle="只送大脑——以及云天明的童话"
       goal="飞船经过核弹时按下「引爆」为它加速；冲过终点时速度达到 15.0% c 即成功入轨。"
-      accent="#e0b3ff"
     />
 
     <NTabs type="segment" v-model:value="activeTab" class="s-tabs">
@@ -1043,7 +1042,7 @@ watch(
   padding: 0.8rem 1rem;
   margin-bottom: 0.5rem;
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: var(--radius-cut);
   border: 1px solid transparent;
   font-family: var(--font-serif);
   transition: all 0.2s;
@@ -1097,7 +1096,7 @@ watch(
   margin-bottom: 0.8rem;
   background: rgba(255,255,255,0.5);
   border: 1px dashed var(--gray-200);
-  border-radius: 4px;
+  border-radius: var(--radius-cut);
 }
 
 .clue-item.solved {
@@ -1143,7 +1142,7 @@ watch(
   background: var(--gray-800);
   border: 1px solid var(--gray-600);
   box-shadow: 0 5px 20px rgba(0,0,0,0.5);
-  border-radius: 4px;
+  border-radius: var(--radius-cut);
   width: 280px;
   color: var(--gray-100);
   transform: translateY(5px);
@@ -1482,7 +1481,7 @@ watch(
   padding: 0.5rem 0.6rem;
   border: 1px solid #25363a;
   background: rgba(0, 25, 30, 0.2);
-  border-radius: 4px;
+  border-radius: var(--radius-cut);
 }
 .tianming-intro .intro-title { font-size: 0.75rem; color: #7a9a9a; text-transform: uppercase; letter-spacing: 0.08em; margin-right: 0.5rem; }
 .tianming-intro p { margin: 0.3rem 0 0; font-size: 0.85rem; color: #a8c0c0; line-height: 1.5; }
@@ -1498,7 +1497,7 @@ watch(
   color: #b8d0d0;
   padding: 0.4rem 0.6rem;
   font-size: 0.8rem;
-  border-radius: 6px;
+  border-radius: var(--radius-cut);
   cursor: pointer;
 }
 .tianming-chip:hover:not(:disabled) { border-color: #3a6060; background: rgba(0, 40, 50, 0.5); }
@@ -1514,7 +1513,7 @@ watch(
   background: rgba(0, 20, 28, 0.35);
   color: #b8d0d0;
   padding: 0.5rem 0.7rem;
-  border-radius: 6px;
+  border-radius: var(--radius-cut);
   cursor: pointer;
   text-align: left;
   display: flex;

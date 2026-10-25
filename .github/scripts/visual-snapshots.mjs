@@ -253,6 +253,26 @@ const STATES = [
     },
   },
   {
+    // VI 拓片主题：读者的档案打印 / 导出时切换为宣纸与墨，只留下做过选择的展厅
+    name: 'ledger-rubbing-print',
+    viewport: 'desktop',
+    slug: 'sector-ledger',
+    act: async (page) => {
+      await page.evaluate(() => {
+        const now = Date.now()
+        const a = {
+          '/sector-r': { path: '/sector-r', text: '没有回答宇宙', at: now },
+          '/sector-sword': { path: '/sector-sword', text: '威慑度 62%；守住了开关', at: now },
+          '/sector-x': { path: '/sector-x', text: '归还了质量，留下一只漂流瓶；宇宙重启了', at: now },
+        }
+        localStorage.setItem('deep-time-answers-v1', JSON.stringify(a))
+      })
+      await page.reload({ waitUntil: 'networkidle' })
+      await page.emulateMedia({ media: 'print' })
+      await page.waitForTimeout(800)
+    },
+  },
+  {
     name: 'mobile-nav-drawer',
     viewport: 'mobile',
     slug: 'sector-b',

@@ -84,7 +84,6 @@ watch(finished, (f) => {
       title="归零者"
       subtitle="无数文明把质量带进了自己的小宇宙，躲开时间与战争。大宇宙因此少了太多质量，再也不能坍缩、重新开始。"
       goal="六轮广播。每一轮你都可以归还全部质量、留下一只漂流瓶再归还，或者再等等，看看别人怎么做。"
-      accent="#d6d2c8"
       :show-restart="state.round > 0"
       restart-label="回到第一轮广播"
       @restart="restart"
@@ -170,10 +169,10 @@ watch(finished, (f) => {
 
 .civs { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 1.5rem; }
 .civ { display: flex; align-items: baseline; gap: 0.6rem; padding: 0.5rem 0; border-bottom: 1px solid var(--incision-soft); font-size: 0.9375rem; color: var(--weathered); }
-.civ em { margin-left: auto; font-style: normal; font-size: 0.8125rem; color: var(--incision); }
+.civ em { margin-left: auto; font-style: normal; font-size: 0.8125rem; color: var(--weathered); }
 .civ .dot { flex: none; width: 8px; height: 8px; border: 1px solid var(--weathered); border-radius: 50%; }
 .civ.back { color: var(--bone); }
-.civ.back em { color: var(--weathered); }
+.civ.back em { color: var(--bone); }
 .civ.back .dot { background: #d6d2c8; border-color: #d6d2c8; }
 .civ.you { color: var(--bone); font-weight: 600; }
 
@@ -185,7 +184,7 @@ watch(finished, (f) => {
 .end-title { margin: 0.5rem 0 1rem; font-family: var(--font-serif); font-weight: 900; font-size: 1.75rem; letter-spacing: 0.12em; color: var(--bone); }
 .end p { margin: 0 0 0.9rem; font-family: var(--font-serif); font-size: 1.0625rem; line-height: 1.9; color: var(--gray-150); }
 .end .book { font-family: var(--font-sans); font-size: 0.9375rem; color: var(--weathered); }
-.end .q { margin-top: 1.25rem; padding-left: 1rem; border-left: 1px solid #d6d2c8; color: var(--bone); }
+.end .q { margin-top: 1.25rem; padding-left: 1rem; border-left: 1px solid var(--era-beyond); color: var(--bone); }
 .links { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1rem; }
 
 .plain-btn {

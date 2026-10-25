@@ -114,7 +114,6 @@ onUnmounted(() => clearInterval(farmTimer))
       title="科学边界"
       subtitle="一批顶尖物理学家相继自杀。其中一人留下的遗言说：物理学从来就没有存在过。"
       goal="做三个思想实验，想一想：如果规律可以被别人改写，你还能相信什么。"
-      accent="#9fb8d8"
     />
 
     <nav class="tabs" aria-label="思想实验">
@@ -262,7 +261,7 @@ onUnmounted(() => clearInterval(farmTimer))
 .farm-law { margin: 0.5rem 0 1rem; font-family: var(--font-serif); font-size: 1.125rem; color: var(--bone); }
 .farm-law.fallen { color: var(--rust-bright); }
 
-.closing { max-width: 40rem; margin: 2rem 0 0; padding-left: 1rem; border-left: 1px solid #9fb8d8; font-family: var(--font-serif); font-size: 1.125rem; line-height: 1.8; color: var(--bone); }
+.closing { max-width: 40rem; margin: 2rem 0 0; padding-left: 1rem; border-left: 1px solid var(--era-common); font-family: var(--font-serif); font-size: 1.125rem; line-height: 1.8; color: var(--bone); }
 
 @media (max-width: 900px) {
   .exp { grid-template-columns: 1fr; }

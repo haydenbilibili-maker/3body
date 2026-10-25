@@ -162,7 +162,7 @@ watch(phase, (p) => {
       title="红岸基地"
       subtitle="1971 年，大兴安岭，雷达峰。一座被当作秘密武器研究的巨型天线。"
       goal="把天线对准太阳，借太阳把信号放大，发向宇宙。然后等待。"
-      accent="#d2553f"
+      accent="var(--rust-bright)"
       :show-restart="phase !== 'calibrate'"
       restart-label="回到 1971 年"
       @restart="restart"

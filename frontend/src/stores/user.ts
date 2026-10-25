@@ -7,7 +7,7 @@ export type UserRole = 'bug' | 'eto' | 'wallfacer' | 'swordholder'
 export const useUserStore = defineStore('user', () => {
   // State
   const role = ref<UserRole>('bug')
-  const username = ref('Anonymous')
+  const username = ref('匿名访客')
   const exp = ref(0)
   const isIntercepted = ref(false) // Global intercept trigger
   const interceptReason = ref('')
@@ -25,7 +25,7 @@ export const useUserStore = defineStore('user', () => {
 
   const roleName = computed(() => {
     switch (role.value) {
-      case 'bug': return '虫子 (The Bug)'
+      case 'bug': return '虫子'
       case 'eto': return 'ETO 成员'
       case 'wallfacer': return '面壁者'
       case 'swordholder': return '执剑人'

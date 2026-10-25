@@ -163,7 +163,6 @@ onUnmounted(() => {
       title="人列计算机"
       subtitle="冯·诺依曼的设计，秦始皇的三千万大军。一个人，就是一个比特。"
       goal="为每个方阵选择口令，让电路的真值表与目标一致。四关之后，用它去计算三颗太阳。"
-      accent="#c9a45c"
     />
 
     <nav class="levels" aria-label="关卡">

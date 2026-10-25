@@ -194,7 +194,6 @@ watch(vantage, (v) => {
       title="编年史"
       subtitle="从红岸到 647 号小宇宙，人类文明的全部记录。可是记录也会老去。"
       goal="选出最多五件事刻进冥王星的石碑，然后拖动「从多远的未来回看」，看看还剩下什么。"
-      accent="#c9b48a"
     />
 
     <nav class="volumes" aria-label="分册">
@@ -395,7 +394,7 @@ watch(vantage, (v) => {
 .v-head { display: flex; justify-content: space-between; align-items: baseline; font-size: 0.9375rem; color: var(--weathered); }
 .v-head b { font-family: var(--font-serif); font-weight: 600; font-size: 1.125rem; color: var(--bone); }
 .v-range { width: 100%; margin: 0.9rem 0 0.4rem; accent-color: var(--cherenkov); }
-.v-ticks { display: flex; justify-content: space-between; list-style: none; margin: 0; padding: 0; font-size: 0.8125rem; color: var(--incision); }
+.v-ticks { display: flex; justify-content: space-between; list-style: none; margin: 0; padding: 0; font-size: 0.8125rem; color: var(--weathered); }
 .v-ticks li.on { color: var(--weathered); }
 .v-note { margin: 0.75rem 0 0; font-family: var(--font-serif); color: var(--gray-150); }
 
@@ -441,7 +440,7 @@ watch(vantage, (v) => {
 .stone-lines { margin: 0 0 0.5rem; padding-left: 1.25rem; font-family: var(--font-serif); font-size: 1rem; line-height: 1.9; color: var(--bone); }
 .verdict { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--incision); }
 .verdict p { margin: 0 0 0.75rem; font-family: var(--font-serif); line-height: 1.85; color: var(--gray-150); }
-.verdict .q { padding-left: 0.9rem; border-left: 1px solid #c9b48a; color: var(--bone); }
+.verdict .q { padding-left: 0.9rem; border-left: 1px solid var(--era-archive); color: var(--bone); }
 
 .detail { padding: 1.25rem; background: var(--slab); border: 1px solid var(--incision-soft); }
 .d-when { margin: 0 0 0.5rem; font-size: 0.8125rem; color: var(--weathered); }

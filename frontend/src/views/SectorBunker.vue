@@ -120,7 +120,6 @@ watch(act, (a) => {
       title="掩体"
       subtitle="广播纪元之后，太阳系的坐标已经暴露。人类有几十年时间，为一场不知何时到来的打击做准备。"
       goal="选一条生路；然后守住藏在巨行星阴影里的六座太空城，直到打击到来。"
-      accent="#c9b48a"
       :show-restart="act !== 'vote'"
       restart-label="回到表决"
       @restart="restart"
@@ -306,7 +305,7 @@ watch(act, (a) => {
 
 .truth-body { max-width: 42rem; }
 .truth-body p { margin: 0 0 1rem; font-family: var(--font-serif); font-size: 1.0625rem; line-height: 1.95; color: var(--gray-150); }
-.truth-body .q { margin-top: 1.5rem; padding-left: 1rem; border-left: 1px solid #c9b48a; color: var(--bone); }
+.truth-body .q { margin-top: 1.5rem; padding-left: 1rem; border-left: 1px solid var(--era-bunker); color: var(--bone); }
 .truth-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.5rem; }
 
 .plain-btn {

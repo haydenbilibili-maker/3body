@@ -72,7 +72,6 @@ function restart() {
       title="自然选择号"
       subtitle="章北海从危机纪元初就确信人类会输，却把这个念头藏了两百年。现在，他是「自然选择」号恒星级战舰的代理舰长。"
       goal="今天是试航。你可以照常操作车钟，也可以下达一个车钟上没有的命令。"
-      accent="#9fb8d8"
       :show-restart="act !== 'bridge'"
       restart-label="回到舰桥"
       @restart="restart"
@@ -153,7 +152,7 @@ function restart() {
   cursor: pointer;
 }
 .gears button.on { color: var(--bone); border-color: #9fb8d8; background: var(--slab-raised); }
-.gears .four span { color: var(--incision); border-style: dashed; cursor: default; }
+.gears .four span { color: var(--weathered); border-style: dashed; cursor: default; }
 .reply { margin: 1rem 0 0; font-size: 0.9375rem; line-height: 1.8; color: var(--gray-150); }
 
 .decide p, .chase p, .end p { margin: 0 0 1rem; font-family: var(--font-serif); font-size: 1.0625rem; line-height: 1.95; color: var(--gray-150); }
@@ -168,7 +167,7 @@ function restart() {
 .ships li.self { color: var(--bone); border-color: #9fb8d8; }
 .skip { padding: 0.3rem 0.8rem; font: inherit; font-size: 0.875rem; color: var(--weathered); background: none; border: 1px solid var(--incision); cursor: pointer; }
 .end-title { margin: 0 0 1rem; font-family: var(--font-serif); font-weight: 900; font-size: 1.75rem; letter-spacing: 0.1em; color: var(--bone); }
-.q { padding-left: 1rem; border-left: 1px solid #9fb8d8; color: var(--bone) !important; }
+.q { padding-left: 1rem; border-left: 1px solid var(--era-crisis); color: var(--bone) !important; }
 
 .plain-btn {
   display: inline-flex;

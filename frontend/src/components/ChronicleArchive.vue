@@ -21,7 +21,7 @@ onMounted(async () => {
       </div>
       <h3 class="doc-title">{{ doc.title }}</h3>
       <div class="doc-content">{{ doc.content_markdown }}</div>
-      <div class="stamp">TOP SECRET</div>
+      <div class="stamp">绝密</div>
     </div>
   </div>
 </template>
@@ -34,7 +34,7 @@ onMounted(async () => {
 }
 .doc-file {
   background: #fdf6e3;
-  color: var(--gray-450);
+  color: var(--weathered);
   padding: 2rem;
   font-family: var(--font-mono);
   position: relative;
