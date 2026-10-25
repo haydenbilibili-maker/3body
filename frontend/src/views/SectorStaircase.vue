@@ -4,7 +4,8 @@
  * 核心：轨道计算 (Trajectory), 童话解码 (Fairytales), 星星的礼物 (The Star)
  * 风格：手绘插画，忧伤浪漫
  */
-import { ref, reactive, onUnmounted, computed, onMounted } from 'vue'
+import { ref, reactive, onUnmounted, computed, onMounted, watch } from 'vue'
+import { recordAnswer } from '@/data/answers'
 import SectorHeader from '@/components/SectorHeader.vue'
 import { NTabs, NTabPane, useMessage, NInput, NButton, NProgress, NTag } from 'naive-ui'
 import { encodeSecretAsFairytale, decodeFairytaleSimilarity } from '@/api/zero_v2'
@@ -479,6 +480,15 @@ function statusName(st: string): string {
   const names: Record<string, string> = { READY: '待发射', FLYING: '飞行中', LOST: '失联', SUCCESS: '入轨' }
   return names[st] ?? st
 }
+
+/* ---------- 读者的档案 ---------- */
+watch(
+  () => gameState.status,
+  (s) => {
+    if (s === 'SUCCESS') recordAnswer('/sector-s', '把云天明的大脑送上了去往三体舰队的航线')
+    else if (s === 'LOST') recordAnswer('/sector-s', '阶梯飞船偏离了航线')
+  },
+)
 </script>
 
 <template>

@@ -184,6 +184,18 @@ const router = createRouter({
       component: () => import('@/views/SectorLedger.vue'),
       meta: { title: '读者的档案', sector: 'ledger' },
     },
+    {
+      path: '/sector-ns',
+      name: 'sector-ns',
+      component: () => import('@/views/SectorNaturalSelection.vue'),
+      meta: { title: '自然选择号', sector: 'ns' },
+    },
+    {
+      path: '/sector-sword',
+      name: 'sector-sword',
+      component: () => import('@/views/SectorSwordholder.vue'),
+      meta: { title: '执剑人', sector: 'sword' },
+    },
     { path: '/figures', redirect: '/sector-p' },
     { path: '/sophon', redirect: '/sector-a' },
     { path: '/chronicle', redirect: '/sector-b' },
