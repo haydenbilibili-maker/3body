@@ -1,0 +1,29 @@
+# Render Blueprint —— 3body FastAPI 后端（免费 Web Service + Docker）
+#
+# 用法：Render Dashboard → New → Blueprint → 选择本仓库 → Apply
+# 详情见 docs/BACKEND-DEPLOY.md
+services:
+  - type: web
+    name: 3body-api
+    runtime: docker
+    plan: free
+    region: singapore
+    branch: main
+    dockerfilePath: ./deploy/backend/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      # LLM（OpenAI 兼容协议）：DeepSeek
+      - key: THREEBODY_LLM_BASE_URL
+        value: https://api.deepseek.com
+      - key: THREEBODY_LLM_MODEL
+        value: deepseek-chat
+      # 密钥不写入仓库：Apply 时由 Render 提示输入
+      - key: THREEBODY_LLM_API_KEY
+        sync: false
+      - key: THREEBODY_LLM_TIMEOUT
+        value: "60"
+      # 允许的前端来源（Cloudflare Pages + GitHub Pages）
+      - key: THREEBODY_CORS_ORIGINS
+        value: https://3body-5px.pages.dev,https://haydenbilibili-maker.github.io
