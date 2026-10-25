@@ -10,12 +10,20 @@ import { useUserStore } from '@/stores/user'
 import AppNav from '@/components/AppNav.vue'
 import DeepTimeRail from '@/components/DeepTimeRail.vue'
 import WarpTransition from '@/components/WarpTransition.vue'
+import AmbientSound from '@/components/AmbientSound.vue'
+import { ERAS, sectorByPath } from '@/data/sectors'
 import SophonIntercept from '@/components/commercial/SophonIntercept.vue'
 import { soundManager } from '@/utils/sound'
 
 const universe = useUniverseStore()
 const userStore = useUserStore()
 const route = useRoute()
+/** 页脚的「此刻」：当前展厅所在的纪元（跨纪元的展厅与首页沿用全局读数） */
+const roomEra = computed(() => {
+  const sec = sectorByPath(route.path)
+  if (!sec || sec.era === 'all' || route.path === '/sector-c') return universe.currentEra
+  return ERAS.find((e) => e.id === sec.era)?.name ?? universe.currentEra
+})
 const isHome = computed(() => route.path === '/sector-c')
 
 // --- Global Sound Handling ---
@@ -105,7 +113,8 @@ onUnmounted(() => {
     <footer class="app-footer">
       <span class="slogan">给岁月以文明，而不是给文明以岁月</span>
       <span class="meta">
-        <span class="meta-item">此刻<b>{{ universe.currentEra }}</b></span>
+        <AmbientSound class="meta-item" />
+        <span class="meta-item">此刻<b>{{ roomEra }}</b></span>
         <span class="meta-item">威慑度<b class="num">{{ (universe.deterrence * 100).toFixed(0) }}%</b></span>
       </span>
     </footer>
@@ -187,7 +196,7 @@ onUnmounted(() => {
   position: relative;
   z-index: 50;
 }
-.meta { display: flex; gap: 1.75rem; }
+.meta { display: flex; gap: 1.75rem; min-width: 0; }
 .meta-item b { margin-left: 0.5rem; font-weight: 500; color: var(--bone); }
 .meta-item .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 
@@ -208,6 +217,7 @@ onUnmounted(() => {
   .app-footer .slogan {
     display: none;
   }
+  .meta { gap: 1rem; flex-wrap: wrap; justify-content: center; min-width: 0; }
 }
 
 @media (min-width: 769px) and (max-width: 1100px) {

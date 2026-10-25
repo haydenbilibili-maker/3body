@@ -695,6 +695,48 @@ const STATES = [
       await page.waitForTimeout(2600)
     },
   },
+  {
+    // 古筝计划：执行后页面被切成条带、滑开的瞬间
+    name: 'desktop-guzheng-slice',
+    viewport: 'desktop',
+    slug: 'sector-guzheng',
+    act: async (page) => {
+      await page.getByRole('button', { name: '布置飞刃' }).click({ timeout: 8000 })
+      await page.locator('input[type=range]').fill('0.7')
+      await page.getByRole('button', { name: '按住，让审判日号驶过' }).focus()
+      await page.keyboard.press('Enter')
+      await page.waitForTimeout(3100)
+    },
+  },
+  {
+    // 宇宙留言簿：发射时话碎成光点飞走
+    name: 'desktop-guestbook-scatter',
+    viewport: 'desktop',
+    slug: 'sector-guestbook',
+    act: async (page) => {
+      await page.fill('textarea', '这里有人，我们在听。')
+      await page.getByRole('button', { name: '按住，向宇宙发射' }).focus()
+      await page.keyboard.press('Enter')
+      await page.waitForTimeout(1500)
+    },
+  },
+  {
+    // 文明墓碑：拿起凿子，在石面上来回磨
+    name: 'desktop-tomb-chisel',
+    viewport: 'desktop',
+    slug: 'sector-tomb',
+    act: async (page) => {
+      await page.getByRole('button', { name: '拿起凿子，亲手刻' }).click({ timeout: 8000 })
+      const box = await page.locator('.chisel canvas').boundingBox({ timeout: 5000 })
+      await page.mouse.move(box.x + box.width * 0.3, box.y + box.height * 0.5)
+      await page.mouse.down()
+      for (let i = 0; i < 90; i += 1) {
+        await page.mouse.move(box.x + box.width * (0.3 + 0.1 * Math.sin(i / 2)), box.y + box.height * (0.5 + 0.08 * Math.cos(i / 3)))
+        await page.waitForTimeout(16)
+      }
+      await page.waitForTimeout(150)
+    },
+  },
 ]
 
 async function snapshotState(browser, state) {

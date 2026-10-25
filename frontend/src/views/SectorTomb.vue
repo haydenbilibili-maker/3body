@@ -10,6 +10,7 @@ import { recordAnswer } from '@/data/answers'
 import SectorHeader from '@/components/SectorHeader.vue'
 import Vitrine from '@/components/Vitrine.vue'
 import HoldButton from '@/components/HoldButton.vue'
+import ChiselStone from '@/components/ChiselStone.vue'
 import { sectorByPath } from '@/data/sectors'
 import { EPOCHS, SIZES, epochLabel, fit, wear, weathered } from '@/sim/stone'
 
@@ -28,7 +29,14 @@ const carvedSize = computed(() => (carved.value ? SIZES[carved.value.size] : siz
 const shown = computed(() => (carved.value ? weathered(carved.value.text, years.value, carvedSize.value) : ''))
 const wornPct = computed(() => Math.round(wear(years.value, carvedSize.value) * 100))
 
+/* 亲手刻：先拿起凿子，在石面上磨；也可以按住让石匠代刻 */
+const chiseling = ref(false)
+const CHISEL_PX = [14, 18, 26, 42, 64]
+function pickChisel() {
+  if (fitted.value.kept) chiseling.value = true
+}
 function carve() {
+  chiseling.value = false
   if (!fitted.value.kept) return
   carved.value = { text: fitted.value.kept, size: sizeId.value }
   epoch.value = 0
@@ -63,7 +71,11 @@ watch(carved, (c) => {
     />
 
     <div class="work">
-      <section v-if="!carved" class="compose">
+      <section v-if="!carved && chiseling" class="compose">
+        <ChiselStone :text="fitted.kept" :px="CHISEL_PX[sizeId]" @done="carve" />
+        <button type="button" class="plain-btn" @click="chiseling = false">放下凿子</button>
+      </section>
+      <section v-else-if="!carved" class="compose">
         <fieldset class="sizes">
           <legend>字刻多大</legend>
           <label v-for="s in SIZES" :key="s.id" class="size" :class="{ on: sizeId === s.id }">
@@ -81,7 +93,10 @@ watch(carved, (c) => {
           <span class="kept">{{ fitted.kept }}</span><s v-if="fitted.lost" class="lost">{{ fitted.lost }}</s>
         </p>
         <p v-if="fitted.lost" class="note">划掉的部分刻不下。要么换小一点的字，要么想想哪些话最重要。</p>
-        <HoldButton :hold-ms="2000" :disabled="!fitted.kept" @confirm="carve">按住，刻进石碑</HoldButton>
+        <div class="carve-acts">
+          <button type="button" class="plain-btn primary" :disabled="!fitted.kept" @click="pickChisel">拿起凿子，亲手刻</button>
+          <HoldButton :hold-ms="2000" :disabled="!fitted.kept" @confirm="carve">按住，刻进石碑</HoldButton>
+        </div>
       </section>
 
       <section v-else class="time">
@@ -222,4 +237,8 @@ textarea:focus { outline: none; border-color: var(--cherenkov); }
   .scrub { flex-wrap: wrap; }
   .scrub b { text-align: left; }
 }
+.carve-acts { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 0.75rem; }
+.compose > .plain-btn { margin-top: 1rem; }
+.plain-btn.primary { border-color: var(--cherenkov); color: var(--cherenkov); }
+.plain-btn:disabled { opacity: 0.45; cursor: default; }
 </style>

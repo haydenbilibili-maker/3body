@@ -10,6 +10,7 @@ import { computed, onUnmounted, ref } from 'vue'
 import SectorHeader from '@/components/SectorHeader.vue'
 import Vitrine from '@/components/Vitrine.vue'
 import HoldButton from '@/components/HoldButton.vue'
+import PageSlicer from '@/components/PageSlicer.vue'
 import { sectorByPath } from '@/data/sectors'
 import { recordAnswer } from '@/data/answers'
 import { CREW, SHIP_HEIGHT, run, slices, successRate, type Result } from '@/sim/guzheng'
@@ -34,9 +35,13 @@ const bands = computed(() => {
 })
 const wires = computed(() => Array.from({ length: slices(spacing.value) + 1 }, (_, i) => i * spacing.value * PX).filter((y) => y <= shipH))
 
+/* 船驶过飞刃的那一刻，这一页也被切开（间距越小，条带越细） */
+const slicer = ref<InstanceType<typeof PageSlicer> | null>(null)
+const band = computed(() => Math.max(6, Math.min(40, Math.round(spacing.value * 24))))
 function execute() {
   result.value = run(spacing.value, Math.floor(Math.random() * 1e6))
   act.value = 'pass'
+  setTimeout(() => slicer.value?.play(), 1500)
   timer = setTimeout(() => {
     act.value = 'after'
     const r = result.value!
@@ -64,6 +69,7 @@ const verdict = computed(() => {
 
 <template>
   <div class="sector-guzheng">
+    <PageSlicer ref="slicer" :band="band" />
     <SectorHeader
       title="古筝计划"
       subtitle="「审判日」号上住着地球三体组织的核心成员，船上存着他们与三体世界往来的全部信息。它就要驶过巴拿马运河的盖拉德水道。"
