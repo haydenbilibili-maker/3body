@@ -6,6 +6,8 @@
  */
 import { ref, onMounted, computed } from 'vue'
 import { NTabs, NTabPane } from 'naive-ui'
+import SectorHeader from '@/components/SectorHeader.vue'
+import { sectorByPath } from '@/data/sectors'
 import { TresCanvas } from '@tresjs/core'
 import { OrbitControls, Stars, Environment } from '@tresjs/cientos'
 const activeTab = ref('mirror')
@@ -85,7 +87,15 @@ function handleWheel(e: WheelEvent) {
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 const isStriking = ref(false)
 const strikeScore = ref(0)
+const question = sectorByPath('/sector-w')?.question
+/** 末日战役前，舰队里流传的话（转述，表现人类当时的自信） */
+const FLEET_VOICES = [
+  '「它只是一个探测器，连武器都没有。」',
+  '「我们派出了两千艘恒星级战舰，去迎接一个几米长的东西。」',
+  '「这将是人类历史上最壮观的一次检阅。」',
+]
 const fleet = ref<Array<{x: number, y: number, alive: boolean}>>([])
+const fleetDown = computed(() => fleet.value.length > 0 && fleet.value.every((s) => !s.alive))
 const pathPoints = ref<Array<{x: number, y: number}>>([])
 
 function initFleet() {
@@ -194,15 +204,17 @@ onMounted(() => {
 
 <template>
   <div class="sector-w">
-    <div class="header">
-      <h1 class="title">SECTOR W // THE DROPLET</h1>
-      <div class="subtitle">强互作用力宇宙探测器</div>
-    </div>
+    <SectorHeader
+      title="水滴"
+      subtitle="一个用强相互作用力材料制成的三体探测器。绝对光滑，表面温度接近绝对零度。"
+      goal="看它的镜面倒映出什么；在末日战役里，亲手画出它穿过舰队的路线。"
+      accent="#c9ced6"
+    />
 
     <NTabs type="segment" v-model:value="activeTab" class="w-tabs">
       
       <!-- Tab 1: Mirror -->
-      <NTabPane name="mirror" tab="绝对光滑 (MIRROR)">
+      <NTabPane name="mirror" tab="绝对光滑">
         <div class="scene-3d" @wheel="handleWheel">
           <TresCanvas clear-color="#000">
             <TresPerspectiveCamera :position="[0, 0, cameraZ]" :look-at="[0,0,0]" />
@@ -272,7 +284,10 @@ onMounted(() => {
       </NTabPane>
 
       <!-- Tab 2: Strike -->
-      <NTabPane name="strike" tab="末日战役 (STRIKE)">
+      <NTabPane name="strike" tab="末日战役">
+        <ul class="voices" aria-label="战役之前">
+          <li v-for="(v, i) in FLEET_VOICES" :key="i">{{ v }}</li>
+        </ul>
         <div class="game-container">
           <div class="game-header">
             <span>目标: 联合舰队 ({{ fleet.filter(s => s.alive).length }} / 50)</span>
@@ -293,6 +308,10 @@ onMounted(() => {
           ></canvas>
           
           <!-- Canvas Logic in Template via overlays for simplicity -->
+          <div v-if="fleetDown" class="strike-end" role="status">
+            <p>舰队覆灭。从「迎接」到「覆灭」，不到一个小时。</p>
+            <p class="q">{{ question }}</p>
+          </div>
           <div class="canvas-overlay">
             <!-- Ships -->
             <div 
@@ -302,7 +321,7 @@ onMounted(() => {
               :class="{ destroyed: !ship.alive }"
               :style="{ left: ship.x + 'px', top: ship.y + 'px' }"
             >
-              <div v-if="!ship.alive" class="explosion">💥</div>
+              <div v-if="!ship.alive" class="explosion" aria-hidden="true"></div>
             </div>
             
             <!-- Droplet (only when striking) -->
@@ -313,7 +332,7 @@ onMounted(() => {
       </NTabPane>
 
       <!-- Tab 3: Blockade -->
-      <NTabPane name="blockade" tab="太阳封锁 (BLOCKADE)">
+      <NTabPane name="blockade" tab="太阳封锁">
         <div class="blockade-ui">
           <div class="sun-view" :class="{ jammed: isJammed }">
             <div class="sun-core"></div>
@@ -326,7 +345,7 @@ onMounted(() => {
           <div class="controls">
             <h2>恒星电波放大功能</h2>
             <div class="status" :class="isJammed ? 'danger' : 'ok'">
-              {{ isJammed ? '全频段阻塞 (JAMMED)' : '正常 (ACTIVE)' }}
+              {{ isJammed ? '全频段阻塞：太阳不再能放大任何电波' : '正常：太阳仍可作为电波放大器' }}
             </div>
             <button class="jam-btn" @click="toggleJamming">
               {{ isJammed ? '解除封锁' : '发射干扰波' }}
@@ -675,4 +694,19 @@ onMounted(() => {
   .journey-title { font-size: 0.9rem; }
   .waypoint-chip { font-size: 0.75rem; padding: 0.2rem 0.4rem; }
 }
+/* ------------------------------------------------------------------
+ * 冥王星档案馆皮肤（视觉方案批次 2）
+ * ------------------------------------------------------------------ */
+.sector-w { background: transparent; color: var(--bone); padding: 2rem clamp(1rem, 4vw, 3rem) 3rem; height: auto; }
+.journey-panel, .hud-overlay { background: rgba(19, 20, 22, 0.86); border: 1px solid var(--incision); border-radius: 2px; }
+.journey-title { font-family: var(--font-serif); color: var(--bone); }
+.game-container { background: #0e0f12; border: 1px solid var(--incision); }
+.ship { background: #9fb8d8; box-shadow: none; }
+.explosion { position: absolute; left: -6px; top: -6px; width: 18px; height: 18px; border: 1px solid var(--rust-bright); border-radius: 50%; opacity: 0.6; }
+.voices { list-style: none; margin: 1rem 0 0; padding: 0 0 0 1rem; border-left: 1px solid var(--incision); }
+.voices li { font-family: var(--font-serif); font-size: 1rem; line-height: 1.9; color: var(--gray-200); }
+.strike-end { position: absolute; inset: 0; z-index: 5; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 0.75rem; padding: 1.5rem; text-align: center; background: rgba(14, 15, 18, 0.86); }
+.strike-end p { margin: 0; max-width: 30rem; font-family: var(--font-serif); font-size: 1.125rem; line-height: 1.85; color: var(--bone); }
+.strike-end .q { color: var(--gray-200); font-size: 1rem; }
+:deep(.w-tabs .n-tabs-tab) { font-family: var(--font-serif); font-size: 1rem; }
 </style>
