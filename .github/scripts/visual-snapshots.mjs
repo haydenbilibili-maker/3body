@@ -253,6 +253,48 @@ const STATES = [
     },
   },
   {
+    // 世界线：两处与原著不同的选择，档案里画出分岔
+    name: 'ledger-worldline',
+    viewport: 'desktop',
+    slug: 'sector-ledger',
+    act: async (page) => {
+      await page.evaluate(() => {
+        const now = Date.now()
+        const a = {
+          '/sector-r': { path: '/sector-r', text: '收到「不要回答」之后，回答了三体世界', at: now },
+          '/sector-guzheng': { path: '/sector-guzheng', text: '执行了古筝计划，丝距 0.50 米；拿到了三体信息', at: now },
+          '/sector-ns': { path: '/sector-ns', text: '照常试航，回到了舰队', at: now },
+          '/sector-sword': { path: '/sector-sword', text: '威慑度 78%；威慑还在', at: now },
+        }
+        localStorage.setItem('deep-time-answers-v1', JSON.stringify(a))
+      })
+      await page.reload({ waitUntil: 'networkidle' })
+      await page.locator('.wl').scrollIntoViewIfNeeded()
+      await page.waitForTimeout(800)
+    },
+  },
+  {
+    // 世界线：威慑还在时，掩体展厅的页头提醒读者这是原著的世界线
+    name: 'mobile-bunker-worldline-note',
+    viewport: 'mobile',
+    slug: 'sector-j',
+    act: async (page) => {
+      await page.evaluate(() => {
+        const now = Date.now()
+        const a = {
+          '/sector-r': { path: '/sector-r', text: '收到「不要回答」之后，回答了三体世界', at: now },
+          '/sector-guzheng': { path: '/sector-guzheng', text: '执行了古筝计划，丝距 0.50 米；拿到了三体信息', at: now },
+          '/sector-ns': { path: '/sector-ns', text: '照常试航，回到了舰队', at: now },
+          '/sector-sword': { path: '/sector-sword', text: '威慑度 78%；威慑还在', at: now },
+        }
+        localStorage.setItem('deep-time-answers-v1', JSON.stringify(a))
+      })
+      await page.reload({ waitUntil: 'networkidle' })
+      await page.locator('.sh-world').scrollIntoViewIfNeeded()
+      await page.waitForTimeout(800)
+    },
+  },
+  {
     // VI 拓片主题：读者的档案打印 / 导出时切换为宣纸与墨，只留下做过选择的展厅
     name: 'ledger-rubbing-print',
     viewport: 'desktop',
