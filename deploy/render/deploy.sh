@@ -18,7 +18,7 @@ BASE="${RENDER_API_BASE:-https://threebody-api.onrender.com}"
 TIMEOUT="${DEPLOY_TIMEOUT:-900}"
 
 SHA="$(git rev-parse --short HEAD)"
-echo "▶ 触发 Render 部署（目标提交 $SHA）"
+echo "▶ 触发 Render 部署（目标提交 ${SHA}）"
 
 curl -fsS -X POST --max-time 60 "$HOOK" >/dev/null
 echo "✅ 部署已触发，等待线上生效 ..."
@@ -35,5 +35,5 @@ while [ "$(date +%s)" -lt "$DEADLINE" ]; do
   echo "   ... 当前线上版本：${COMMIT:-旧版（无 version 字段）}"
 done
 
-echo "✘ 超时（${TIMEOUT}s）：线上仍未运行 $SHA，请到 Render → Deploys 查看日志"
+echo "✘ 超时（${TIMEOUT}s）：线上仍未运行 ${SHA}，请到 Render → Deploys 查看日志"
 exit 1
