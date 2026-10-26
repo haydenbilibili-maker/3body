@@ -77,7 +77,8 @@ function draw() {
 
 function loop() {
   const sub = reduce ? 1 : 4
-  for (let i = 0; i < sub; i++) step(field, 0.004, held)
+  /* 每帧四个子步、每步 0.0016：比原来慢到四成，三颗太阳像在远处缓缓绕行，而不是在眼前打转 */
+  for (let i = 0; i < sub; i++) step(field, 0.0016, held)
   draw()
   if (++frame % 6 === 0) {
     const c = canvas.value!.getBoundingClientRect()
