@@ -9,6 +9,8 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { eraById, sectorByPath } from '@/data/sectors'
+import { answers } from '@/data/answers'
+import { notesFor, readWorldline } from '@/sim/worldline'
 
 const props = withDefaults(
   defineProps<{
@@ -31,7 +33,7 @@ const props = withDefaults(
     subtitle: undefined,
     goal: undefined,
     question: undefined,
-    accent: 'var(--cherenkov)',
+    accent: undefined,
     showRestart: false,
     restartLabel: '再来一次',
     compact: false,
@@ -48,14 +50,27 @@ const eraName = computed(() => {
   return era === 'all' ? '跨越全部纪元' : eraById(era)?.name ?? ''
 })
 const questionText = computed(() => props.question ?? sector.value?.question)
+/* 世界线：读者在更早的展厅里与原著不同的选择，会改变这间展厅的前提（sim/worldline.ts） */
+const worldNote = computed(() => notesFor(route.path, sector.value?.era, readWorldline(answers.value)))
+/* 纪元色：没有显式传入时按展厅所在纪元取（VI：每间展厅唯一的场景色） */
+const accentColor = computed(() => {
+  if (props.accent) return props.accent
+  const era = sector.value?.era
+  if (!era) return 'var(--cherenkov)'
+  return `var(--era-${era === 'all' ? 'archive' : era})`
+})
 </script>
 
 <template>
-  <header class="sector-header" :class="{ compact }" :style="{ '--sector-accent': accent }">
+  <header class="sector-header" :class="{ compact }" :style="{ '--sector-accent': accentColor }">
     <p v-if="eraName" class="sh-era"><span class="sh-era-mark" aria-hidden="true"></span>{{ eraName }}</p>
     <h1 class="sh-title">{{ title }}</h1>
     <p v-if="subtitle" class="sh-subtitle">{{ subtitle }}</p>
     <p v-if="questionText" class="sh-question">{{ questionText }}</p>
+    <p v-if="worldNote" class="sh-world" role="note">
+      <span class="sh-world-label">你的世界线</span>{{ worldNote }}
+      <RouterLink to="/sector-ledger" class="sh-world-link">看看分岔在哪里</RouterLink>
+    </p>
 
     <div v-if="goal || $slots.meta || showRestart" class="sh-foot">
       <p v-if="goal" class="sh-goal"><span class="sh-goal-label">怎么玩</span>{{ goal }}</p>
@@ -128,6 +143,19 @@ const questionText = computed(() => props.question ?? sector.value?.question)
   line-height: 1.7;
   color: var(--bone);
 }
+
+/* 世界线提醒：一条虚线分支，提醒读者这里不是他自己的世界线 */
+.sh-world {
+  margin: 1rem 0 0;
+  max-width: 44rem;
+  padding: 0.6rem 0 0.6rem 1rem;
+  border-left: 1px dashed var(--cherenkov);
+  font-size: 0.9375rem;
+  line-height: 1.75;
+  color: var(--gray-150);
+}
+.sh-world-label { margin-right: 0.75rem; font-family: var(--font-serif); color: var(--cherenkov); }
+.sh-world-link { margin-left: 0.5rem; color: var(--cherenkov); text-decoration: underline; text-underline-offset: 3px; }
 
 .sh-foot {
   display: flex;

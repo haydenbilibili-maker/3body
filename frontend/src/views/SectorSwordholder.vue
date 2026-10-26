@@ -63,7 +63,7 @@ function restart() {
       title="执剑人"
       subtitle="引力波发射器的开关在执剑人手里：一按下去，三体世界和太阳系的坐标会同时广播给整个宇宙。威慑能不能成立，取决于三体世界相不相信你会按。"
       goal="经历四个处境，看看自己在三体世界眼里的威慑度；然后接过开关。"
-      accent="#b0432f"
+      accent="var(--rust-bright)"
       :show-restart="picks.length > 0"
       restart-label="回到遴选"
       @restart="restart"

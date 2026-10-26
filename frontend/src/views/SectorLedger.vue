@@ -8,6 +8,8 @@ import { computed, ref } from 'vue'
 import SectorHeader from '@/components/SectorHeader.vue'
 import Vitrine from '@/components/Vitrine.vue'
 import HoldButton from '@/components/HoldButton.vue'
+import WorldlineMap from '@/components/WorldlineMap.vue'
+import { readWorldline, summarize } from '@/sim/worldline'
 import { ERAS, SECTORS, eraById } from '@/data/sectors'
 import { answers, forgetAll, visits } from '@/data/answers'
 
@@ -29,10 +31,24 @@ const rooms = computed(() =>
 const answered = computed(() => rooms.value.filter((r) => r.answer))
 const visitedCount = computed(() => rooms.value.filter((r) => r.visited || r.answer).length)
 
+const worldline = computed(() => summarize(readWorldline(answers.value)))
 const archiveText = computed(() =>
-  ['一个读者的深时档案', '', ...answered.value.map((r) => `${r.eraName} · ${r.name}：${r.answer}`)].join('\n'),
+  [
+    '一个读者的深时档案',
+    worldline.value.diverged
+      ? `我的世界线与原著有 ${worldline.value.diverged} 处分岔，最早在「${worldline.value.first?.fork.room}」。`
+      : '',
+    '',
+    ...answered.value.map((r) => `${r.eraName} · ${r.name}：${r.answer}`),
+  ]
+    .filter((l, i) => i !== 1 || l)
+    .join('\n'),
 )
 const copied = ref(false)
+/* 印成拓片：打印时整页切换为 VI 的拓片主题（见 main.css 的 @media print），版式与乐园离园石碑一致 */
+function rubbing() {
+  window.print()
+}
 async function copy() {
   try {
     await navigator.clipboard.writeText(archiveText.value)
@@ -50,13 +66,14 @@ async function copy() {
       title="读者的档案"
       subtitle="你在每间展厅里做过的选择，档案馆都记了下来：回答了谁，留下了什么，归还了什么。这些就是你在这里的全部痕迹。"
       goal="看看自己走过了哪些纪元、在哪里做了什么决定。还没去过的展厅，可以从这里出发。"
-      accent="#c9b48a"
     />
 
     <dl class="tally">
       <div><dt>走进过的展厅</dt><dd class="num">{{ visitedCount }} / {{ rooms.length }}</dd></div>
       <div><dt>留下了选择的展厅</dt><dd class="num">{{ answered.length }}</dd></div>
     </dl>
+
+    <WorldlineMap />
 
     <ol class="rooms">
       <li v-for="r in rooms" :key="r.path" class="room" :class="{ done: r.answer, seen: r.visited && !r.answer }">
@@ -73,14 +90,15 @@ async function copy() {
 
     <Vitrine v-if="answered.length" class="sum" caption="复制下来，可以刻进文明墓碑，也可以留给自己。">
       <pre class="archive">{{ archiveText }}</pre>
-      <div class="sum-actions">
+      <div class="sum-actions no-print">
         <button type="button" class="plain-btn primary" @click="copy">{{ copied ? '已复制' : '复制这份档案' }}</button>
+        <button type="button" class="plain-btn" @click="rubbing">印成拓片</button>
         <RouterLink to="/sector-tomb" class="plain-btn">把它刻在石头上：文明墓碑</RouterLink>
       </div>
     </Vitrine>
 
     <p class="q">{{ question }}</p>
-    <div v-if="answered.length || visitedCount" class="forget">
+    <div v-if="answered.length || visitedCount" class="forget no-print">
       <HoldButton tone="rust" :hold-ms="2000" @confirm="forgetAll">按住，抹去这份档案</HoldButton>
       <span>只会清除这台设备上的记录。</span>
     </div>
@@ -99,19 +117,19 @@ async function copy() {
 .room { position: relative; padding: 0 0 1.25rem 1.25rem; }
 .room::before { content: ''; position: absolute; left: -4px; top: 0.5rem; width: 7px; height: 7px; border: 1px solid var(--incision); background: var(--void); }
 .room.seen::before { border-color: var(--weathered); }
-.room.done::before { background: #c9b48a; border-color: #c9b48a; }
+.room.done::before { background: var(--era-archive); border-color: var(--era-archive); }
 .r-head { display: flex; align-items: baseline; gap: 0.75rem; }
 .r-name { font-family: var(--font-serif); font-weight: 600; font-size: 1.0625rem; color: var(--bone); text-decoration: none; }
 .r-name:hover { color: var(--cherenkov); }
 .r-era { font-size: 0.8125rem; color: var(--weathered); }
 .r-q { margin: 0.25rem 0; font-size: 0.9375rem; line-height: 1.75; color: var(--weathered); }
-.r-a { margin: 0.25rem 0 0; padding-left: 0.9rem; border-left: 1px solid #c9b48a; font-family: var(--font-serif); font-size: 1rem; line-height: 1.85; color: var(--bone); }
-.r-none { margin: 0.25rem 0 0; font-size: 0.875rem; color: var(--incision); }
-.room.seen .r-none { color: var(--weathered); }
+.r-a { margin: 0.25rem 0 0; padding-left: 0.9rem; border-left: 1px solid var(--era-archive); font-family: var(--font-serif); font-size: 1rem; line-height: 1.85; color: var(--bone); }
+.r-none { margin: 0.25rem 0 0; font-size: 0.875rem; color: var(--weathered); }
+.room.seen .r-none { color: var(--gray-200); }
 
 .archive { margin: 0 0 1rem; white-space: pre-wrap; font-family: var(--font-serif); font-size: 1rem; line-height: 1.9; color: var(--bone); }
 .sum-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
-.q { margin: 2rem 0 1rem; padding-left: 1rem; border-left: 1px solid #c9b48a; font-family: var(--font-serif); font-size: 1.125rem; color: var(--bone); }
+.q { margin: 2rem 0 1rem; padding-left: 1rem; border-left: 1px solid var(--era-archive); font-family: var(--font-serif); font-size: 1.125rem; color: var(--bone); }
 .forget { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; font-size: 0.8125rem; color: var(--weathered); }
 
 .plain-btn {
@@ -129,4 +147,10 @@ async function copy() {
 }
 .plain-btn:hover { border-color: var(--weathered); }
 .plain-btn.primary { border-color: var(--cherenkov); color: var(--cherenkov); }
+@media print {
+  .sector-ledger { max-width: none; padding: 0; }
+  .room:not(.done) { display: none; }
+  .rooms { border-left-color: var(--incision); }
+  .sum :deep(.vitrine-body) { background: transparent; }
+}
 </style>

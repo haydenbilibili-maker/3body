@@ -164,5 +164,26 @@ async def test_figure_chat_streams(client):
     assert done and chunks
 
 
+async def test_figure_chat_accepts_scene(client):
+    resp = await client.post(
+        "/api/chat/figure",
+        json={
+            "figure_name": "罗辑",
+            "message": "她跟你说了什么？",
+            "scene": {
+                "title": "杨冬墓前",
+                "era": "公元末",
+                "setting": "黄昏，墓园里只有风声。",
+                "knows": "三体危机刚刚公开。",
+                "secret": "他隐约看见了黑暗森林。",
+                "reveal": False,
+            },
+        },
+    )
+    assert resp.status_code == 200
+    chunks, done = await _read_sse(resp)
+    assert done and chunks
+
+
 async def test_chat_rejects_empty_message(client):
     assert (await client.post("/api/chat", json={"message": ""})).status_code == 422

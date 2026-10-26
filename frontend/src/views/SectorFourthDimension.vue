@@ -58,7 +58,6 @@ onUnmounted(() => clearTimeout(ringTimer))
       title="四维碎片"
       subtitle="方寸之间，深不见底"
       goal="用升维取走平面国密室里的所有东西，一面墙都不打破——在碎片蒸发之前。"
-      accent="#a99cc4"
       class="g-header"
     />
 

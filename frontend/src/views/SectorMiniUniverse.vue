@@ -270,7 +270,6 @@ watch(phase, (p) => {
       title="647 号小宇宙"
       subtitle="一千米见方的永恒"
       goal="照料这座小小的田园，直到外面的声音传进来。然后决定：留下五公斤，还是留下自己。"
-      accent="#f0b45a"
       :show-restart="phase !== 'garden'"
       restart-label="回到第一天"
       @restart="resetAll"
@@ -516,7 +515,7 @@ watch(phase, (p) => {
 .u-card {
   background: var(--u-card);
   border: 1px solid var(--u-line);
-  border-radius: 6px;
+  border-radius: var(--radius-cut);
   padding: 1.1rem 1.25rem;
 }
 .u-card-title { margin: 0 0 0.6rem; font-size: 1rem; font-weight: 600; letter-spacing: 0.08em; color: var(--u-amber); }
@@ -534,7 +533,7 @@ watch(phase, (p) => {
   color: var(--u-ink);
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(243, 230, 211, 0.3);
-  border-radius: 4px;
+  border-radius: var(--radius-cut);
   cursor: pointer;
   text-decoration: none;
   transition: background 0.2s, border-color 0.2s;
@@ -554,7 +553,7 @@ watch(phase, (p) => {
   color: var(--u-ink);
   background: rgba(0, 0, 0, 0.25);
   border: 1px solid var(--u-line);
-  border-radius: 4px;
+  border-radius: var(--radius-cut);
   resize: vertical;
 }
 
@@ -563,7 +562,7 @@ watch(phase, (p) => {
 .u-scene {
   position: relative;
   aspect-ratio: 5 / 3;
-  border-radius: 6px;
+  border-radius: var(--radius-cut);
   overflow: hidden;
   border: 1px solid var(--u-line);
   background: linear-gradient(180deg,
@@ -624,7 +623,7 @@ watch(phase, (p) => {
 .u-scale-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.5rem; }
 .u-scale-num { font-family: var(--font-mono); font-size: 1.4rem; color: #e4ecf8; }
 .u-scale-num.full { color: var(--u-amber); }
-.u-scale-bar { height: 6px; background: rgba(255, 255, 255, 0.08); border-radius: 3px; overflow: hidden; margin-bottom: 0.6rem; }
+.u-scale-bar { height: 6px; background: rgba(255, 255, 255, 0.08); border-radius: var(--radius-cut); overflow: hidden; margin-bottom: 0.6rem; }
 .u-scale-bar div { height: 100%; background: linear-gradient(90deg, #8fa6c9, var(--u-amber)); transition: width 0.3s; }
 .u-relics { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: 0.75rem; margin-bottom: 1.25rem; }
 .u-relic {
@@ -637,7 +636,7 @@ watch(phase, (p) => {
   color: var(--u-ink);
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(207, 224, 255, 0.18);
-  border-radius: 6px;
+  border-radius: var(--radius-cut);
   cursor: pointer;
   transition: border-color 0.2s, background 0.2s, opacity 0.2s;
 }
@@ -690,7 +689,7 @@ watch(phase, (p) => {
   aspect-ratio: 3 / 4;
   max-height: 60vh;
   border: 10px solid #4a3424;
-  border-radius: 4px;
+  border-radius: var(--radius-cut);
   background: radial-gradient(circle at 40% 40%, rgba(120, 150, 220, calc(var(--out) * 0.6)), #000 70%);
   overflow: hidden;
   box-shadow: inset 0 0 40px #000;

@@ -14,7 +14,8 @@ import { sectorByPath } from '@/data/sectors'
 import { figureImageUrl } from '@/utils/imageFallback'
 import { hasDialogue, getDialogueSet } from '@/data/figureDialogues'
 import { useLlmConfigStore } from '@/stores/llmConfig'
-import { streamFigureChat } from '@/api/figureChat'
+import FigureTalk from '@/components/FigureTalk.vue'
+import FigureDebate from '@/components/FigureDebate.vue'
 
 const figures = ref<Figure[]>([])
 const loading = ref(true)
@@ -31,7 +32,7 @@ const dialogueInput = ref('')
 const dialogueListRef = ref<HTMLElement | null>(null)
 const llmConfig = useLlmConfigStore()
 /** 子模块：'list' 档案列表 | 'graph' 关系星图 */
-const subModule = ref<'list' | 'graph' | 'choices'>('list')
+const subModule = ref<'list' | 'graph' | 'choices' | 'debate'>('list')
 const question = sectorByPath('/sector-p')?.question
 
 /** 一个人的选择：所有人物的关键决策，按出场顺序排成一列；后果要自己翻开 */
@@ -298,66 +299,6 @@ function closeDialogue() {
   showDialogueModal.value = false
 }
 
-/** 将当前对话转为 API 所需的 history（user -> user，figure -> assistant） */
-function conversationToHistory(): { role: 'user' | 'assistant'; content: string }[] {
-  return conversation.value.map((m) => ({
-    role: m.role === 'user' ? 'user' : 'assistant',
-    content: m.content,
-  }))
-}
-
-/** 发送一条用户消息并请求人物回复（流式追加到 conversation） */
-async function sendMessage(userText: string) {
-  const fig = selectedFigure.value
-  const set = fig ? getDialogueSet(fig.name) : null
-  if (!fig || !set || !userText.trim()) return
-  dialogueError.value = ''
-  const history = conversationToHistory()
-  conversation.value.push({ role: 'user', content: userText.trim() })
-  scrollDialogueToBottom()
-  const figureMsg = { role: 'figure' as const, content: '' }
-  conversation.value.push(figureMsg)
-  dialogueLoading.value = true
-  const payload = {
-    figure_name: fig.name,
-    figure_role: fig.role || undefined,
-    figure_description: fig.description || undefined,
-    message: userText.trim(),
-    history: history.length ? history : undefined,
-    ...llmConfig.requestOverrides,
-  }
-  await streamFigureChat(
-    payload,
-    (chunk) => {
-      figureMsg.content += chunk
-      scrollDialogueToBottom()
-    },
-    (err) => { dialogueError.value = err }
-  )
-  dialogueLoading.value = false
-  scrollDialogueToBottom()
-}
-
-/** 点击推荐问题（预埋问题作引导） */
-function onSuggestedQuestion(question: string) {
-  sendMessage(question)
-}
-
-/** 提交输入框内容并清空 */
-function submitInput() {
-  const text = dialogueInput.value.trim()
-  if (!text || dialogueLoading.value) return
-  dialogueInput.value = ''
-  sendMessage(text)
-}
-
-function scrollDialogueToBottom() {
-  nextTick(() => {
-    const el = dialogueListRef.value
-    if (el) el.scrollTop = el.scrollHeight
-  })
-}
-
 /** 对话按钮文案：与她/与他 */
 const dialogueEntryLabel = computed(() => {
   const name = selectedFigure.value?.name
@@ -378,7 +319,6 @@ onMounted(() => {
       title="人物志"
       subtitle="罗辑、叶文洁、章北海、程心……在宇宙的尺度上，他们每个人都只是一粒尘埃，却都做过一个改变了文明走向的决定。"
       goal="翻阅档案，看人物之间的关系；或者走进「一个人的选择」，在知道后果之前，先读一读他们当时面对的处境。"
-      accent="#c9b48a"
     />
 
     <div class="fig-controls">
@@ -386,6 +326,7 @@ onMounted(() => {
         <button type="button" :class="{ on: subModule === 'list' }" :aria-pressed="subModule === 'list'" @click="subModule = 'list'">档案</button>
         <button type="button" :class="{ on: subModule === 'graph' }" :aria-pressed="subModule === 'graph'" @click="subModule = 'graph'">关系星图</button>
         <button type="button" :class="{ on: subModule === 'choices' }" :aria-pressed="subModule === 'choices'" @click="subModule = 'choices'">一个人的选择</button>
+        <button type="button" :class="{ on: subModule === 'debate' }" :aria-pressed="subModule === 'debate'" @click="subModule = 'debate'">对谈</button>
       </nav>
       <div v-if="subModule === 'list'" class="fig-filter">
         <NInput v-model:value="searchQuery" placeholder="按姓名查找" clearable class="fig-search" />
@@ -411,6 +352,9 @@ onMounted(() => {
             <h2>暂无档案记录</h2>
       <p>智子档案库未同步或当前筛选无匹配人物。请检查后端服务或切换筛选条件。</p>
     </div>
+
+    <!-- 对谈：两个人，一个问题 -->
+    <FigureDebate v-else-if="subModule === 'debate'" />
 
     <!-- 一个人的选择 -->
     <section v-else-if="subModule === 'choices'" class="choices">
@@ -515,7 +459,7 @@ onMounted(() => {
             <div v-if="hasDialogue(selectedFigure.name)" class="dossier-dialogue-cta">
               <button type="button" class="dialogue-cta-btn" @click="openDialogue">
                                 <span class="dialogue-cta-text">{{ dialogueEntryLabel }}</span>
-                <span class="dialogue-cta-sub">选择问题或输入提问，与 TA 实时对话</span>
+                <span class="dialogue-cta-sub">在某一个时刻与 TA 相遇：TA 先开口，心里藏着一件事</span>
               </button>
             </div>
 
@@ -591,111 +535,13 @@ onMounted(() => {
       </div>
     </NModal>
 
-    <!-- 选择式对话模态：对话式气泡，预埋问题作引导，回复统一为人物 AI -->
-    <NModal
-      :show="showDialogueModal"
-      @update:show="(v) => { if (!v) closeDialogue() }"
-      preset="card"
-      class="dialogue-modal"
-      style="width: 620px; max-width: 95vw;"
-      :title="selectedFigure && getDialogueSet(selectedFigure.name) ? `与 ${selectedFigure.name} 对话` : ''"
-    >
-      <template v-if="selectedFigure && getDialogueSet(selectedFigure.name)">
-        <div class="dialogue-content">
-          <header class="dialogue-header">
-            <span class="dialogue-header-name">{{ selectedFigure.name }}</span>
-            <span class="dialogue-header-role">{{ selectedFigure.role }}</span>
-            <p v-if="getDialogueSet(selectedFigure.name)!.intro" class="dialogue-intro">
-              {{ getDialogueSet(selectedFigure.name)!.intro }}
-            </p>
-          </header>
-
-          <div ref="dialogueListRef" class="dialogue-messages">
-            <template v-for="(msg, idx) in conversation" :key="idx">
-              <div v-if="msg.role === 'user'" class="dialogue-row dialogue-row-user">
-                <div class="dialogue-bubble dialogue-bubble-user">{{ msg.content }}</div>
-              </div>
-              <div v-else class="dialogue-row dialogue-row-figure">
-                <div class="dialogue-bubble dialogue-bubble-figure">
-                  <span class="dialogue-figure-name">{{ selectedFigure.name }}</span>
-                  <span class="dialogue-bubble-text">{{ msg.content }}</span>
-                  <span v-if="dialogueLoading && idx === conversation.length - 1" class="dialogue-cursor">|</span>
-                </div>
-              </div>
-            </template>
-            <p v-if="dialogueError" class="dialogue-err-inline">{{ dialogueError }}</p>
-          </div>
-
-          <div class="dialogue-suggested">
-            <span class="dialogue-suggested-label">可问：</span>
-            <div class="dialogue-suggested-chips">
-              <button
-                v-for="(item, idx) in getDialogueSet(selectedFigure.name)!.qa"
-                :key="idx"
-                type="button"
-                class="dialogue-chip"
-                :disabled="dialogueLoading"
-                @click="onSuggestedQuestion(item.question)"
-              >
-                {{ item.question }}
-              </button>
-            </div>
-          </div>
-
-          <div class="dialogue-input-row">
-            <NInput
-              v-model:value="dialogueInput"
-              type="text"
-              placeholder="输入你想问的…"
-              clearable
-              :disabled="dialogueLoading"
-              class="dialogue-input"
-              @keydown.enter.prevent="submitInput"
-            />
-            <NButton
-              type="primary"
-              :disabled="!dialogueInput.trim() || dialogueLoading"
-              @click="submitInput"
-            >
-              发送
-            </NButton>
-          </div>
-
-          <NCollapse class="dialogue-llm-config" :default-expanded-names="[]">
-            <NCollapseItem title="⚙️ API / Ollama 连接设置" name="llm">
-              <p class="dialogue-llm-hint">默认使用后端配置的模型（3BODY_LLM_*，未配置时为本地 Ollama）。</p>
-              <p class="dialogue-llm-hint">在此填写的 Key / 地址仅在后端设置 3BODY_LLM_ALLOW_CLIENT_OVERRIDE=true 时生效（仅建议本机使用）。</p>
-              <NCheckbox :checked="llmConfig.useLocalOllama" @update:checked="(v: boolean) => llmConfig.setUseLocalOllama(v)">
-                使用本地 Ollama
-              </NCheckbox>
-              <NFormItem label="API Key（可选）" class="dialogue-llm-item">
-                <NInput
-                  :value="llmConfig.apiKey"
-                  type="password"
-                  placeholder="留空则用本地"
-                  show-password-on="click"
-                  @update:value="(v: string) => llmConfig.setApiKey(v)"
-                />
-              </NFormItem>
-              <NFormItem label="Base URL（可选）" class="dialogue-llm-item">
-                <NInput
-                  :value="llmConfig.baseUrl"
-                  placeholder="如 https://api.openai.com/v1"
-                  @update:value="(v: string) => llmConfig.setBaseUrl(v)"
-                />
-              </NFormItem>
-              <NFormItem label="Model（可选）" class="dialogue-llm-item">
-                <NInput
-                  :value="llmConfig.model"
-                  placeholder="如 gpt-4、deepseek-chat"
-                  @update:value="(v: string) => llmConfig.setModel(v)"
-                />
-              </NFormItem>
-            </NCollapseItem>
-          </NCollapse>
-        </div>
-      </template>
-    </NModal>
+    <!-- 对话室：在某个时刻与人物相遇（components/FigureTalk.vue） -->
+    <FigureTalk
+      v-if="showDialogueModal && selectedFigure"
+      :figure="selectedFigure"
+      :portrait="figurePortraitUrl(selectedFigure)"
+      @close="closeDialogue"
+    />
   </div>
 </template>
 
@@ -751,7 +597,7 @@ onMounted(() => {
   display: flex;
   gap: 0;
   border: 1px solid rgba(var(--cherenkov-rgb), 0.2);
-  border-radius: 4px;
+  border-radius: var(--radius-cut);
   overflow: hidden;
   position: absolute;
   left: 50%;
@@ -856,7 +702,7 @@ onMounted(() => {
   z-index: 1;
   border: 1px dashed rgba(var(--cherenkov-rgb),0.2);
   background: rgba(var(--cherenkov-rgb),0.02);
-  border-radius: 4px;
+  border-radius: var(--radius-cut);
 }
 .empty-icon {
   font-size: 4rem;
@@ -1187,7 +1033,7 @@ onMounted(() => {
   color: var(--c-cyan);
   background: linear-gradient(135deg, rgba(var(--cherenkov-rgb),0.12) 0%, rgba(var(--cherenkov-rgb),0.06) 100%);
   border: 2px solid rgba(var(--cherenkov-rgb),0.5);
-  border-radius: 8px;
+  border-radius: var(--radius-cut);
   cursor: pointer;
   transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
   box-shadow: 0 0 20px rgba(var(--cherenkov-rgb),0.15);
@@ -1272,7 +1118,7 @@ onMounted(() => {
 .dialogue-bubble {
   max-width: 85%;
   padding: 0.65rem 1rem;
-  border-radius: 12px;
+  border-radius: var(--radius-cut);
   font-size: 0.9rem;
   line-height: 1.55;
   word-break: break-word;
@@ -1332,7 +1178,7 @@ onMounted(() => {
   color: var(--gray-350);
   background: rgba(255,255,255,0.04);
   border: 1px solid var(--gray-700);
-  border-radius: 999px;
+  border-radius: var(--radius-cut);
   cursor: pointer;
   transition: color 0.2s, border-color 0.2s, background 0.2s;
 }
@@ -1357,7 +1203,7 @@ onMounted(() => {
 .dialogue-llm-config {
   margin-top: 0.5rem;
   border: 1px solid rgba(var(--cherenkov-rgb),0.15);
-  border-radius: 6px;
+  border-radius: var(--radius-cut);
 }
 .dialogue-llm-config :deep(.n-collapse-item__header) {
   font-size: 0.85rem;
@@ -1365,7 +1211,7 @@ onMounted(() => {
 }
 .dialogue-llm-hint {
   font-size: 0.78rem;
-  color: var(--gray-450);
+  color: var(--weathered);
   margin: 0 0 0.5rem;
   line-height: 1.45;
 }
@@ -1460,7 +1306,7 @@ onMounted(() => {
   border-radius: 2px;
   cursor: pointer;
 }
-.c-q { margin: 1rem 0 0; padding-left: 1rem; border-left: 1px solid #c9b48a; font-family: var(--font-serif); font-size: 1.125rem; color: var(--bone); }
+.c-q { margin: 1rem 0 0; padding-left: 1rem; border-left: 1px solid var(--era-archive); font-family: var(--font-serif); font-size: 1.125rem; color: var(--bone); }
 
 .dossier-modal :deep(.n-card) { background: var(--slab) !important; border: 1px solid var(--incision) !important; border-radius: 2px !important; box-shadow: none !important; }
 .dossier-modal :deep(.n-card-header__main) { font-family: var(--font-sans) !important; font-size: 0.875rem !important; color: var(--weathered) !important; letter-spacing: 0.08em; text-shadow: none !important; }

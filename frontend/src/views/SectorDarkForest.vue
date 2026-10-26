@@ -1615,7 +1615,7 @@ watch(gameStatus, (g) => {
   width: 200px;
   height: 200px;
   background: var(--gray-800);
-  border-radius: 10px;
+  border-radius: var(--radius-cut);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -1627,7 +1627,7 @@ watch(gameStatus, (g) => {
   top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(255, 200, 0, 0.1);
   border: 2px solid var(--c-yellow);
-  border-radius: 10px;
+  border-radius: var(--radius-cut);
   z-index: 10;
   cursor: pointer;
   transform-origin: top center;
@@ -1834,7 +1834,7 @@ watch(gameStatus, (g) => {
 .axiom-ref {
   text-align: center;
   font-size: 0.8rem;
-  color: var(--gray-450);
+  color: var(--weathered);
   margin-top: 1rem;
 }
 
@@ -1854,16 +1854,16 @@ watch(gameStatus, (g) => {
 .config-row .select, .worldline-row .select { min-width: 120px; }
 .toolbar { display: flex; gap: 0.6rem; align-items: center; font-family: var(--font-mono); flex-wrap: wrap; }
 .diag-line { font-family: var(--font-mono); font-size: 12px; color: #8ba5a5; border: 1px dashed #294040; padding: 0.3rem 0.45rem; }
-.curve-panel { border: 1px solid #1f1f1f; padding: 0.4rem; border-radius: 4px; }
+.curve-panel { border: 1px solid #1f1f1f; padding: 0.4rem; border-radius: var(--radius-cut); }
 .curve-svg { width: 100%; height: 90px; display: block; }
 .curve-axis { stroke: var(--gray-700); stroke-width: 1; fill: none; }
 .curve-line { fill: none; stroke: var(--holo-green); stroke-width: 1.5; }
-.summary-card { border: 1px solid #1e2e2e; padding: 0.6rem; background: rgba(0, 10, 15, 0.3); border-radius: 4px; }
+.summary-card { border: 1px solid #1e2e2e; padding: 0.6rem; background: rgba(0, 10, 15, 0.3); border-radius: var(--radius-cut); }
 .summary-pre { margin: 0; font-size: 0.8rem; white-space: pre-wrap; color: #b8d0d0; max-height: 120px; overflow: auto; }
-.worldline-map { position: relative; height: 180px; background: var(--gray-950); border: 1px solid var(--gray-800); border-radius: 4px; }
+.worldline-map { position: relative; height: 180px; background: var(--gray-950); border: 1px solid var(--gray-800); border-radius: var(--radius-cut); }
 .agent-dot { position: absolute; transform: translate(-50%, -50%); padding: 2px 6px; font-size: 0.75rem; background: rgba(0, 200, 100, 0.3); border: 1px solid #00cc88; border-radius: 2px; color: #9fb39a; }
 .agent-dot.dead { background: rgba(80, 80, 80, 0.5); border-color: var(--gray-600); color: var(--gray-400); }
-.worldline-panel .logs { border: 1px solid #1e2e2e; padding: 0.6rem; background: rgba(0, 10, 15, 0.2); border-radius: 4px; max-height: 200px; overflow-y: auto; }
+.worldline-panel .logs { border: 1px solid #1e2e2e; padding: 0.6rem; background: rgba(0, 10, 15, 0.2); border-radius: var(--radius-cut); max-height: 200px; overflow-y: auto; }
 .log-item { margin-bottom: 0.5rem; font-size: 0.85rem; }
 .log-item p { margin: 0.2rem 0; }
 .stream-line { font-size: 0.75rem; color: #9ab5b5; margin-bottom: 0.2rem; font-family: var(--font-mono); }

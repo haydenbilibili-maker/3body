@@ -13,7 +13,7 @@ import Vitrine from '@/components/Vitrine.vue'
 import HoldButton from '@/components/HoldButton.vue'
 import SignalScatter from '@/components/SignalScatter.vue'
 import { sectorByPath } from '@/data/sectors'
-import { ANCIENT, formatDistance, lightSeconds, whereIs, type Signal } from '@/sim/signal'
+import { ANCIENT, ECHOES, formatDistance, lightSeconds, whereIs, type Signal } from '@/sim/signal'
 
 const question = sectorByPath('/sector-guestbook')?.question
 const KEY = 'guestbook-signals-v2'
@@ -32,7 +32,26 @@ onMounted(() => {
   }
   clock = setInterval(() => (now.value = Date.now()), 1000)
 })
-onUnmounted(() => clearInterval(clock))
+onUnmounted(() => {
+  clearInterval(clock)
+  clearInterval(echoClock)
+})
+
+/* 远处的回声：一开始只听得见两条，之后每隔几秒传来一条 */
+const reducedMotion = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+const heard = ref(reducedMotion ? ECHOES.length : 2)
+let echoClock: ReturnType<typeof setInterval> | undefined
+onMounted(() => {
+  echoClock = setInterval(() => {
+    if (heard.value >= ECHOES.length) return clearInterval(echoClock)
+    heard.value += 1
+  }, 7000)
+})
+function echoDistance(ly: number) {
+  if (ly === 0) return '来自所有方向'
+  if (ly < 0.01) return '来自更高的维度'
+  return `${ly.toLocaleString('zh-CN')} 光年外`
+}
 
 function save() {
   try {
@@ -86,7 +105,6 @@ watch(
       title="宇宙留言簿"
       subtitle="人类曾经向宇宙发出过几次信号。它们至今还在路上，以光速离开，没有任何办法追回。"
       goal="写下你想对宇宙说的话，然后选择：按住把它发射出去，或者只留在这本留言簿里。"
-      accent="#c9b48a"
     />
 
     <Vitrine class="compose">
@@ -111,6 +129,18 @@ watch(
         </p>
       </li>
     </ol>
+
+    <section class="echoes" aria-labelledby="echo-title">
+      <h2 id="echo-title" class="e-title">远处的回声</h2>
+      <p class="e-lead">宇宙里不只有你在说话。这些信号走了很久才到这里；发出它们的，也许早就不在了。</p>
+      <ol class="e-list" aria-live="polite">
+        <li v-for="e in ECHOES.slice(0, heard)" :key="e.text" class="echo">
+          <p class="e-text">{{ e.text }}</p>
+          <p class="e-from">{{ e.from }} · {{ echoDistance(e.ly) }}</p>
+        </li>
+      </ol>
+      <p v-if="heard < ECHOES.length" class="e-wait">还在收听……</p>
+    </section>
 
     <section v-if="mine.length" class="reflect">
       <p>你发出了 <span class="num">{{ sent }}</span> 条，留下了 <span class="num">{{ silent }}</span> 条没有发出。</p>
@@ -161,7 +191,7 @@ textarea:focus { outline: none; border-color: var(--cherenkov); }
 
 .reflect { max-width: 42rem; margin-top: 1.5rem; }
 .reflect p { margin: 0 0 0.9rem; font-family: var(--font-serif); font-size: 1.0625rem; line-height: 1.9; color: var(--gray-150); }
-.reflect .q { margin-top: 1.25rem; padding-left: 1rem; border-left: 1px solid #c9b48a; color: var(--bone); }
+.reflect .q { margin-top: 1.25rem; padding-left: 1rem; border-left: 1px solid var(--era-archive); color: var(--bone); }
 .links { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1rem; }
 
 .plain-btn {
@@ -179,4 +209,15 @@ textarea:focus { outline: none; border-color: var(--cherenkov); }
 }
 .plain-btn:hover { border-color: var(--weathered); }
 .plain-btn:disabled { opacity: 0.45; cursor: default; }
+
+.echoes { margin: 2rem 0; max-width: 44rem; }
+.e-title { margin: 0 0 0.4rem; font-family: var(--font-title); font-weight: 900; font-size: 1.25rem; letter-spacing: 0.12em; color: var(--bone); }
+.e-lead { margin: 0 0 1rem; font-family: var(--font-serif); font-size: 0.9375rem; line-height: 1.85; color: var(--gray-150); }
+.e-list { list-style: none; margin: 0; padding: 0 0 0 1rem; border-left: 1px dashed var(--incision); display: flex; flex-direction: column; gap: 0.9rem; }
+.echo { animation: echo-in 2.4s ease-out both; }
+@keyframes echo-in { from { opacity: 0; filter: blur(4px); } }
+.e-text { margin: 0; font-family: var(--font-serif); font-size: 1rem; line-height: 1.8; color: var(--bone); }
+.e-from { margin: 0.15rem 0 0; font-size: 0.8125rem; color: var(--weathered); }
+.e-wait { margin: 0.75rem 0 0; font-size: 0.8125rem; color: var(--weathered); }
+@media (prefers-reduced-motion: reduce) { .echo { animation: none; } }
 </style>

@@ -10,6 +10,7 @@ import { recordAnswer } from '@/data/answers'
 import SectorHeader from '@/components/SectorHeader.vue'
 import Vitrine from '@/components/Vitrine.vue'
 import HoldButton from '@/components/HoldButton.vue'
+import HumanTree from '@/components/HumanTree.vue'
 import { sectorByPath } from '@/data/sectors'
 import { STEPS, outcome } from '@/sim/galaxy'
 
@@ -41,7 +42,6 @@ watch(result, (r) => {
       title="银河人类"
       subtitle="末日战役之后，有几艘战舰逃出了太阳系。它们再也没有回来，地球上的人很快开始争论：船上的人，还算不算人类。"
       goal="你在其中一艘船上。做四个决定，每一个都在「活下去」和「还像地球人」之间取舍。"
-      accent="#b7a2b8"
       :show-restart="choices.length > 0"
       restart-label="回到启程"
       @restart="restart"
@@ -72,6 +72,7 @@ watch(result, (r) => {
         <p class="dist">离地球 <span class="num">{{ DIST[STEPS.length] }}</span> 光年</p>
         <h2 class="end-title">{{ result.title }}</h2>
         <p class="end-text">{{ result.text }}</p>
+        <HumanTree :choices="choices" />
         <p class="book">在原著里，逃出太阳系的「蓝色空间」号与「万有引力」号在宇宙深处活了下来；后来又有星环号这样的光速飞船离开。太阳系跌入二维之后，散落在银河里的这些人，就是全部的人类。他们说的还是地球上的语言，记得的也还是地球上的事。</p>
         <p class="q">{{ question }}</p>
         <div class="links">
@@ -115,7 +116,7 @@ watch(result, (r) => {
 .end p { max-width: 42rem; }
 .end-text { margin: 0 0 1rem; font-family: var(--font-serif); font-size: 1.125rem; line-height: 1.95; color: var(--bone); }
 .book { margin: 0 0 1rem; font-size: 0.9375rem; line-height: 1.85; color: var(--weathered); }
-.q { margin: 1.25rem 0 0; padding-left: 1rem; border-left: 1px solid #b7a2b8; font-family: var(--font-serif); font-size: 1.0625rem; color: var(--bone); }
+.q { margin: 1.25rem 0 0; padding-left: 1rem; border-left: 1px solid var(--era-galaxy); font-family: var(--font-serif); font-size: 1.0625rem; color: var(--bone); }
 .links { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.25rem; }
 .plain-btn {
   display: inline-flex;

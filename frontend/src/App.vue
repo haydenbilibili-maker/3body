@@ -108,7 +108,7 @@ const themeOverrides: GlobalThemeOverrides = {
   display: none !important;
 }
 .resonance-1d ::before, .resonance-1d ::after {
-  content: ' [1D STREAM] ' !important;
+  content: ' [一维信息流] ' !important;
   color: #050;
   font-size: 10px;
 }

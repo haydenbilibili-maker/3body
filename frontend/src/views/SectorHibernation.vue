@@ -79,7 +79,6 @@ function noteOf(id: string) {
       title="冬眠者"
       subtitle="冬眠技术让人可以跳过岁月：躺下，醒来，就是一两百年之后。很多人这样去看人类的结局，程心也是。"
       goal="一次次躺进冬眠舱。每次醒来，看看世界变成了什么样，你认识的人还剩下谁；你可以在任何一次醒来后留下。"
-      accent="#9fb8d8"
       :show-restart="started"
       restart-label="回到危机纪元 3 年"
       @restart="restart"
@@ -171,7 +170,7 @@ function noteOf(id: string) {
 .end { max-width: 44rem; margin-top: 2rem; }
 .end-title { margin: 0 0 1rem; font-family: var(--font-serif); font-weight: 900; font-size: 1.5rem; letter-spacing: 0.08em; color: var(--bone); }
 .end p { margin: 0 0 0.9rem; font-family: var(--font-serif); font-size: 1.0625rem; line-height: 1.95; color: var(--gray-150); }
-.end .q { margin-top: 1.25rem; padding-left: 1rem; border-left: 1px solid #9fb8d8; color: var(--bone); }
+.end .q { margin-top: 1.25rem; padding-left: 1rem; border-left: 1px solid var(--era-archive); color: var(--bone); }
 .links { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1rem; }
 
 .plain-btn {

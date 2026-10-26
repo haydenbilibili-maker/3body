@@ -101,7 +101,6 @@ watch(
       title="盲区"
       subtitle="智子展开在地球的每一个角落，看得见每一张纸、听得见每一句话。只有一个地方它进不去：人的头脑。"
       goal="写下一个念头，选择说出口、写下来，或只在心里想。看看哪些会传回三体世界，哪些能被人照着去做。"
-      accent="#9aa7b4"
       :show-restart="thoughts.length > 0"
       restart-label="清空"
       @restart="restart"
@@ -216,7 +215,7 @@ watch(
 .only { font-size: 0.75rem; color: var(--cherenkov); }
 .mono li { display: flex; gap: 0.75rem; font-family: var(--font-mono); font-size: 0.8125rem; color: #b8c0c8; }
 .mono li.wall { color: var(--weathered); font-style: italic; }
-.stamp { color: var(--incision); }
+.stamp { color: var(--weathered); }
 
 .compose { margin-top: 1rem; }
 .channels { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem; }
@@ -254,7 +253,7 @@ watch(
 
 .reflect { max-width: 44rem; margin-top: 2rem; }
 .reflect p { margin: 0 0 0.9rem; font-family: var(--font-serif); font-size: 1.0625rem; line-height: 1.95; color: var(--gray-150); }
-.reflect .q { margin-top: 1.25rem; padding-left: 1rem; border-left: 1px solid #9aa7b4; color: var(--bone); }
+.reflect .q { margin-top: 1.25rem; padding-left: 1rem; border-left: 1px solid var(--era-crisis); color: var(--bone); }
 .actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.25rem; }
 
 .plain-btn {

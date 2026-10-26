@@ -74,7 +74,6 @@ const verdict = computed(() => {
       title="古筝计划"
       subtitle="「审判日」号上住着地球三体组织的核心成员，船上存着他们与三体世界往来的全部信息。它就要驶过巴拿马运河的盖拉德水道。"
       goal="决定纳米丝的间距：太疏，有人活下来删掉数据；太密，连存着信息的硬盘一起切碎。也可以选择不执行。"
-      accent="#b0432f"
       :show-restart="act !== 'brief'"
       restart-label="回到运河"
       @restart="restart"

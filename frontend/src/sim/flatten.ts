@@ -30,5 +30,7 @@ export const SPECIMENS = [
   { id: 'earth', name: '地球' },
   { id: 'saturn', name: '土星' },
   { id: 'city', name: '一座太空城' },
+  /* 原著里，冥王星上的人看到跌入二维的太阳系，想起了梵高的《星月夜》（1889，已进入公有领域） */
+  { id: 'starry', name: '星月夜' },
 ] as const
 export type SpecimenId = (typeof SPECIMENS)[number]['id']

@@ -103,7 +103,7 @@ function selectFaction(id: string) {
         <span class="star">★</span>
         <span class="star">★</span>
       </div>
-      <h1>EARTH-TRISOLARIS ORGANIZATION</h1>
+      <h1>地球三体组织</h1>
       <div class="subtitle">消灭人类暴政 · 世界属于三体</div>
     </div>
 
@@ -128,8 +128,8 @@ function selectFaction(id: string) {
       <!-- Chat Interface -->
       <div class="comm-panel">
         <div class="panel-header">
-          <span>// JUDGMENT DAY COMM LINK</span>
-          <span class="status online">ONLINE</span>
+          <span>审判日号 · 通信链路</span>
+          <span class="status online">在线</span>
         </div>
         <div class="chat-window">
           <div 
@@ -149,7 +149,7 @@ function selectFaction(id: string) {
             @keyup.enter="sendMsg"
             :disabled="!activeFaction"
           />
-          <button @click="sendMsg" :disabled="!activeFaction">SEND</button>
+          <button @click="sendMsg" :disabled="!activeFaction">发送</button>
         </div>
       </div>
     </div>

@@ -267,7 +267,6 @@ onUnmounted(() => {
         title="原著阅读"
         subtitle="把你手里的 TXT 或 EPUB 放进档案馆。文件只在这台设备上解析与保存，不会上传。"
         goal="拖入或选择一个文件。书会留在本机的书架上，下次从上次读到的地方继续。"
-        accent="var(--cherenkov)"
       />
 
       <Vitrine>
@@ -427,10 +426,11 @@ onUnmounted(() => {
   transition: background 0.4s, color 0.4s;
 }
 .reading-room[data-theme='paper'] {
-  --page-bg: #ece5d6;
-  --ink: #2c2721;
-  --ink-soft: #7a7064;
-  --rule: #cfc5b3;
+  /* 纸本 = VI 拓片主题 */
+  --page-bg: #ece7dc;
+  --ink: #1d1e21;
+  --ink-soft: #5f5a50;
+  --rule: #cfc8b8;
   --mark: rgba(176, 67, 47, 0.25);
 }
 .reading-room[data-theme='night'] {

@@ -59,6 +59,8 @@ const ROUTES = [
   ['sector-ledger', '读者的档案'],
   ['sector-sword', '执剑人'],
   ['sector-ns', '自然选择号'],
+  ['sector-tale', '童话'],
+  ['sector-stamp', '钢印'],
 ]
 
 const VIEWPORTS = [
@@ -253,6 +255,187 @@ const STATES = [
     },
   },
   {
+    // 掩体：太空城图鉴，滚筒式的内景
+    name: 'bunker-city-atlas',
+    viewport: 'desktop',
+    slug: 'sector-j',
+    act: async (page) => {
+      await page.getByRole('button', { name: /^掩体计划/ }).click({ timeout: 8000 })
+      await page.getByRole('button', { name: '看看人类要住进去的城市' }).click()
+      await page.getByRole('tab', { name: /北美一号/ }).click()
+      await page.getByRole('radio', { name: '内景' }).click()
+      await page.locator('.atlas').scrollIntoViewIfNeeded()
+      await page.waitForTimeout(600)
+    },
+  },
+  {
+    // 掩体：手机上的太空城图鉴，球形的外观
+    name: 'mobile-bunker-city-atlas',
+    viewport: 'mobile',
+    slug: 'sector-j',
+    act: async (page) => {
+      await page.getByRole('button', { name: /^掩体计划/ }).click({ timeout: 8000 })
+      await page.getByRole('button', { name: '看看人类要住进去的城市' }).click()
+      await page.getByRole('tab', { name: /天王星城/ }).click()
+      await page.locator('.atlas').scrollIntoViewIfNeeded()
+      await page.waitForTimeout(600)
+    },
+  },
+  {
+    // 水滴：航程到了木星，镜面里是木星的条纹
+    name: 'droplet-jupiter',
+    viewport: 'desktop',
+    slug: 'sector-w',
+    act: async (page) => {
+      await page.getByRole('button', { name: '木星阴影', exact: true }).click({ timeout: 8000 })
+      await page.waitForTimeout(2200)
+    },
+  },
+  {
+    // 水滴：航程终点，镜面里是联合舰队的阵列
+    name: 'droplet-fleet',
+    viewport: 'desktop',
+    slug: 'sector-w',
+    act: async (page) => {
+      await page.getByRole('button', { name: '联合舰队', exact: true }).click({ timeout: 8000 })
+      await page.waitForTimeout(2200)
+    },
+  },
+  {
+    // 钢印：钢印之后去选另一边，那一项被划掉
+    name: 'mobile-stamp-slip',
+    viewport: 'mobile',
+    slug: 'sector-stamp',
+    act: async (page) => {
+      // 钢印之前：五个处境都选「失败」那一边
+      for (let i = 0; i < 5; i += 1) {
+        await page.locator('.opt').nth(1).click()
+        await page.waitForTimeout(120)
+      }
+      const hold = page.getByRole('button', { name: '按住，接受钢印' })
+      await hold.focus()
+      await page.keyboard.press('Enter')
+      await page.waitForTimeout(3000)
+      // 钢印之后：去够「失败」那一边，手落到另一边
+      await page.locator('.opt').nth(1).click()
+      await page.waitForTimeout(700)
+    },
+  },
+  {
+    // 钢印：五个回答前后对照
+    name: 'stamp-end',
+    viewport: 'desktop',
+    slug: 'sector-stamp',
+    act: async (page) => {
+      // 钢印之前：五个处境都选「失败」那一边
+      for (let i = 0; i < 5; i += 1) {
+        await page.locator('.opt').nth(1).click()
+        await page.waitForTimeout(120)
+      }
+      const hold = page.getByRole('button', { name: '按住，接受钢印' })
+      await hold.focus()
+      await page.keyboard.press('Enter')
+      await page.waitForTimeout(3000)
+      // 钢印之后：去够「失败」那一边，手落到另一边
+      await page.locator('.opt').nth(1).click()
+      await page.waitForTimeout(700)
+      for (let i = 1; i < 5; i += 1) {
+        await page.waitForTimeout(2300)
+        await page.locator('.opt').nth(1).click()
+      }
+      await page.waitForTimeout(2600)
+    },
+  },
+  {
+    // 童话：点开一个意象，委员会的三种读法展开
+    name: 'tale-council-open',
+    viewport: 'desktop',
+    slug: 'sector-tale',
+    act: async (page) => {
+      await page.getByRole('button', { name: '肥皂', exact: true }).click()
+      await page.waitForTimeout(500)
+    },
+  },
+  {
+    // 童话：三条读法写进报告、交出之后，历史给出答案
+    name: 'mobile-tale-reveal',
+    viewport: 'mobile',
+    slug: 'sector-tale',
+    act: async (page) => {
+      for (const [word, n] of [['画师', 0], ['肥皂', 0], ['伞', 1]]) {
+        await page.getByRole('button', { name: word, exact: true }).click()
+        await page.locator('.council:visible .reading').nth(n).click()
+        await page.waitForTimeout(150)
+      }
+      const hold = page.getByRole('button', { name: '按住，交出报告' })
+      await hold.focus()
+      await page.keyboard.press('Enter')
+      await page.waitForTimeout(3600)
+    },
+  },
+  {
+    // 世界线：两处与原著不同的选择，档案里画出分岔
+    name: 'ledger-worldline',
+    viewport: 'desktop',
+    slug: 'sector-ledger',
+    act: async (page) => {
+      await page.evaluate(() => {
+        const now = Date.now()
+        const a = {
+          '/sector-r': { path: '/sector-r', text: '收到「不要回答」之后，回答了三体世界', at: now },
+          '/sector-guzheng': { path: '/sector-guzheng', text: '执行了古筝计划，丝距 0.50 米；拿到了三体信息', at: now },
+          '/sector-ns': { path: '/sector-ns', text: '照常试航，回到了舰队', at: now },
+          '/sector-sword': { path: '/sector-sword', text: '威慑度 78%；威慑还在', at: now },
+        }
+        localStorage.setItem('deep-time-answers-v1', JSON.stringify(a))
+      })
+      await page.reload({ waitUntil: 'networkidle' })
+      await page.locator('.wl').scrollIntoViewIfNeeded()
+      await page.waitForTimeout(800)
+    },
+  },
+  {
+    // 世界线：威慑还在时，掩体展厅的页头提醒读者这是原著的世界线
+    name: 'mobile-bunker-worldline-note',
+    viewport: 'mobile',
+    slug: 'sector-j',
+    act: async (page) => {
+      await page.evaluate(() => {
+        const now = Date.now()
+        const a = {
+          '/sector-r': { path: '/sector-r', text: '收到「不要回答」之后，回答了三体世界', at: now },
+          '/sector-guzheng': { path: '/sector-guzheng', text: '执行了古筝计划，丝距 0.50 米；拿到了三体信息', at: now },
+          '/sector-ns': { path: '/sector-ns', text: '照常试航，回到了舰队', at: now },
+          '/sector-sword': { path: '/sector-sword', text: '威慑度 78%；威慑还在', at: now },
+        }
+        localStorage.setItem('deep-time-answers-v1', JSON.stringify(a))
+      })
+      await page.reload({ waitUntil: 'networkidle' })
+      await page.locator('.sh-world').scrollIntoViewIfNeeded()
+      await page.waitForTimeout(800)
+    },
+  },
+  {
+    // VI 拓片主题：读者的档案打印 / 导出时切换为宣纸与墨，只留下做过选择的展厅
+    name: 'ledger-rubbing-print',
+    viewport: 'desktop',
+    slug: 'sector-ledger',
+    act: async (page) => {
+      await page.evaluate(() => {
+        const now = Date.now()
+        const a = {
+          '/sector-r': { path: '/sector-r', text: '没有回答宇宙', at: now },
+          '/sector-sword': { path: '/sector-sword', text: '威慑度 62%；守住了开关', at: now },
+          '/sector-x': { path: '/sector-x', text: '归还了质量，留下一只漂流瓶；宇宙重启了', at: now },
+        }
+        localStorage.setItem('deep-time-answers-v1', JSON.stringify(a))
+      })
+      await page.reload({ waitUntil: 'networkidle' })
+      await page.emulateMedia({ media: 'print' })
+      await page.waitForTimeout(800)
+    },
+  },
+  {
     name: 'mobile-nav-drawer',
     viewport: 'mobile',
     slug: 'sector-b',
@@ -298,7 +481,8 @@ const STATES = [
     slug: 'sector-u',
     act: async (page) => {
       await page.getByRole('button', { name: '接收广播' }).click({ timeout: 20000 })
-      await page.getByRole('button', { name: '跳过' }).click({ timeout: 5000 })
+      // 前进四的过载动画持续 4.6 秒，动画中按钮在动，等它稳定
+      await page.getByRole('button', { name: '跳过' }).click({ timeout: 9000 })
       await page.getByRole('button', { name: '归还质量' }).click({ timeout: 5000 })
       await page.waitForTimeout(600)
     },
@@ -368,6 +552,7 @@ const STATES = [
     slug: 'sector-j',
     act: async (page) => {
       await page.getByRole('button', { name: /^掩体计划/ }).click({ timeout: 8000 })
+      await page.getByRole('button', { name: '看看人类要住进去的城市' }).click()
       await page.getByRole('button', { name: '按住，把人类搬进阴影' }).focus()
       await page.keyboard.press('Enter')
       await page.waitForTimeout(6000)
@@ -464,6 +649,21 @@ const STATES = [
     },
   },
   {
+    // 银河人类：同一条航程，结局里的演化树与读者这一支
+    name: 'mobile-galaxy-tree',
+    viewport: 'mobile',
+    slug: 'sector-human',
+    act: async (page) => {
+      await page.getByRole('button', { name: '继续向深空前进' }).click({ timeout: 8000 })
+      await page.getByRole('button', { name: '按住，先开火，夺取别的船上的物资' }).focus()
+      await page.keyboard.press('Enter')
+      await page.getByRole('button', { name: '军事化管理，一切服从生存' }).click()
+      await page.getByRole('button', { name: '不回去，这里就是我们的家' }).click()
+      await page.locator('.branch').scrollIntoViewIfNeeded()
+      await page.waitForTimeout(500)
+    },
+  },
+  {
     // 人物志：一个人的选择，翻开第一条后果
     name: 'mobile-figures-choices',
     viewport: 'mobile',
@@ -471,6 +671,65 @@ const STATES = [
     act: async (page) => {
       await page.getByRole('button', { name: '一个人的选择' }).click({ timeout: 10000 })
       await page.getByRole('button', { name: '后来发生了什么' }).first().click({ timeout: 5000 })
+      await page.waitForTimeout(400)
+    },
+  },
+  {
+    // 人物志 · 对话室：在杨冬墓前遇见罗辑，他先开口
+    name: 'figures-talk-open',
+    viewport: 'desktop',
+    slug: 'sector-p',
+    act: async (page) => {
+      await page.locator('.figure-card', { hasText: '罗辑' }).first().click({ timeout: 10000 })
+      await page.getByRole('button', { name: /与他对话/ }).click({ timeout: 5000 })
+      await page.waitForTimeout(600)
+    },
+  },
+  {
+    // 人物志 · 对话室：问到两个话题，心防松了两格（CI 没有模型，回答来自档案录音）
+    name: 'mobile-figures-talk-guard',
+    viewport: 'mobile',
+    slug: 'sector-p',
+    act: async (page) => {
+      await page.locator('.figure-card', { hasText: '罗辑' }).first().click({ timeout: 10000 })
+      await page.getByRole('button', { name: /与他对话/ }).click({ timeout: 5000 })
+      for (const q of ['那两句话是什么？', '文明之间能互相信任吗？']) {
+        await page.locator('#talk-input').fill(q)
+        await page.getByRole('button', { name: '说', exact: true }).click()
+        await page.waitForFunction(() => !document.querySelector('.cursor'), null, { timeout: 15000 })
+      }
+      await page.waitForTimeout(500)
+    },
+  },
+  {
+    // 人物志 · 对话室：给云天明看星星的产权证书，再离开时看到告别小结
+    name: 'figures-talk-token-farewell',
+    viewport: 'desktop',
+    slug: 'sector-p',
+    act: async (page) => {
+      await page.locator('.figure-card', { hasText: '云天明' }).first().click({ timeout: 10000 })
+      await page.getByRole('button', { name: /与他对话/ }).click({ timeout: 5000 })
+      await page.getByRole('button', { name: '放下一样东西' }).click()
+      await page.getByRole('button', { name: '一张星星的产权证书' }).click()
+      await page.waitForFunction(() => !document.querySelector('.cursor'), null, { timeout: 15000 })
+      await page.getByRole('button', { name: '离开对话室' }).click()
+      await page.waitForTimeout(400)
+    },
+  },
+  {
+    // 人物志 · 对谈：程心与维德谈光速飞船，两轮之后由访客判断
+    name: 'mobile-figures-debate',
+    viewport: 'mobile',
+    slug: 'sector-p',
+    act: async (page) => {
+      await page.getByRole('button', { name: '对谈' }).click({ timeout: 10000 })
+      await page.getByRole('button', { name: '请他们开始' }).click()
+      await page.getByRole('button', { name: '请他们接着说' }).waitFor({ timeout: 20000 })
+      await page.waitForFunction(() => !document.querySelector('.go:disabled'), null, { timeout: 20000 })
+      await page.locator('#debate-input').fill('如果只能救一部分人呢？')
+      await page.getByRole('button', { name: '请他们接着说' }).click()
+      await page.locator('.judge').waitFor({ timeout: 20000 })
+      await page.locator('.judge').scrollIntoViewIfNeeded()
       await page.waitForTimeout(400)
     },
   },
@@ -587,7 +846,8 @@ const STATES = [
       await page.getByRole('radio', { name: '前进三' }).click({ timeout: 8000 })
       await page.getByRole('button', { name: '按住，前进四' }).focus()
       await page.keyboard.press('Enter')
-      await page.getByRole('button', { name: '跳过' }).click({ timeout: 5000 })
+      // 前进四的过载动画持续 4.6 秒，动画中按钮在动，等它稳定
+      await page.getByRole('button', { name: '跳过' }).click({ timeout: 9000 })
       await page.waitForTimeout(800)
     },
   },

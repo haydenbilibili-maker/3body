@@ -178,7 +178,6 @@ const targetHydrated = computed(() => (civ.value.pending ? civ.value.pending.to 
       title="三体摆"
       subtitle="三颗太阳，一颗行星。没有任何历法能算准明天。"
       goal="文明从脱水状态开始。每天决定浸泡还是脱水：浸泡才会发展，但遇上乱纪元就会毁灭。切换需要两天。发展到信息时代即可。"
-      accent="#e7b46a"
       :show-restart="civ.day > 0"
       restart-label="换一片星空"
       @restart="restart"
@@ -384,7 +383,7 @@ const targetHydrated = computed(() => (civ.value.pending ? civ.value.pending.to 
 .won-box { max-width: 36rem; padding: 2rem; background: var(--slab); border: 1px solid var(--incision); }
 .won-box h2 { margin: 0 0 1rem; font-family: var(--font-title); font-weight: 900; font-size: 1.75rem; letter-spacing: 0.06em; color: var(--bone); }
 .won-box p { margin: 0 0 0.75rem; font-family: var(--font-serif); font-size: 1.0625rem; line-height: 1.9; color: var(--gray-150); }
-.won-question { margin-top: 1.25rem !important; padding-left: 1rem; border-left: 1px solid #e7b46a; color: var(--bone) !important; }
+.won-question { margin-top: 1.25rem !important; padding-left: 1rem; border-left: 1px solid var(--era-common); color: var(--bone) !important; }
 .won-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1.5rem; }
 .fade-enter-active { transition: opacity 0.8s; }
 .fade-enter-from { opacity: 0; }

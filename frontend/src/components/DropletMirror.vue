@@ -1,13 +1,18 @@
 <script setup lang="ts">
 /**
  * 水滴：绝对光滑的镜面。
- * WebGL 片元着色器里光线步进一个泪滴形的距离场，表面是完美镜面，倒映出银河、星点和一颗远处的太阳。
+ * WebGL 片元着色器里光线步进一个泪滴形的距离场，表面是完美镜面，倒映出它此刻经过的地方：
+ * 星云、恒星、木星的条纹、地球、联合舰队的阵列……
  * 拖动可以转动它；按住「让它动起来」，它会在一瞬间加速离去，再从远处回来。
  * 没有 WebGL 时显示一张静态的渐变。
  */
 import { onMounted, onUnmounted, ref } from 'vue'
 
-const props = defineProps<{ go?: number }>()
+/**
+ * stage：航程中的哪一站（0–8），决定镜面里倒映出的世界；切换时两站的倒影交叠一秒多。
+ * 0 深空 · 1 星云边缘 · 2 掠过恒星 · 3 奥尔特云 · 4 木星 · 5 小行星带 · 6 地月空间 · 7 地球 · 8 联合舰队
+ */
+const props = defineProps<{ go?: number; stage?: number }>()
 const canvas = ref<HTMLCanvasElement | null>(null)
 const failed = ref(false)
 let gl: WebGLRenderingContext | null = null
@@ -17,11 +22,15 @@ let ro: ResizeObserver | undefined
 const rot = { yaw: 0.6, pitch: 0.15, vy: 0, vp: 0 }
 let dragging = false
 let last = { x: 0, y: 0 }
+let stageNow = props.stage ?? 0
+let stagePrev = stageNow
+let mixStart = -1e9
+const reduced = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
 
 const VERT = `attribute vec2 p; void main(){ gl_Position = vec4(p, 0.0, 1.0); }`
 const FRAG = `
 precision highp float;
-uniform vec2 uRes; uniform float uTime; uniform vec2 uRot; uniform float uGo;
+uniform vec2 uRes; uniform float uTime; uniform vec2 uRot; uniform float uGo; uniform float uStage; uniform float uPrev; uniform float uMix;
 
 float hash(vec3 p){ p = fract(p * 0.3183099 + 0.1); p *= 17.0; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }
 
@@ -44,19 +53,110 @@ float map(vec3 p){
   return d * 0.55;
 }
 
-vec3 env(vec3 d){
-  vec3 col = vec3(0.045, 0.05, 0.06);
-  float band = exp(-pow(dot(d, normalize(vec3(0.25, 1.0, 0.35))) * 3.2, 2.0));
-  col += vec3(0.16, 0.15, 0.14) * band;
+// 值噪声用的散列：比星点用的 hash 更均匀，避免星云出现棋盘格
+float h3(vec3 p){ return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43758.5453); }
+float noise(vec3 p){
+  vec3 i = floor(p); vec3 f = fract(p); f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(mix(h3(i), h3(i + vec3(1.0, 0.0, 0.0)), f.x), mix(h3(i + vec3(0.0, 1.0, 0.0)), h3(i + vec3(1.0, 1.0, 0.0)), f.x), f.y),
+             mix(mix(h3(i + vec3(0.0, 0.0, 1.0)), h3(i + vec3(1.0, 0.0, 1.0)), f.x), mix(h3(i + vec3(0.0, 1.0, 1.0)), h3(i + vec3(1.0, 1.0, 1.0)), f.x), f.y), f.z);
+}
+float fbm(vec3 p){ float a = 0.5, s = 0.0; for (int i = 0; i < 4; i++) { s += a * noise(p); p *= 2.03; a *= 0.5; } return s; }
+
+vec3 stars(vec3 d, float amount){
+  vec3 col = vec3(0.0);
   for (int i = 0; i < 2; i++) {
     float sc = i == 0 ? 160.0 : 60.0;
     vec3 g = d * sc; vec3 id = floor(g); float h = hash(id + float(i) * 13.1);
     float th = i == 0 ? 0.982 : 0.995;
     if (h > th) { vec3 f = fract(g) - 0.5; col += vec3(1.0, 0.97, 0.9) * smoothstep(0.32, 0.0, length(f)) * (h - th) * (i == 0 ? 55.0 : 160.0); }
   }
-  col += vec3(1.0, 0.86, 0.62) * pow(max(dot(d, normalize(vec3(0.75, 0.32, 0.58))), 0.0), 600.0) * 4.0;
-  col += vec3(0.49, 0.72, 1.0) * pow(max(dot(d, normalize(vec3(-0.6, -0.1, 0.8))), 0.0), 900.0) * 1.5;
-  return col;
+  return col * amount;
+}
+
+/* 天空中的一个球（行星、月亮）：返回覆盖度与球面坐标 */
+float disc(vec3 d, vec3 c, float r, out vec3 q){
+  float k = dot(d, c);
+  vec3 off = d - c * k;
+  float m = length(off) / r;
+  // 球面上的局部坐标：x、y 在球面切平面里，z 朝向观察者
+  vec3 tu = normalize(cross(c, vec3(0.0, 1.0, 0.0)));
+  vec3 tv = cross(tu, c);
+  q = vec3(dot(off, tu) / r, dot(off, tv) / r, sqrt(max(0.0, 1.0 - m * m)));
+  return step(0.0, k) * smoothstep(1.0, 0.985, m);
+}
+
+vec3 envStage(vec3 d, float st){
+  vec3 base = vec3(0.04, 0.045, 0.055);
+  float band = exp(-pow(dot(d, normalize(vec3(0.25, 1.0, 0.35))) * 3.2, 2.0));
+  vec3 sunDir = normalize(vec3(0.75, 0.32, 0.58));
+  float sun = pow(max(dot(d, sunDir), 0.0), 600.0);
+  vec3 q;
+  if (st < 0.5) {
+    // 深空：银河的一条暗带与星点
+    return base + vec3(0.16, 0.15, 0.14) * band + stars(d, 1.0) + vec3(0.49, 0.72, 1.0) * pow(max(dot(d, normalize(vec3(-0.6, -0.1, 0.8))), 0.0), 900.0) * 1.5;
+  } else if (st < 1.5) {
+    // 星云边缘：恒星诞生区的气体
+    float n = fbm(d * 3.0 + vec3(0.0, 0.0, uTime * 0.01));
+    float n2 = fbm(d * 6.0 + 4.0);
+    vec3 gas = mix(vec3(0.42, 0.16, 0.30), vec3(0.12, 0.38, 0.42), n2) * smoothstep(0.35, 0.8, n) * 1.3;
+    return base + gas + stars(d, 0.8);
+  } else if (st < 2.5) {
+    // 掠过恒星：一个巨大的日面与日冕
+    vec3 c = normalize(vec3(0.6, 0.15, 0.78));
+    float a = acos(clamp(dot(d, c), -1.0, 1.0));
+    float corona = exp(-a * 5.0) * (0.8 + 0.4 * fbm(d * 12.0 + uTime * 0.05));
+    return base * 0.5 + vec3(1.0, 0.78, 0.5) * corona * 2.2 + vec3(1.0, 0.95, 0.85) * smoothstep(0.33, 0.30, a) * 4.0 + stars(d, 0.3);
+  } else if (st < 3.5) {
+    // 奥尔特云：冰冷、稀疏，远处一颗暗淡的太阳和几颗彗星
+    float ice = smoothstep(0.55, 0.9, fbm(d * 9.0)) * 0.12;
+    vec3 col = base + vec3(0.55, 0.7, 0.85) * ice + stars(d, 1.2) + vec3(1.0, 0.9, 0.75) * sun * 1.5;
+    float comet = pow(max(dot(d, normalize(vec3(-0.4, 0.5, 0.7))), 0.0), 3000.0) * 3.0;
+    return col + vec3(0.7, 0.85, 1.0) * comet;
+  } else if (st < 4.5) {
+    // 木星：铺满半边天空的条纹
+    float cov = disc(d, normalize(vec3(-0.35, 0.25, 0.9)), 0.62, q);
+    float lat = q.y + 0.08 * fbm(vec3(q.xy * 6.0, uTime * 0.02));
+    vec3 bands = mix(vec3(0.62, 0.48, 0.34), vec3(0.86, 0.76, 0.62), 0.5 + 0.5 * sin(lat * 22.0));
+    bands *= 0.35 + 0.65 * clamp(dot(q, normalize(vec3(0.6, 0.3, 0.7))), 0.0, 1.0);
+    return mix(base + stars(d, 0.9) + vec3(1.0, 0.9, 0.75) * sun * 2.0, bands, cov);
+  } else if (st < 5.5) {
+    // 小行星带：碎石与冰尘
+    vec3 g = d * 70.0; vec3 id = floor(g); float h = hash(id);
+    float rock = step(0.96, h) * smoothstep(0.42, 0.12, length(fract(g) - 0.5 + 0.1 * (hash(id + 3.0) - 0.5)));
+    float dust = exp(-pow(dot(d, normalize(vec3(0.1, 1.0, 0.2))) * 5.0, 2.0)) * 0.12;
+    return base + vec3(0.45, 0.42, 0.38) * rock * (0.4 + h) + vec3(0.5, 0.48, 0.44) * dust + stars(d, 0.7) + vec3(1.0, 0.9, 0.75) * sun * 3.0;
+  } else if (st < 6.5) {
+    // 地月空间：灰白的月面与强烈的日光
+    float cov = disc(d, normalize(vec3(-0.5, -0.1, 0.86)), 0.42, q);
+    float craters = fbm(vec3(q.xy * 7.0, 1.0));
+    vec3 moon = vec3(0.6, 0.6, 0.58) * (0.5 + 0.6 * craters) * clamp(dot(q, normalize(vec3(0.8, 0.3, 0.5))) + 0.15, 0.0, 1.0);
+    return mix(base + stars(d, 0.6) + vec3(1.0, 0.95, 0.85) * sun * 6.0, moon, cov);
+  } else if (st < 7.5) {
+    // 地球：蓝色的海、白色的云、一圈大气
+    vec3 c = normalize(vec3(-0.25, -0.35, 0.9));
+    float cov = disc(d, c, 0.55, q);
+    float land = smoothstep(0.52, 0.6, fbm(vec3(q.xy * 3.0, 2.0)));
+    float cloud = smoothstep(0.55, 0.75, fbm(vec3(q.xy * 5.0 + uTime * 0.01, 5.0)));
+    vec3 surf = mix(vec3(0.05, 0.18, 0.42), vec3(0.22, 0.32, 0.18), land);
+    surf = mix(surf, vec3(0.92), cloud) * clamp(dot(q, normalize(vec3(0.7, 0.4, 0.6))) + 0.1, 0.0, 1.0);
+    float m = length(d - c * dot(d, c)) / 0.55;
+    float rim = exp(-abs(m - 1.0) * 40.0) * step(0.0, dot(d, c));
+    return mix(base + stars(d, 0.5), surf, cov) + vec3(0.35, 0.6, 1.0) * rim * 0.8;
+  }
+  // 联合舰队：两千艘恒星级战舰的灯，排成整齐的阵列
+  vec3 col = base + stars(d, 0.4) + vec3(1.0, 0.9, 0.75) * sun * 2.0;
+  vec2 uv = vec2(atan(d.x, d.z), d.y);
+  vec2 cell = uv * vec2(28.0, 34.0);
+  vec2 f = fract(cell) - 0.5; vec2 id = floor(cell);
+  float inFormation = step(abs(d.y + 0.05), 0.35) * step(0.0, d.z);
+  float light = smoothstep(0.12, 0.0, length(f)) * inFormation * step(0.15, hash(vec3(id, 7.0)));
+  return col + vec3(0.75, 0.85, 1.0) * light * 1.6;
+}
+
+vec3 env(vec3 d){
+  vec3 a = envStage(d, uStage);
+  if (uMix >= 0.999) return a;
+  return mix(envStage(d, uPrev), a, uMix);
 }
 
 void main(){
@@ -123,6 +223,17 @@ function frame(now: number) {
   gl.uniform1f(gl.getUniformLocation(prog, 'uTime'), now / 1000)
   gl.uniform2f(gl.getUniformLocation(prog, 'uRot'), rot.yaw, rot.pitch)
   gl.uniform1f(gl.getUniformLocation(prog, 'uGo'), props.go ?? 0)
+  /* 换站时两站的倒影交叠 1.4 秒 */
+  const target = props.stage ?? 0
+  if (target !== stageNow) {
+    stagePrev = stageNow
+    stageNow = target
+    mixStart = now
+  }
+  const mix = reduced ? 1 : Math.min(1, (now - mixStart) / 1400)
+  gl.uniform1f(gl.getUniformLocation(prog, 'uStage'), stageNow)
+  gl.uniform1f(gl.getUniformLocation(prog, 'uPrev'), stagePrev)
+  gl.uniform1f(gl.getUniformLocation(prog, 'uMix'), mix)
   gl.drawArrays(gl.TRIANGLES, 0, 6)
   raf = requestAnimationFrame(frame)
 }
