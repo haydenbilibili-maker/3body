@@ -717,6 +717,33 @@ const STATES = [
     },
   },
   {
+    // 人物志 · 对话室：自由对话，没有时刻、没有心防，问一句档案里的问题
+    name: 'figures-talk-free',
+    viewport: 'desktop',
+    slug: 'sector-p',
+    act: async (page) => {
+      await page.locator('.figure-card', { hasText: '罗辑' }).first().click({ timeout: 10000 })
+      await page.getByRole('button', { name: /与他对话/ }).click({ timeout: 5000 })
+      await page.getByRole('radio', { name: /自由对话/ }).click()
+      await page.locator('.chip').first().click()
+      await page.waitForFunction(() => !document.querySelector('.cursor'), null, { timeout: 15000 })
+      await page.waitForTimeout(400)
+    },
+  },
+  {
+    // 原著阅读：书架上已有书时，再进来直接翻开那本书，而不是停在导入页
+    name: 'desktop-reader-reopen',
+    viewport: 'desktop',
+    slug: 'sector-library',
+    act: async (page) => {
+      await page.setInputFiles('input[type=file]', { name: '三体试读.txt', mimeType: 'text/plain', buffer: Buffer.from('56ys5LiA56ugIOenkeWtpui+ueeVjAoK44CA44CA5rGq5re85b2T5pe25q2j5Zyo5a6e6aqM5a6k6YeM44CCCgrnrKzkuoznq6Ag5Y+w55CDCgrjgIDjgIDlj7DnkIPmmK/kuIDkuKrnu4/lhbjnmoTlrp7pqozjgIIK', 'base64') })
+      await page.waitForSelector('.page .para', { timeout: 10000 })
+      await page.reload()
+      await page.waitForSelector('.page .para', { timeout: 10000 })
+      await page.waitForTimeout(500)
+    },
+  },
+  {
     // 人物志 · 对谈：程心与维德谈光速飞船，两轮之后由访客判断
     name: 'mobile-figures-debate',
     viewport: 'mobile',

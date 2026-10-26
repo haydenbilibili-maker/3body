@@ -238,8 +238,24 @@ function onKey(e: KeyboardEvent) {
   }
 }
 
+/** 书架上已有书时，直接翻开最近读过的那本（没读过就翻开第一本），而不是停在导入页；合上书仍回到书架 */
+async function openLatest() {
+  await refreshShelf()
+  if (book.value || !shelf.value.length) return
+  let latest = shelf.value[0]
+  let at = -1
+  for (const item of shelf.value) {
+    const t = progressMap.value.get(item.id)?.updatedAt ?? -1
+    if (t > at) {
+      at = t
+      latest = item
+    }
+  }
+  await openBook(latest.id)
+}
+
 onMounted(() => {
-  refreshShelf()
+  void openLatest()
   window.addEventListener('keydown', onKey)
   scroller()?.addEventListener('scroll', onScroll, { passive: true })
 })

@@ -133,6 +133,12 @@ def figure_system_prompt(
                 )
         if scene.visitor:
             parts.append(f"关于眼前这位访客，你隐约听说过：{scene.visitor}。合适的时候可以自然地提起，但不要背诵。")
+    else:
+        # 自由对话：不在任何一个具体时刻，人物知道自己的一生，像在档案馆里回望
+        parts.append(
+            "这是一次自由对话：你不在任何一个具体的时刻，而是在冥王星档案馆里回望自己的一生。"
+            "原著里你经历过的事你都记得，可以按自己的方式谈起；没有经历过的，不要编造。"
+        )
     parts += [
         "回答要像对面坐着一个人那样说话：两到五句，口语化，有停顿；可以在全角括号里写一个简短的动作或神态，例如（他沉默了一会儿），每次最多一处。",
         "偶尔可以反问访客一句。不要用列表、标题或者 Markdown。",
@@ -147,9 +153,9 @@ def figure_system_prompt(
 
 async def _figure_chunks(req: FigureChatRequest) -> AsyncIterator[str]:
     passages: List[str] = []
-    if req.scene:
-        # 检索失败或未安装 RAG 依赖时返回空列表，对话照常进行
-        passages = await retrieve_context(f"{req.figure_name} {req.scene.title} {req.message}", k=2)
+    # 检索失败或未安装 RAG 依赖时返回空列表，对话照常进行
+    topic = f"{req.figure_name} {req.scene.title} {req.message}" if req.scene else f"{req.figure_name} {req.message}"
+    passages = await retrieve_context(topic, k=2)
     system = figure_system_prompt(req.figure_name, req.figure_role, req.figure_description, req.scene, passages)
     history = [m.model_dump() for m in (req.history or [])]
     async for chunk in stream_chat_messages(
