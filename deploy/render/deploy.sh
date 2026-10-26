@@ -20,13 +20,13 @@ TIMEOUT="${DEPLOY_TIMEOUT:-900}"
 SHA="$(git rev-parse --short HEAD)"
 echo "▶ 触发 Render 部署（目标提交 ${SHA}）"
 
-curl -fsS -X POST --max-time 60 "$HOOK" >/dev/null
+curl -fsS -X POST --max-time 60 --retry 3 --retry-delay 2 --retry-all-errors "$HOOK" >/dev/null
 echo "✅ 部署已触发，等待线上生效 ..."
 
 DEADLINE=$(( $(date +%s) + TIMEOUT ))
 while [ "$(date +%s)" -lt "$DEADLINE" ]; do
   sleep 15
-  COMMIT="$(curl -fsS --max-time 30 "$BASE/health" 2>/dev/null \
+  COMMIT="$(curl -fsS --max-time 30 --retry 2 --retry-delay 2 --retry-all-errors "$BASE/health" 2>/dev/null \
     | grep -o '"commit":"[^"]*"' | cut -d'"' -f4 || true)"
   if [ "$COMMIT" = "$SHA" ]; then
     echo "✅ 上线完成：$BASE 正在运行 $SHA"
