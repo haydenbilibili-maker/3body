@@ -136,6 +136,11 @@ const go = (path: string) => router.push(path)
             </li>
           </ol>
         </section>
+
+        <!-- 碑文：放在左栏压暗的区域里，不压住背景里运动的太阳，也不遮挡任何内容 -->
+        <transition name="inscription" mode="out-in">
+          <p :key="inscriptionIndex" class="inscription" aria-live="off">{{ INSCRIPTIONS[inscriptionIndex] }}</p>
+        </transition>
       </section>
 
       <nav class="index" aria-label="按纪元排列的展厅">
@@ -162,9 +167,6 @@ const go = (path: string) => router.push(path)
       </nav>
     </div>
 
-    <transition name="inscription" mode="out-in">
-      <p :key="inscriptionIndex" class="inscription">{{ INSCRIPTIONS[inscriptionIndex] }}</p>
-    </transition>
   </div>
 </template>
 
@@ -334,16 +336,14 @@ const go = (path: string) => router.push(path)
 
 /* 碑文 */
 .inscription {
-  position: relative;
-  z-index: 1;
-  margin: 0;
-  padding: 0 1.25rem 3rem;
-  text-align: center;
+  margin: 1.75rem 0 0;
+  padding-left: 1rem;
+  border-left: 1px solid var(--incision);
   font-family: var(--font-serif);
-  font-size: 1rem;
-  letter-spacing: 0.3em;
+  font-size: 0.9375rem;
+  line-height: 1.8;
+  letter-spacing: 0.12em;
   color: var(--weathered);
-  pointer-events: none;
 }
 .inscription-enter-active, .inscription-leave-active { transition: opacity 1.6s ease, filter 1.6s ease; }
 .inscription-enter-from, .inscription-leave-to { opacity: 0; filter: blur(4px); }
@@ -353,7 +353,6 @@ const go = (path: string) => router.push(path)
   .hero, .index { grid-column: 1; }
   .index { align-self: start; max-width: 32rem; }
   .home-shade { background: linear-gradient(180deg, rgba(19, 20, 22, 0.55) 0%, rgba(19, 20, 22, 0.92) 45%, rgba(19, 20, 22, 0.97) 100%); }
-  .inscription { letter-spacing: 0.15em; }
 }
 @media (max-width: 600px) {
   .home-grid { padding: 2.25rem 1rem 3rem; gap: 2.5rem; }

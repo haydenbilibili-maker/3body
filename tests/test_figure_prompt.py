@@ -32,3 +32,9 @@ def test_visitor_and_passages_are_optional():
     p = figure_system_prompt("罗辑", None, None, _scene(visitor="在执剑人大厅守住了威慑"), ["罗辑走进墓园。"])
     assert "守住了威慑" in p and "罗辑走进墓园" in p
     assert "此刻的场景" not in figure_system_prompt("罗辑", None, None)
+
+
+def test_free_conversation_looks_back_on_a_whole_life():
+    p = figure_system_prompt("罗辑", "面壁者", None)
+    assert "自由对话" in p
+    assert "此刻的场景" not in p

@@ -8,6 +8,8 @@
  * - 说话的节奏：回答按说话的速度出现，遇到动作和句号会停一停
  * - 信物：把一样东西放在人物面前；对的信物直接打开一格心防
  * - 听他说：浏览器的中文语音读出台词（动作不读），每位人物音高不同；默认关闭
+ * - 自由对话：不设时刻、没有心防，像在档案馆里随便聊；人物知道自己的一生
+ * - 声音：按人物性别挑选系统里的男声或女声，找不到男声时把音高压低
  * - 告别：离开时一张小结：谈了几句、心防开了几格、他最后说了什么
  * - 没有后端时，用档案里的录音（预设问答与场景台词）兜底
  * 场景数据见 data/figureScenes.ts；人设提示词由后端按场景组织（backend/routers/chat.py）。
@@ -30,8 +32,30 @@ const emit = defineEmits<{ close: [] }>()
 
 const llmConfig = useLlmConfigStore()
 const scenes = computed(() => scenesOf(props.figure.name))
-const sceneId = ref(scenes.value[0]?.id ?? '')
-const scene = computed<FigureScene | undefined>(() => scenes.value.find((s) => s.id === sceneId.value))
+/** 自由对话：一个没有时间、没有心防的「场景」，人物知道自己的一生 */
+const FREE = computed(() => `free-${props.figure.name}`)
+const freeScene = computed<FigureScene>(() => {
+  const set = hasDialogue(props.figure.name) ? getDialogueSet(props.figure.name) : null
+  return {
+    id: FREE.value,
+    figure: props.figure.name,
+    title: '自由对话',
+    era: '时间之外',
+    setting: '冥王星档案馆的一间空房间。没有具体的年份，也没有要完成的事。你可以问他一生里的任何事，或者只是随便聊聊。',
+    knows: '',
+    mood: '',
+    opening: set?.intro || `（${props.figure.name}在你对面坐下。）你想聊什么？`,
+    questions: set?.qa.map((x) => x.question) ?? [],
+    secret: '',
+    keys: [],
+    offline: set?.qa.map((x) => x.answer) ?? ['（他想了一会儿。）这件事，我说不好。'],
+  }
+})
+const sceneId = ref(scenes.value[0]?.id ?? FREE.value)
+const isFree = computed(() => sceneId.value === FREE.value)
+const scene = computed<FigureScene | undefined>(() =>
+  isFree.value ? freeScene.value : scenes.value.find((s) => s.id === sceneId.value),
+)
 
 type Msg = { role: 'user' | 'figure'; content: string; offline?: boolean; token?: string }
 const KEY = 'figure-talk-v1'
@@ -65,8 +89,8 @@ const listEl = ref<HTMLElement | null>(null)
 /* ---------- 心防 ---------- */
 const userLines = computed(() => messages.value.filter((m) => m.role === 'user' && !m.token).map((m) => m.content))
 const tokensUsed = computed(() => messages.value.filter((m) => m.token).map((m) => m.token!))
-const touched = computed(() => (scene.value ? openedKeys(scene.value, userLines.value, tokensUsed.value) : new Set<string>()))
-const open = computed(() => !!scene.value && touched.value.size >= scene.value.keys.length)
+const touched = computed(() => (scene.value && !isFree.value ? openedKeys(scene.value, userLines.value, tokensUsed.value) : new Set<string>()))
+const open = computed(() => !!scene.value && !isFree.value && touched.value.size >= scene.value.keys.length)
 const revealedKey = 'figure-talk-revealed-v1'
 function loadRevealed(): string[] {
   try {
@@ -150,7 +174,7 @@ async function send(text: string, tokenId?: string) {
   scrollDown()
 
   // 这一句是否刚好打开了心防：打开后的这一轮，人物可以把藏着的事说出来
-  const willOpen = openedKeys(s, [...userLines.value], [...tokensUsed.value]).size >= s.keys.length
+  const willOpen = !isFree.value && openedKeys(s, [...userLines.value], [...tokensUsed.value]).size >= s.keys.length
   const reply: Msg = { role: 'figure', content: '' }
   setMessages([...list, reply])
   loading.value = true
@@ -164,7 +188,10 @@ async function send(text: string, tokenId?: string) {
       figure_description: props.figure.description || undefined,
       message: q,
       history: [{ role: 'assistant' as const, content: s.opening }, ...history].slice(-16),
-      scene: {
+      // 自由对话不带场景：后端按人物的一生组织人设
+      scene: isFree.value
+        ? undefined
+        : {
         title: s.title,
         era: s.era,
         setting: s.setting,
@@ -173,7 +200,7 @@ async function send(text: string, tokenId?: string) {
         secret: s.secret,
         reveal: willOpen,
         visitor: visitor.value,
-      },
+          },
       ...llmConfig.requestOverrides,
     },
     (chunk) => {
@@ -247,7 +274,28 @@ try {
 } catch {
   /* 忽略 */
 }
-const PITCH: Record<string, number> = { 叶文洁: 0.9, 程心: 1.15, '智子 (仿生人)': 1.25, 云天明: 1.0, 罗辑: 0.85, 章北海: 0.75, '托马斯·维德': 0.7, 史强: 0.8, 汪淼: 0.95, 丁仪: 0.9 }
+const PITCH: Record<string, number> = { 叶文洁: 0.95, 程心: 1.1, '智子 (仿生人)': 1.2, 云天明: 1.0, 罗辑: 0.95, 章北海: 0.85, '托马斯·维德': 0.8, 史强: 0.85, 汪淼: 1.0, 丁仪: 0.95 }
+/** 女性人物；其余默认男声 */
+const FEMALE = new Set(['叶文洁', '程心', '智子 (仿生人)', '智子', '艾AA', '杨冬', '庄颜', '大史的妻子', '关一帆的同伴'])
+const isFemale = computed(() => FEMALE.has(props.figure.name) || /女|她/.test(props.figure.role ?? ''))
+const MALE_HINT = /yunxi|yunyang|yunjian|yunhao|yunfeng|kangkang|liang|li-mu|zhiwei|male(?!\s*female)|男/i
+const FEMALE_HINT = /xiaoxiao|xiaoyi|xiaohan|xiaomo|huihui|tingting|meijia|sinji|yaoyao|hanhan|yating|female|女/i
+const voices = ref<SpeechSynthesisVoice[]>([])
+function loadVoices() {
+  if (canSpeak) voices.value = window.speechSynthesis.getVoices()
+}
+/** 按性别挑一副中文嗓子；找不到对应性别时返回 null，由音高来补 */
+function pickVoice(female: boolean): { voice: SpeechSynthesisVoice | null; matched: boolean } {
+  const zh = voices.value.filter((v) => v.lang.toLowerCase().startsWith('zh') || /chinese|中文|普通话/i.test(v.name))
+  const mainland = (v: SpeechSynthesisVoice) => (/zh[-_]cn/i.test(v.lang) ? 0 : 1)
+  const hint = female ? FEMALE_HINT : MALE_HINT
+  const other = female ? MALE_HINT : FEMALE_HINT
+  const hit = zh.filter((v) => hint.test(v.name) && !other.test(v.name)).sort((a, b) => mainland(a) - mainland(b))[0]
+  if (hit) return { voice: hit, matched: true }
+  // 名字看不出性别的嗓子：女声人物可以用，男声人物也用、但要压低音高
+  const neutral = zh.filter((v) => !other.test(v.name)).sort((a, b) => mainland(a) - mainland(b))[0]
+  return { voice: neutral ?? zh[0] ?? null, matched: false }
+}
 function stopVoice() {
   if (canSpeak) window.speechSynthesis.cancel()
 }
@@ -258,10 +306,14 @@ function speak(text: string) {
   stopVoice()
   const u = new SpeechSynthesisUtterance(words)
   u.lang = 'zh-CN'
-  const zh = window.speechSynthesis.getVoices().find((v) => v.lang.toLowerCase().startsWith('zh'))
-  if (zh) u.voice = zh
-  u.pitch = PITCH[props.figure.name] ?? 1
-  u.rate = 0.95
+  if (!voices.value.length) loadVoices()
+  const female = isFemale.value
+  const { voice, matched } = pickVoice(female)
+  if (voice) u.voice = voice
+  const base = PITCH[props.figure.name] ?? (female ? 1.05 : 0.9)
+  // 系统里只有女声时，男性人物把音高压到最低一档，至少听起来不像女人在说话
+  u.pitch = !female && !matched ? Math.min(base, 0.55) : base
+  u.rate = female ? 0.95 : 0.9
   window.speechSynthesis.speak(u)
 }
 function toggleVoice() {
@@ -304,10 +356,16 @@ function onKey(e: KeyboardEvent) {
 }
 onMounted(() => {
   window.addEventListener('keydown', onKey)
+  if (canSpeak) {
+    loadVoices()
+    // 部分浏览器的嗓子列表是异步加载的
+    window.speechSynthesis.addEventListener?.('voiceschanged', loadVoices)
+  }
   scrollDown()
 })
 onUnmounted(() => {
   window.removeEventListener('keydown', onKey)
+  if (canSpeak) window.speechSynthesis.removeEventListener?.('voiceschanged', loadVoices)
   stopVoice()
 })
 </script>
@@ -335,9 +393,14 @@ onUnmounted(() => {
             <span class="so-era">{{ s.era }}</span>
             <span class="so-title">{{ s.title }}</span>
           </button>
+          <button type="button" role="radio" class="scene-opt free" :aria-checked="isFree" @click="sceneId = FREE">
+            <span class="so-era">不在任何一个时刻</span>
+            <span class="so-title">自由对话</span>
+          </button>
         </div>
 
-        <template v-if="scene">
+        <p v-if="isFree" class="guard-note">没有心防，也没有要打开的秘密。他知道自己的一生，你想问什么都可以。</p>
+        <template v-if="scene && !isFree">
           <p class="side-label">心防</p>
           <ol class="guard" :aria-label="`心防，已经松动 ${touched.size} / ${scene.keys.length}`">
             <li v-for="k in scene.keys" :key="k.word" :class="{ on: touched.has(k.word) }">
@@ -415,7 +478,8 @@ onUnmounted(() => {
         <div class="fw-card">
           <p class="fw-era">{{ scene.era }} · {{ scene.title }}</p>
           <h2 id="fw-title" class="fw-title">你和{{ figure.name }}谈了 {{ rounds }} 句</h2>
-          <p class="fw-guard">心防开了 {{ touched.size }} / {{ scene.keys.length }} 格{{ sceneRevealed ? '，他对你说出了心里藏着的事。' : '。' }}</p>
+          <p v-if="isFree" class="fw-guard">没有时刻，也没有心防。只是聊了聊。</p>
+          <p v-else class="fw-guard">心防开了 {{ touched.size }} / {{ scene.keys.length }} 格{{ sceneRevealed ? '，他对你说出了心里藏着的事。' : '。' }}</p>
           <p class="fw-last">他最后说：「{{ lastWords }}」</p>
           <div class="fw-acts">
             <button type="button" class="ask-send" @click="farewell = false">再坐一会儿</button>
@@ -447,6 +511,7 @@ onUnmounted(() => {
 .role { margin: 0; font-size: 0.875rem; color: var(--weathered); }
 .side-label { margin: 0.75rem 0 0; font-size: 0.75rem; letter-spacing: 0.12em; color: var(--weathered); }
 .scenes { display: flex; flex-direction: column; gap: 0.4rem; }
+.scene-opt.free { border-style: dashed; }
 .scene-opt { display: flex; flex-direction: column; gap: 0.1rem; padding: 0.55rem 0.8rem; font: inherit; text-align: left; color: var(--bone); background: transparent; border: 1px solid var(--incision-soft); border-radius: var(--radius-cut); cursor: pointer; }
 .scene-opt[aria-checked='true'] { background: var(--slab-raised); border-color: var(--era-archive); }
 .so-era { font-size: 0.75rem; color: var(--weathered); }
