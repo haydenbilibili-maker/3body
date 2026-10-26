@@ -2,6 +2,7 @@
 3body - 三体宇宙 AI 沉浸式社区
 Backend Entry: FastAPI + Uvicorn
 """
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -76,6 +77,12 @@ async def health():
     """健康检查；附带 LLM 与 RAG 配置状态，便于排查「智子没有回答」."""
     return {
         "status": "healthy",
+        # 部署版本标记：Render 会注入 RENDER_GIT_COMMIT / RENDER_GIT_BRANCH，
+        # 本地或其它平台缺失时回退为 dev，便于线上确认「部署的是哪个提交」。
+        "version": {
+            "commit": (os.environ.get("RENDER_GIT_COMMIT") or os.environ.get("GIT_COMMIT") or "dev")[:7],
+            "branch": os.environ.get("RENDER_GIT_BRANCH", ""),
+        },
         "llm": {
             "base_url": settings.llm_base_url,
             "model": settings.llm_model,

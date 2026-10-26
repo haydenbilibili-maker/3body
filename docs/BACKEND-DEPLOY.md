@@ -12,7 +12,12 @@
 | 健康检查 | `GET https://threebody-api.onrender.com/health` |
 | LLM | DeepSeek `deepseek-chat`（Key 存于 Render 环境变量，不入库） |
 | 前端接入 | `frontend/.env.production` 中 `VITE_API_BASE` |
+| 自动部署 | **Auto-Deploy = On Commit**：推送到 `main` 后 Render 自动重建（服务名 `3body-api`，外部域名 `threebody-api.onrender.com`） |
+| 版本确认 | `GET /health` 的 `version.commit` 即 Render 注入的 `RENDER_GIT_COMMIT` |
 | 已知限制 | 15 分钟无访问休眠（冷启动 30–60s）；SQLite 临时存储，重启由种子脚本重建；未装 RAG |
+
+> ⚠️ 不要把 Auto-Deploy 设为 `After CI Checks Pass`：本仓库的 `CI` workflow 明确排除了 `main`
+> （`.github/workflows/ci.yml` 中 `branches-ignore: [main]`），Render 永远等不到该检查，推送后不会重建。
 
 ---
 
