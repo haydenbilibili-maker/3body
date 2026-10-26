@@ -12,12 +12,28 @@
 | 健康检查 | `GET https://threebody-api.onrender.com/health` |
 | LLM | DeepSeek `deepseek-chat`（Key 存于 Render 环境变量，不入库） |
 | 前端接入 | `frontend/.env.production` 中 `VITE_API_BASE` |
-| 自动部署 | **Auto-Deploy = On Commit**：推送到 `main` 后 Render 自动重建（服务名 `3body-api`，外部域名 `threebody-api.onrender.com`） |
+| 自动部署 | **Deploy Hook**（`deploy/render/deploy.sh`）：本仓无 Render webhook，Auto-Deploy 不生效 |
 | 版本确认 | `GET /health` 的 `version.commit` 即 Render 注入的 `RENDER_GIT_COMMIT` |
 | 已知限制 | 15 分钟无访问休眠（冷启动 30–60s）；SQLite 临时存储，重启由种子脚本重建；未装 RAG |
 
-> ⚠️ 不要把 Auto-Deploy 设为 `After CI Checks Pass`：本仓库的 `CI` workflow 明确排除了 `main`
-> （`.github/workflows/ci.yml` 中 `branches-ignore: [main]`），Render 永远等不到该检查，推送后不会重建。
+> ⚠️ 该 Render 服务以 **Public Git Repository** 方式接入（仓库无 webhook、无 GitHub App 安装），
+> 因此 **Auto-Deploy 无论设成 `On Commit` 还是 `After CI Checks Pass` 都不会触发**，只能用
+> Deploy Hook 或手动 Manual Deploy。改用 Deploy Hook 后一次触发约 30–60 秒生效。
+
+### 自动部署（Deploy Hook）
+
+在 Render 服务页 → **Settings → Deploy Hook** 复制 URL，然后本地执行：
+
+```bash
+export RENDER_DEPLOY_HOOK='https://api.render.com/deploy/srv-xxx?key=xxx'
+./deploy/render/deploy.sh          # 触发部署并轮询 /health，直到 version.commit == 本地 HEAD
+```
+
+脚本特性：
+
+- Hook 仅通过环境变量传入，**不写入仓库**；
+- 触发后每 15 秒轮询 `/health` 的 `version.commit`，与本地 `git rev-parse --short HEAD` 比对，确认真的上线；
+- 超过 `DEPLOY_TIMEOUT`（默认 900s）未一致则报错退出，避免「以为部署了其实没生效」。
 
 ---
 
